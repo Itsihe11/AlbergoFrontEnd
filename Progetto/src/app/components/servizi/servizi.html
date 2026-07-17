@@ -1,0 +1,16 @@
+<section>
+  <h1>I nostri servizi</h1>
+</section>
+
+<section>
+  @for (servizio of servizi; track servizio.nome) {
+    <article>
+      <h2>{{ servizio.nome }}</h2>
+      <p>{{ servizio.descrizione }}</p>
+    </article>
+  }
+</section>
+
+<section>
+  <a routerLink="/prenotazioni">Prenota la SPA</a>
+</section>

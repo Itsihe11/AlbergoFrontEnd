@@ -1,0 +1,31 @@
+<!-- camere.html -->
+<section>
+  <h1>Le nostre camere</h1>
+  <p>{{totaleCamere}} camere disponibili</p>
+</section>
+
+<section>
+  <article>
+    <p>{{ tipiCamera[0].immagine }}</p>
+    <h2>{{ tipiCamera[0].nome }}</h2>
+    <p>{{ tipiCamera[0].descrizione }}</p>
+    <p>A partire da {{ tipiCamera[0].prezzo }} € a notte</p>
+    <a routerLink="/prenotazioni">Verifica disponibilità</a>
+  </article>
+
+  <article>
+    <p>{{ tipiCamera[1].immagine }}</p>
+    <h2>{{ tipiCamera[1].nome }}</h2>
+    <p>{{ tipiCamera[1].descrizione }}</p>
+    <p>A partire da {{ tipiCamera[1].prezzo }} € a notte</p>
+    <a routerLink="/prenotazioni">Verifica disponibilità</a>
+  </article>
+
+  <article>
+    <p>{{ tipiCamera[2].immagine }}</p>
+    <h2>{{ tipiCamera[2].nome }}</h2>
+    <p>{{ tipiCamera[2].descrizione }}</p>
+    <p>A partire da {{ tipiCamera[2].prezzo }} € a notte</p>
+    <a routerLink="/prenotazioni">Verifica disponibilità</a>
+  </article>
+</section>
