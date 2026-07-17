@@ -1,1 +1,25 @@
-<h1>Da fare login ospiti e admin</h1>
+<section>
+  <div>
+    <div>
+      <div>
+        <h2>Accedi al Portale</h2>
+        
+        <div>
+          <label>Indirizzo Email</label>
+          <input type="text" [(ngModel)]="email">
+        </div>
+
+        <div>
+          <label>Password</label>
+          <input type="text"[(ngModel)]="password">
+        </div>
+
+        <button (click)="login()">Accedi</button>
+
+        @if (errore) {
+          <div>{{ errore }}</div>
+        }
+      </div>
+    </div>
+  </div>
+</section>

@@ -5,30 +5,48 @@ import { Camere } from './components/camere/camere';
 import { Servizi } from './components/servizi/servizi';
 import { Contatti } from './components/contatti/contatti';
 import { Utenti } from './components/utenti/utenti';
+import { Clienti } from './components/clienti/clienti';
+import { Admin } from './components/admin/admin';
+import { adminGuard, clienteGuard } from './auth/auth-guard';
 
 export const routes: Routes = [
     {
-        path: '', 
+        path: '',
         component: Home,
     },
     {
-        path: 'prenotazioni', 
+        path: 'prenotazioni',
         component: Prenotazioni,
     },
     {
-        path: 'camere', 
+        path: 'camere',
         component: Camere,
     },
     {
-        path: 'servizi', 
+        path: 'servizi',
         component: Servizi,
     },
     {
-        path: 'contatti', 
+        path: 'contatti',
         component: Contatti,
     },
     {
-        path: 'utenti', 
+        path: 'utenti',
         component: Utenti,
     },
+    {
+        path: 'clienti',
+        component: Clienti,
+        canActivate: [clienteGuard]
+    },
+    {
+        path: 'admin',
+        component: Admin,
+        canActivate: [adminGuard]
+    },
+    {
+        path: '**',
+        redirectTo: 'utenti',
+        pathMatch: 'full'
+    }
 ];
