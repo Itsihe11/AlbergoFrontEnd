@@ -1,1 +1,49 @@
-<p>clienti works!</p>
+<section>
+    <h1>Le tue prenotazioni</h1>
+
+    @if (messaggio) {
+    <p>{{ messaggio }}</p>
+    }
+    @if (errore) {
+    <p>{{ errore }}</p>
+    }
+
+    @if (caricamento) {
+    <p>Caricamento prenotazioni...</p>
+    } @else if (prenotazioni.length === 0) {
+    <p>Non hai prenotazioni attive.</p>
+    } @else {
+    @for (p of prenotazioni; track p.id) {
+    <article>
+        <h2>Prenotazione #{{ p.id }} — {{ p.stato }}</h2>
+        <p>Tipo: {{ p.tipoPrenotazione }}</p>
+        @if (p.tipoCamera) {
+        <p>Camera: {{ p.tipoCamera }}</p>
+        }
+        <p>Check-in: {{ p.checkIn }} — Check-out: {{ p.checkOut }}</p>
+        <p>Totale: {{ p.prezzoTotale }} € (caparra: {{ p.caparra }} €)</p>
+
+        <h3>Ospiti</h3>
+        @for (ospite of p.ospiti; track ospite.nome) {
+        <p>{{ ospite.nome }} {{ ospite.cognome }} — {{ ospite.dataNascita }}</p>
+        }
+
+        @if (p.stato === 'CONFERMATA') {
+        <button (click)="annulla(p.id)">Annulla prenotazione</button>
+        <button (click)="apriCessione(p.id)">Cedi a un'altra persona</button>
+        }
+
+        @if (prenotazioneInCessione === p.id) {
+        <div>
+            <h3>Cedi prenotazione a:</h3>
+            <input type="text" placeholder="Nome" [(ngModel)]="nuovoIntestatario.nome">
+            <input type="text" placeholder="Cognome" [(ngModel)]="nuovoIntestatario.cognome">
+            <input type="date" [(ngModel)]="nuovoIntestatario.dataNascita">
+            <button (click)="confermaCessione()">Conferma cessione</button>
+            <button (click)="annullaCessione()">Annulla</button>
+        </div>
+        }
+    </article>
+    }
+    }
+</section>

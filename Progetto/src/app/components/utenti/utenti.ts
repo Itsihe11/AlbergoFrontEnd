@@ -21,22 +21,19 @@ export class Utenti {
   errore: string | null = null;
 
   login(): void {
-    this.errore = null;
+  this.errore = null;
 
-    this.authService.login(this.email, this.password).subscribe({
-      next: (res) => {
-        this.authService.token = res.token;
-        this.authService.ruolo = res.ruolo;
-
-        if (res.ruolo === 'CLIENTE') {
-          this.router.navigate(['/clienti']);
-        } else if (res.ruolo === 'ADMIN') {
-          this.router.navigate(['/admin']);
-        }
-      },
-      error: () => {
-        this.errore = 'Credenziali non valide. Riprova.';
+  this.authService.login(this.email, this.password).subscribe({
+    next: (res) => {
+      if (res.ruolo === 'CLIENTE') {
+        this.router.navigate(['/clienti']);
+      } else if (res.ruolo === 'ADMIN') {
+        this.router.navigate(['/admin']);
       }
-    });
-  }
+    },
+    error: () => {
+      this.errore = 'Credenziali non valide. Riprova.';
+    }
+  });
+}
 }

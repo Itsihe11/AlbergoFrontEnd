@@ -1,1 +1,87 @@
-<h1>da fare le prenotazioni e connesione con il backend</h1>
+<section>
+    <h1>Prenota</h1>
+
+    <div>
+        <label>Cosa vuoi prenotare?</label>
+        <select [(ngModel)]="tipoPrenotazione">
+            <option value="ALBERGO">Solo Albergo</option>
+            <option value="ALBERGO_SPA">Albergo + SPA</option>
+            <option value="SPA">Solo SPA</option>
+        </select>
+    </div>
+
+    @if (includeAlbergo()) {
+    @if (caricamentoCamere) {
+    <p>Caricamento camere disponibili...</p>
+    } @else if (erroreCamere) {
+    <p>{{ erroreCamere }}</p>
+    } @else {
+    <div>
+        <label>Tipo camera</label>
+        <select [(ngModel)]="tipoCamera">
+            @for (c of tipiCamera; track c.nome) {
+            <option [value]="c.nome">{{ c.nome }} - {{ c.prezzo }} €/notte</option>
+            }
+        </select>
+    </div>
+    }
+
+    <div>
+        <label>Pensione</label>
+        <select [(ngModel)]="pensione">
+            <option value="MEZZA">Mezza pensione</option>
+            <option value="COMPLETA">Pensione completa</option>
+        </select>
+    </div>
+    }
+
+    @if (includeSpa()) {
+    <p>Include accesso SPA (200 € una tantum)</p>
+    }
+
+    <div>
+        <label>Check-in</label>
+        <input type="date" [(ngModel)]="checkIn">
+    </div>
+
+    <div>
+        <label>Check-out</label>
+        <input type="date" [(ngModel)]="checkOut">
+    </div>
+
+    <p>Notti: {{ numeroNotti() }}</p>
+
+    <h2>Ospiti</h2>
+    @for (ospite of ospiti; track $index) {
+    <div>
+        <input type="text" placeholder="Nome" [(ngModel)]="ospite.nome">
+        <input type="text" placeholder="Cognome" [(ngModel)]="ospite.cognome">
+        <input type="date" [(ngModel)]="ospite.dataNascita">
+        <button (click)="rimuoviOspite($index)">Rimuovi</button>
+    </div>
+    }
+    <button (click)="aggiungiOspite()">+ Aggiungi ospite</button>
+
+    <div>
+        <label>Metodo di pagamento</label>
+        <select [(ngModel)]="metodoPagamento">
+            <option value="CARTA">Carta</option>
+            <option value="BONIFICO">Bonifico</option>
+        </select>
+    </div>
+
+    <div>
+        <p>Prezzo totale: {{ prezzoTotale() }} €</p>
+        <p>Caparra richiesta (10%): {{ caparra() }} €</p>
+        <p><small>La caparra non è rimborsabile in caso di annullamento.</small></p>
+    </div>
+
+    <button (click)="prenota()">Conferma prenotazione</button>
+
+    @if (messaggio) {
+    <p>{{ messaggio }}</p>
+    }
+    @if (errore) {
+    <p>{{ errore }}</p>
+    }
+</section>

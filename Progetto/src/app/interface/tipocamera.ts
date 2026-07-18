@@ -1,4 +1,4 @@
-interface TipoCamera {
+export interface TipoCamera {
   nome: string;
   descrizione: string;
   prezzo: number;

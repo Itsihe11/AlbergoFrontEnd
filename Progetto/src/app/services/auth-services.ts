@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs'; // <-- Assicurati di importare 'of'
+import { Observable, of, tap } from 'rxjs';
 import { LoginRisposta } from '../interface/loginrisposta';
 
 @Injectable({
@@ -10,30 +10,33 @@ export class AuthService {
   private http = inject(HttpClient);
   private readonly urlSpring = '/api/auth';
 
+  // TEMPORANEO: metti false quando il backend Spring Boot è pronto
+  private readonly USA_MOCK = true;
+
   token: string | null = null;
   ruolo: 'CLIENTE' | 'ADMIN' | null = null;
 
-  // MODIFICHIAMO QUESTO METODO PER IL TEST LOCALE:
   login(email: string, password: string): Observable<LoginRisposta> {
-    let ruoloScelto: 'CLIENTE' | 'ADMIN' = 'CLIENTE';
+    const richiesta: Observable<LoginRisposta> = this.USA_MOCK
+      ? of({
+          token: 'token-finto-di-test-12345',
+          ruolo: email.toLowerCase() === 'admin' ? 'ADMIN' : 'CLIENTE'
+        })
+      : this.http.post<LoginRisposta>(`${this.urlSpring}/login`, { email, password });
 
-    // Se inserisci "admin" come email, simuliamo l'accesso amministratore
-    if (email.toLowerCase() === 'admin') {
-      ruoloScelto = 'ADMIN';
-    }
-
-    // Usiamo 'of' per restituire immediatamente i dati come se arrivassero dal server
-    return of({
-      token: 'token-finto-di-test-12345',
-      ruolo: ruoloScelto
-    });
+    return richiesta.pipe(
+      tap((res) => {
+        this.token = res.token;
+        this.ruolo = res.ruolo;
+      })
+    );
   }
 
   logout(): void {
     this.token = null;
     this.ruolo = null;
   }
-  
+
   isLoggedIn(): boolean {
     return !!this.token;
   }

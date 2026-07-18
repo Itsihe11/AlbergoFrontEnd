@@ -1,5 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { CamereService } from '../../services/camere.service';
+import { TipoCamera } from '../../interface/tipocamera';
 
 @Component({
   selector: 'app-camere',
@@ -7,15 +9,24 @@ import { RouterLink } from '@angular/router';
   templateUrl: './camere.html',
   styleUrl: './camere.css',
 })
-export class Camere {
-  totaleCamere: number = 50;
+export class Camere implements OnInit {
 
-  tipiCamera: TipoCamera[] = [
-    { nome: 'Singola', descrizione: 'Ideale per un soggiorno da sfigati', 
-      prezzo: 30, immagine: 'photo' },
-    { nome: 'Doppia', descrizione: 'Spaziosa, con letto matrimoniale per 2... non sarò omofobo', 
-      prezzo: 45, immagine: 'photo' },
-    { nome: 'Suite', descrizione: 'La sfigatisuite, top di gamma', 
-      prezzo: 70, immagine: 'photo' }
-  ];
+  private camereService = inject(CamereService);
+
+  tipiCamera: TipoCamera[] = [];
+  caricamento = true;
+  errore: string | null = null;
+
+  ngOnInit(): void {
+    this.camereService.getCamere().subscribe({
+      next: (camere) => {
+        this.tipiCamera = camere;
+        this.caricamento = false;
+      },
+      error: () => {
+        this.errore = 'Impossibile caricare le camere. Riprova più tardi.';
+        this.caricamento = false;
+      }
+    });
+  }
 }

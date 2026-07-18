@@ -1,31 +1,22 @@
-<!-- camere.html -->
 <section>
   <h1>Le nostre camere</h1>
-  <p>{{totaleCamere}} camere disponibili</p>
+  <p>{{ tipiCamera.length }} tipologie disponibili</p>
 </section>
 
 <section>
-  <article>
-    <p>{{ tipiCamera[0].immagine }}</p>
-    <h2>{{ tipiCamera[0].nome }}</h2>
-    <p>{{ tipiCamera[0].descrizione }}</p>
-    <p>A partire da {{ tipiCamera[0].prezzo }} € a notte</p>
-    <a routerLink="/prenotazioni">Verifica disponibilità</a>
-  </article>
-
-  <article>
-    <p>{{ tipiCamera[1].immagine }}</p>
-    <h2>{{ tipiCamera[1].nome }}</h2>
-    <p>{{ tipiCamera[1].descrizione }}</p>
-    <p>A partire da {{ tipiCamera[1].prezzo }} € a notte</p>
-    <a routerLink="/prenotazioni">Verifica disponibilità</a>
-  </article>
-
-  <article>
-    <p>{{ tipiCamera[2].immagine }}</p>
-    <h2>{{ tipiCamera[2].nome }}</h2>
-    <p>{{ tipiCamera[2].descrizione }}</p>
-    <p>A partire da {{ tipiCamera[2].prezzo }} € a notte</p>
-    <a routerLink="/prenotazioni">Verifica disponibilità</a>
-  </article>
+  @if (caricamento) {
+    <p>Caricamento camere...</p>
+  } @else if (errore) {
+    <p>{{ errore }}</p>
+  } @else {
+    @for (camera of tipiCamera; track camera.nome) {
+      <article>
+        <p>{{ camera.immagine }}</p>
+        <h2>{{ camera.nome }}</h2>
+        <p>{{ camera.descrizione }}</p>
+        <p>A partire da {{ camera.prezzo }} € a notte</p>
+        <a routerLink="/prenotazioni">Verifica disponibilità</a>
+      </article>
+    }
+  }
 </section>
