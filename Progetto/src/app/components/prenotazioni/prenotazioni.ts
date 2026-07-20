@@ -56,30 +56,28 @@ export class Prenotazioni implements OnInit {
     });
   }
 
-  onTipoCameraChange(event?: Event | string): void {
-    let tipo = this.tipoCamera;
-
-    if (event instanceof Event) {
-      const target = event.target as HTMLSelectElement;
-      tipo = target.value;
-    } else if (typeof event === 'string') {
-      tipo = event;
-    }
-
-    if (!tipo) return;
-
-    this.caricamentoStanze = true;
-    this.camereService.getStanzePerTipo(tipo).subscribe({
-      next: (stanze) => {
-        this.stanzeDisponibili = stanze;
-        this.caricamentoStanze = false;
-      },
-      error: (err) => {
-        console.error('Errore nel caricamento delle stanze:', err);
-        this.caricamentoStanze = false;
-      }
-    });
+ onTipoCameraChange(tipoSelezionato: string): void {
+  if (!tipoSelezionato) {
+    this.stanzeDisponibili = [];
+    return;
   }
+
+  this.tipoCamera = tipoSelezionato; // Assicuriamo che la variabile sia aggiornata
+  this.caricamentoStanze = true;
+  this.stanzeDisponibili = []; // Resettiamo la lista precedente
+
+  this.camereService.getStanzePerTipo(tipoSelezionato).subscribe({
+    next: (stanze) => {
+      console.log('Stanze filtrate trovate:', stanze); // 🔍 Utile per il debug
+      this.stanzeDisponibili = stanze;
+      this.caricamentoStanze = false;
+    },
+    error: (err) => {
+      console.error('Errore nel caricamento delle stanze:', err);
+      this.caricamentoStanze = false;
+    }
+  });
+}
 
   includeAlbergo(): boolean {
     return this.tipoPrenotazione === 'ALBERGO' || this.tipoPrenotazione === 'ALBERGO_SPA';

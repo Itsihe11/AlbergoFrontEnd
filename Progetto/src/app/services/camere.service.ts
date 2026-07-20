@@ -20,15 +20,27 @@ export class CamereService {
     return this.http.get<TipoCamera[]>(`${this.apiTipologiaStanze}/tipologieStanze`);
   }
 
-  getStanzePerTipo(tipo: string): Observable<Stanza[]> {
-    return this.getStanze().pipe(
-      map(stanze => stanze.filter(s => {
-        const item = s as any;
-        return item.tipo === tipo || item.tipoCamera === tipo || item.nome === tipo;
-      }))
-    );
-  }
+getStanzePerTipo(tipo: string): Observable<Stanza[]> {
+  return this.getStanze().pipe(
+    map(stanze => stanze.filter(s => {
+      const item = s as any;
 
+      // Estraiamo il nome dalla proprietà 'tipologia' inviata dal backend
+      const nomeTipologia = 
+        item.tipologia?.nome || 
+        item.tipologia?.tipo || 
+        item.tipologia?.nomeTipologia ||
+        (typeof item.tipologia === 'string' ? item.tipologia : null) ||
+        item.tipoCamera?.nome ||
+        item.tipo;
+
+      if (!nomeTipologia || !tipo) return false;
+
+      // Confronto case-insensitive e senza spazi extra
+      return String(nomeTipologia).trim().toLowerCase() === String(tipo).trim().toLowerCase();
+    }))
+  );
+}
   creaStanza(stanza: Stanza): Observable<Stanza> {
     return this.http.post<Stanza>(this.apiStanze, stanza);
   }

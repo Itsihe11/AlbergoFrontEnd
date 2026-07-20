@@ -18,12 +18,11 @@
     } @else {
     <div>
         <label>Tipo camera</label>
-        <select [(ngModel)]="tipoCamera" (change)="onTipoCameraChange($event)">
-            <option value="" disabled selected>Seleziona un tipo...</option>
-            @for (tipo of tipiCamera; track $index) {
-            <!-- 🟢 Gestisce sia se 'tipo' è una stringa, sia se è un oggetto con .nome o .tipoCamera -->
-            <option [value]="tipo.nome || tipo.tipoCamera || tipo">
-                {{ tipo.nome || tipo.tipoCamera || tipo }}
+        <select [(ngModel)]="tipoCamera" name="tipoCamera" (change)="onTipoCameraChange($any($event.target).value)">
+            <option value="" disabled selected>Seleziona un tipo di camera</option>
+            @for (tipo of tipiCamera; track tipo.id || tipo.nome) {
+            <option [value]="tipo.nome || tipo['tipo'] || tipo.tipoCamera">
+                {{ tipo.nome || tipo['tipo'] || tipo.tipoCamera }}
             </option>
             }
         </select>
