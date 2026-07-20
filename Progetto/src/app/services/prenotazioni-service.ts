@@ -14,7 +14,7 @@ export class PrenotazioniService {
    * Invia la richiesta HTTP POST a Spring Boot per salvare la prenotazione nel DB
    */
   creaPrenotazione(prenotazione: any): Observable<Prenotazione> {
-    return this.http.post<Prenotazione>(this.urlSpring, prenotazione);
+    return this.http.post<Prenotazione>((`${this.urlSpring}/prenota`), prenotazione);
   }
 
   /**
