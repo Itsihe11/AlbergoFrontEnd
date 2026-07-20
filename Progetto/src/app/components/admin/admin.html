@@ -31,7 +31,7 @@
       </div>
       <div>
         <label>Descrizione:</label>
-        <input type="text" placeholder="Descrizione della stanza..." [(ngModel)]="nuovoTipoCamera.descrizione" name="descrizione" />
+        <input type="text" placeholder="Descrizione della stanza..." [(ngModel)]="nuovoTipoCamera['descrizione']" name="descrizione" />
       </div>
       <div>
         <label>Prezzo a Notte (€):</label>
@@ -39,7 +39,7 @@
       </div>
       <div>
         <label>URL Immagine:</label>
-        <input type="text" placeholder="https://..." [(ngModel)]="nuovoTipoCamera.immagine" name="immagine" />
+        <input type="text" placeholder="https://..." [(ngModel)]="nuovoTipoCamera['immagine']" name="immagine" />
       </div>
       <button type="submit">Salva Tipo Camera</button>
     </form>
