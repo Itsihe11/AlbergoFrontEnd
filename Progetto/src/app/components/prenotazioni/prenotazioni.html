@@ -12,17 +12,40 @@
 
     @if (includeAlbergo()) {
     @if (caricamentoCamere) {
-    <p>Caricamento camere disponibili...</p>
+    <p>Caricamento tipi di camera disponibili...</p>
     } @else if (erroreCamere) {
     <p>{{ erroreCamere }}</p>
     } @else {
     <div>
         <label>Tipo camera</label>
-        <select [(ngModel)]="tipoCamera">
-            @for (c of tipiCamera; track c.nome) {
-            <option [value]="c.nome">{{ c.nome }} - {{ c.prezzo }} €/notte</option>
+        <select [(ngModel)]="tipoCamera" (change)="onTipoCameraChange($event)">
+            <option value="" disabled selected>Seleziona un tipo...</option>
+            @for (tipo of tipiCamera; track $index) {
+            <!-- 🟢 Gestisce sia se 'tipo' è una stringa, sia se è un oggetto con .nome o .tipoCamera -->
+            <option [value]="tipo.nome || tipo.tipoCamera || tipo">
+                {{ tipo.nome || tipo.tipoCamera || tipo }}
+            </option>
             }
         </select>
+    </div>
+
+    <div>
+        <label>Numero Stanza</label>
+        @if (caricamentoStanze) {
+        <p><small>Caricamento stanze disponibili...</small></p>
+        } @else if (stanzeDisponibili.length > 0) {
+        <select [(ngModel)]="stanzaSelezionata">
+            <option value="" disabled selected>Seleziona una stanza...</option>
+            <!-- 🟢 track con $index per evitare problemi di chiavi duplicate se id è undefined -->
+            @for (stanza of stanzeDisponibili; track stanza.id || $index) {
+            <option [value]="stanza.id">
+                Stanza {{ stanza.id }}
+            </option>
+            }
+        </select>
+        } @else {
+        <p><small>Nessuna stanza disponibile per questo tipo.</small></p>
+        }
     </div>
     }
 
@@ -79,9 +102,9 @@
     <button (click)="prenota()">Conferma prenotazione</button>
 
     @if (messaggio) {
-    <p>{{ messaggio }}</p>
+    <p style="color: green;">{{ messaggio }}</p>
     }
     @if (errore) {
-    <p>{{ errore }}</p>
+    <p style="color: red;">{{ errore }}</p>
     }
 </section>

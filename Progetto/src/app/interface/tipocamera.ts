@@ -1,6 +1,16 @@
 export interface TipoCamera {
-  nome: string;
-  descrizione: string;
-  prezzo: number;
-  immagine: string;
+  id?: number;
+  nome?: string;
+  tipoCamera?: string;
+  prezzo?: number;
+  [key: string]: any;
+}
+
+export interface Stanza {
+  id?: number;
+  numeroStanza: string;
+  piano: number;
+  disponibile: boolean;
+  inVetrina?: boolean;
+  tipoCamera: TipoCamera;
 }

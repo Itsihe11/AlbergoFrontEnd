@@ -5,18 +5,20 @@
 
 <section>
   @if (caricamento) {
-    <p>Caricamento camere...</p>
+  <p>Caricamento camere...</p>
   } @else if (errore) {
-    <p>{{ errore }}</p>
+  <p>{{ errore }}</p>
   } @else {
-    @for (camera of tipiCamera; track camera.nome) {
-      <article>
-        <p>{{ camera.immagine }}</p>
-        <h2>{{ camera.nome }}</h2>
-        <p>{{ camera.descrizione }}</p>
-        <p>A partire da {{ camera.prezzo }} € a notte</p>
-        <a routerLink="/prenotazioni">Verifica disponibilità</a>
-      </article>
-    }
+  @for (camera of tipiCamera; track camera.id || $index) {
+  <article>
+    <!-- Se è un URL di un'immagine, usa il tag <img> invece di stampare il testo -->
+    <img [src]="camera.immagine || 'assets/placeholder.jpg'" [alt]="camera.nome" style="max-width: 300px;" />
+
+    <h2>{{ camera.nome }}</h2>
+    <p>{{ camera.descrizione }}</p>
+    <p>A partire da {{ camera.prezzo }} € a notte</p>
+    <a routerLink="/prenotazioni">Verifica disponibilità</a>
+  </article>
+  }
   }
 </section>

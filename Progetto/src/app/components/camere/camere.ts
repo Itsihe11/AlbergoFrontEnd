@@ -1,32 +1,90 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { CamereService } from '../../services/camere.service';
-import { TipoCamera } from '../../interface/tipocamera';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { TipoCamera,Stanza } from '../../interface/tipocamera';
+import { Prenotazione } from '../../interface/prenotazione';
 
-@Component({
-  selector: 'app-camere',
-  imports: [RouterLink],
-  templateUrl: './camere.html',
-  styleUrl: './camere.css',
+
+@Injectable({
+  providedIn: 'root'
 })
-export class Camere implements OnInit {
+export class CamereService {
 
-  private camereService = inject(CamereService);
+  private apiStanze = '/api/stanza';
+  private apiPrenotazioni = '/api/prenotazioni';
 
-  tipiCamera: TipoCamera[] = [];
-  caricamento = true;
-  errore: string | null = null;
+  // 🟢 Lista locale per simulare il Database in memoria
+  private stanzeLocali: Stanza[] = [];
+  private prenotazioniLocali: Prenotazione[] = [];
+  private idContatoreStanze = 100;
+  private idContatorePrenotazioni = 1000;
 
-  ngOnInit(): void {
-    this.camereService.getCamere().subscribe({
-      next: (camere) => {
-        this.tipiCamera = camere;
-        this.caricamento = false;
-      },
-      error: () => {
-        this.errore = 'Impossibile caricare le camere. Riprova più tardi.';
-        this.caricamento = false;
-      }
-    });
+  constructor(private http: HttpClient) {}
+
+  // ==========================================
+  // STANZE E TIPI CAMERA
+  // ==========================================
+
+  getStanze(): Observable<Stanza[]> {
+    if (this.stanzeLocali.length > 0) {
+      return of(this.stanzeLocali);
+    }
+
+    return this.http.get<Stanza[]>(`${this.apiStanze}/lista`).pipe(
+      tap(stanze => this.stanzeLocali = stanze)
+    );
+  }
+
+  getTipiCamera(): Observable<TipoCamera[]> {
+    return this.http.get<TipoCamera[]>(`${this.apiStanze}/lista`);
+  }
+
+  // SIMULAZIONE CREAZIONE STANZA
+  creaStanza(stanza: Stanza): Observable<Stanza> {
+    const nuovaStanza: Stanza = {
+      ...stanza,
+      id: this.idContatoreStanze++
+    };
+    
+    this.stanzeLocali.push(nuovaStanza);
+    console.log('Simulazione creazione stanza:', nuovaStanza);
+    
+    return of(nuovaStanza);
+  }
+
+  // SIMULAZIONE ELIMINAZIONE STANZA
+  eliminaStanza(id: number): Observable<void> {
+    this.stanzeLocali = this.stanzeLocali.filter(s => s.id !== id);
+    console.log('Simulazione eliminazione stanza ID:', id);
+    return of(void 0);
+  }
+
+  // SIMULAZIONE CREAZIONE TIPO CAMERA
+  creaTipoCamera(tipoCamera: TipoCamera): Observable<TipoCamera> {
+    return of(tipoCamera);
+  }
+
+  // ==========================================
+  // PRENOTAZIONI
+  // ==========================================
+
+  // SIMULAZIONE CREAZIONE PRENOTAZIONE
+  creaPrenotazione(prenotazione: Prenotazione): Observable<Prenotazione> {
+    const nuovaPrenotazione: Prenotazione = {
+      ...prenotazione,
+      id: this.idContatorePrenotazioni++,
+      stato: 'CONFERMATA'
+    };
+
+    this.prenotazioniLocali.push(nuovaPrenotazione);
+    console.log('Simulazione creazione prenotazione:', nuovaPrenotazione);
+
+    return of(nuovaPrenotazione);
+  }
+
+  // RECUPERO PRENOTAZIONI (per Pannello Admin)
+  getPrenotazioni(): Observable<Prenotazione[]> {
+    return of(this.prenotazioniLocali);
   }
 }

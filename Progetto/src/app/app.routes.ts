@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { Home } from './components/home/home';
 import { Prenotazioni } from './components/prenotazioni/prenotazioni';
-import { Camere } from './components/camere/camere';
+import { Camere } from './components/camere/camere copy';
 import { Servizi } from './components/servizi/servizi';
 import { Contatti } from './components/contatti/contatti';
 import { Utenti } from './components/utenti/utenti';

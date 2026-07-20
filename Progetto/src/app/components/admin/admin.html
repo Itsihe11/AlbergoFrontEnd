@@ -1,1 +1,115 @@
-<p>admin works!</p>
+<h2>Pannello Amministrazione Albergo</h2>
+
+@if (!isLogged) {
+  <div>
+    <h3>Accesso Riservato</h3>
+    <form (ngSubmit)="onLogin()">
+      <div>
+        <label>Username:</label>
+        <input type="text" [(ngModel)]="username" name="username" />
+      </div>
+      <div>
+        <label>Password:</label>
+        <input type="password" [(ngModel)]="password" name="password" />
+      </div>
+      @if (errorMessage) {
+        <div style="color: red;">{{ errorMessage }}</div>
+      }
+      <button type="submit">Accedi</button>
+    </form>
+  </div>
+} @else {
+  <div>
+    <button (click)="logout()">Disconnetti (Logout)</button>
+    <hr />
+
+    <h3>1. Creazione Tipo Camera</h3>
+    <form (ngSubmit)="salvaTipoCamera()">
+      <div>
+        <label>Nome Tipologia:</label>
+        <input type="text" placeholder="es. Suite Deluxe" [(ngModel)]="nuovoTipoCamera.nome" name="nome" />
+      </div>
+      <div>
+        <label>Descrizione:</label>
+        <input type="text" placeholder="Descrizione della stanza..." [(ngModel)]="nuovoTipoCamera.descrizione" name="descrizione" />
+      </div>
+      <div>
+        <label>Prezzo a Notte (€):</label>
+        <input type="number" [(ngModel)]="nuovoTipoCamera.prezzo" name="prezzo" />
+      </div>
+      <div>
+        <label>URL Immagine:</label>
+        <input type="text" placeholder="https://..." [(ngModel)]="nuovoTipoCamera.immagine" name="immagine" />
+      </div>
+      <button type="submit">Salva Tipo Camera</button>
+    </form>
+
+    <hr />
+
+    <h3>2. Assegna Stanza Fisica a Tipologia</h3>
+    <form (ngSubmit)="salvaStanza()">
+      <div>
+        <label>Numero Stanza:</label>
+        <input type="text" placeholder="es. 101" [(ngModel)]="numeroStanza" name="numeroStanza" />
+      </div>
+      <div>
+        <label>Piano:</label>
+        <input type="number" [(ngModel)]="pianoStanza" name="pianoStanza" />
+      </div>
+      <div>
+        <label>Tipo Camera:</label>
+        <select [(ngModel)]="tipoCameraSelezionato" name="tipoCamera">
+          <option [ngValue]="null" disabled selected>-- Seleziona Tipologia --</option>
+          @for (t of tipiCamera; track t.id || $index) {
+            <option [ngValue]="t">
+              {{ t.nome }} ({{ t.prezzo ?? 0 }}€/notte)
+            </option>
+          }
+        </select>
+      </div>
+
+      <div style="margin-top: 10px; margin-bottom: 10px;">
+        <label style="cursor: pointer;">
+          <input type="checkbox" [(ngModel)]="inVetrina" name="inVetrina" />
+          Mostra in Vetrina (Pagina Camere per clienti)
+        </label>
+      </div>
+
+      <button type="submit">Crea e Associa Stanza</button>
+    </form>
+
+    <hr />
+
+    <h3>Elenco Stanze create nel DB</h3>
+    <table border="1" cellpadding="6" cellspacing="0">
+      <thead>
+        <tr>
+          <th>Numero Stanza</th>
+          <th>Piano</th>
+          <th>Tipologia</th>
+          <th>Prezzo Notte</th>
+          <th>Stato</th>
+          <th>Vetrina</th>
+          <th>Azione</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (s of stanze; track s.id || $index) {
+          <tr>
+            <td>{{ s.numeroStanza }}</td>
+            <td>{{ s.piano }}</td>
+            <td>{{ s.tipoCamera?.nome ?? 'N/D' }}</td>
+            <td>{{ s.tipoCamera?.prezzo ? (s.tipoCamera?.prezzo + '€') : 'N/D' }}</td>
+            <td>{{ s.disponibile ? 'Disponibile' : 'Occupata' }}</td>
+            <td>{{ s.inVetrina ? 'Sì' : 'No' }}</td> 
+            <td><button (click)="eliminaStanza(s.id)">Elimina</button></td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="7">Nessuna stanza presente a sistema.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}

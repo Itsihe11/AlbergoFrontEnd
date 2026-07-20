@@ -1,23 +1,43 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { TipoCamera } from '../interface/tipocamera';
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { Stanza, TipoCamera } from '../interface/tipocamera';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CamereService {
   private http = inject(HttpClient);
-  private readonly urlSpring = '/api/camere';
+  private readonly apiStanze = '/api/stanza';
 
-  getCamere(): Observable<TipoCamera[]> {
-    // TEMPORANEO PER TEST - da togliere quando il backend è pronto
-    return of([
-      { nome: 'Singola', descrizione: 'Camera singola', prezzo: 30, immagine: 'photo' },
-      { nome: 'Doppia', descrizione: 'Camera doppia', prezzo: 45, immagine: 'photo' },
-      { nome: 'Suite', descrizione: 'Suite di lusso', prezzo: 70, immagine: 'photo' }
-    ]);
+  getStanze(): Observable<Stanza[]> {
+    return this.http.get<Stanza[]>(`${this.apiStanze}/lista`);
+  }
 
-    // return this.http.get<TipoCamera[]>(this.urlSpring); // riattiva quando il backend è pronto
+  getTipiCamera(): Observable<TipoCamera[]> {
+    return this.http.get<TipoCamera[]>(`${this.apiStanze}/lista`);
+  }
+
+  getStanzePerTipo(tipo: string): Observable<Stanza[]> {
+    return this.getStanze().pipe(
+      map(stanze => stanze.filter(s => {
+        const item = s as any;
+        return item.tipo === tipo || item.tipoCamera === tipo || item.nome === tipo;
+      }))
+    );
+  }
+
+  creaStanza(stanza: Stanza): Observable<Stanza> {
+    return this.http.post<Stanza>(this.apiStanze, stanza);
+  }
+
+  // 🟢 AGGIUNTO: Metodo mancante per creare un nuovo tipo di camera
+  creaTipoCamera(tipoCamera: TipoCamera): Observable<TipoCamera> {
+    return this.http.post<TipoCamera>(`${this.apiStanze}/tipo`, tipoCamera);
+  }
+
+  eliminaStanza(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiStanze}/${id}`);
   }
 }

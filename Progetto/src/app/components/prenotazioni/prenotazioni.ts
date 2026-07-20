@@ -2,11 +2,12 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PrenotazioniService } from '../../services/prenotazioni-service';
 import { CamereService } from '../../services/camere.service';
-import { Prenotazione, Ospite } from '../../interface/prenotazione';
-import { TipoCamera } from '../../interface/tipocamera';
+import { Ospite } from '../../interface/prenotazione';
+import { Stanza, TipoCamera } from '../../interface/tipocamera';
 
 @Component({
   selector: 'app-prenotazioni',
+  standalone: true,
   imports: [FormsModule],
   templateUrl: './prenotazioni.html',
   styleUrl: './prenotazioni.css',
@@ -17,7 +18,10 @@ export class Prenotazioni implements OnInit {
   private camereService = inject(CamereService);
 
   tipiCamera: TipoCamera[] = [];
+  stanzeDisponibili: Stanza[] = [];
+
   caricamentoCamere = true;
+  caricamentoStanze = false;
   erroreCamere: string | null = null;
 
   prezzoSpa = 200;
@@ -25,6 +29,7 @@ export class Prenotazioni implements OnInit {
 
   tipoPrenotazione: 'ALBERGO' | 'ALBERGO_SPA' | 'SPA' = 'ALBERGO';
   tipoCamera = '';
+  stanzaSelezionata: number | null = null;
   checkIn = '';
   checkOut = '';
   pensione: 'MEZZA' | 'COMPLETA' = 'MEZZA';
@@ -36,17 +41,42 @@ export class Prenotazioni implements OnInit {
   errore: string | null = null;
 
   ngOnInit(): void {
-    this.camereService.getCamere().subscribe({
-      next: (camere) => {
-        this.tipiCamera = camere;
-        if (camere.length > 0) {
-          this.tipoCamera = camere[0].nome;
-        }
+    this.caricamentoCamere = true;
+    this.camereService.getTipiCamera().subscribe({
+      next: (data) => {
+        console.log('Tipi camera ricevuti dal backend:', data);
+        this.tipiCamera = data;
         this.caricamentoCamere = false;
       },
-      error: () => {
-        this.erroreCamere = 'Impossibile caricare le camere. Riprova più tardi.';
+      error: (err) => {
+        console.error('Errore nel recupero tipi camera:', err);
+        this.erroreCamere = 'Impossibile caricare i tipi di camera.';
         this.caricamentoCamere = false;
+      }
+    });
+  }
+
+  onTipoCameraChange(event?: Event | string): void {
+    let tipo = this.tipoCamera;
+
+    if (event instanceof Event) {
+      const target = event.target as HTMLSelectElement;
+      tipo = target.value;
+    } else if (typeof event === 'string') {
+      tipo = event;
+    }
+
+    if (!tipo) return;
+
+    this.caricamentoStanze = true;
+    this.camereService.getStanzePerTipo(tipo).subscribe({
+      next: (stanze) => {
+        this.stanzeDisponibili = stanze;
+        this.caricamentoStanze = false;
+      },
+      error: (err) => {
+        console.error('Errore nel caricamento delle stanze:', err);
+        this.caricamentoStanze = false;
       }
     });
   }
@@ -72,10 +102,15 @@ export class Prenotazioni implements OnInit {
     const notti = this.numeroNotti();
 
     if (this.includeAlbergo() && notti > 0) {
-      const camera = this.tipiCamera.find(c => c.nome === this.tipoCamera);
-      if (camera) {
-        totale += camera.prezzo * notti;
-      }
+      const camera = this.tipiCamera.find(c => 
+        c.nome === this.tipoCamera || 
+        (c as any).tipoCamera === this.tipoCamera || 
+        (c as any).tipo === this.tipoCamera
+      );
+
+      const prezzoCamera = camera?.prezzo ?? 0;
+      totale += prezzoCamera * notti;
+
       if (this.pensione === 'COMPLETA') {
         totale += this.supplementoPensioneCompleta * notti * this.ospiti.length;
       }
@@ -110,14 +145,21 @@ export class Prenotazioni implements OnInit {
       this.errore = 'Inserisci date di check-in e check-out valide.';
       return;
     }
+
+    if (this.includeAlbergo() && !this.stanzaSelezionata) {
+      this.errore = 'Seleziona una stanza valida.';
+      return;
+    }
+
     if (this.ospiti.some(o => !o.nome || !o.cognome || !o.dataNascita)) {
       this.errore = 'Compila i dati di tutti gli ospiti.';
       return;
     }
 
-    const prenotazione: Prenotazione = {
+    const payloadPrenotazione: any = {
       tipoPrenotazione: this.tipoPrenotazione,
       tipoCamera: this.includeAlbergo() ? this.tipoCamera : undefined,
+      stanzaId: this.includeAlbergo() ? this.stanzaSelezionata : undefined,
       checkIn: this.checkIn,
       checkOut: this.checkOut,
       pensione: this.includeAlbergo() ? this.pensione : undefined,
@@ -127,12 +169,16 @@ export class Prenotazioni implements OnInit {
       prezzoTotale: this.prezzoTotale(),
     };
 
-    this.prenotazioniService.creaPrenotazione(prenotazione).subscribe({
-      next: () => {
+    console.log('Payload inviato a PrenotazioniService:', payloadPrenotazione);
+
+    this.prenotazioniService.creaPrenotazione(payloadPrenotazione).subscribe({
+      next: (res) => {
+        console.log('Risposta dal servizio prenotazioni:', res);
         this.messaggio = 'Prenotazione effettuata con successo!';
       },
-      error: () => {
-        this.errore = 'Errore durante la prenotazione. Riprova più tardi.';
+      error: (err) => {
+        console.error('Errore durante il salvataggio:', err);
+        this.errore = 'Errore durante il salvataggio della prenotazione.';
       }
     });
   }
