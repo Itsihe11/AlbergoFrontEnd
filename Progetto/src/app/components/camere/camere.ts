@@ -11,8 +11,10 @@ import { Prenotazione } from '../../interface/prenotazione';
 })
 export class CamereService {
 
-  private apiStanze = '/api/stanza';
-  private apiPrenotazioni = '/api/prenotazioni';
+  private apiStanze = '/api/dipendente/stanza';
+  private apiPrenotazioni = '/api/prenotazione';
+  private apiTipologiaStanze ='/api/dipendente/tipologie'
+
 
   // 🟢 Lista locale per simulare il Database in memoria
   private stanzeLocali: Stanza[] = [];
@@ -31,13 +33,13 @@ export class CamereService {
       return of(this.stanzeLocali);
     }
 
-    return this.http.get<Stanza[]>(`${this.apiStanze}/lista`).pipe(
+    return this.http.get<Stanza[]>(`${this.apiStanze}/listaStanze`).pipe(
       tap(stanze => this.stanzeLocali = stanze)
     );
   }
 
   getTipiCamera(): Observable<TipoCamera[]> {
-    return this.http.get<TipoCamera[]>(`${this.apiStanze}/lista`);
+    return this.http.get<TipoCamera[]>(`${this.apiTipologiaStanze}/tipologieStanze`);
   }
 
   // SIMULAZIONE CREAZIONE STANZA

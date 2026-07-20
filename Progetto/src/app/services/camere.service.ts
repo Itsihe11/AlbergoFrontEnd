@@ -9,14 +9,15 @@ import { Stanza, TipoCamera } from '../interface/tipocamera';
 })
 export class CamereService {
   private http = inject(HttpClient);
-  private readonly apiStanze = '/api/stanza';
+  private readonly apiStanze = '/api/dipendente/stanza';
+  private readonly apiTipologiaStanze = '/api/dipendente/tipologie';
 
   getStanze(): Observable<Stanza[]> {
-    return this.http.get<Stanza[]>(`${this.apiStanze}/lista`);
+    return this.http.get<Stanza[]>(`${this.apiStanze}/listaStanze`);
   }
 
   getTipiCamera(): Observable<TipoCamera[]> {
-    return this.http.get<TipoCamera[]>(`${this.apiStanze}/lista`);
+    return this.http.get<TipoCamera[]>(`${this.apiTipologiaStanze}/tipologieStanze`);
   }
 
   getStanzePerTipo(tipo: string): Observable<Stanza[]> {
