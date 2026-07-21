@@ -1,24 +1,25 @@
 <section>
   <h1>Le nostre camere</h1>
-  <p>{{ tipiCamera.length }} tipologie disponibili</p>
+  <p>{{ tipiCamera().length }} tipologie disponibili</p>
 </section>
 
 <section>
-  @if (caricamento) {
-  <p>Caricamento camere...</p>
-  } @else if (errore) {
-  <p>{{ errore }}</p>
+  @if (caricamento()) {
+    <p>Caricamento camere...</p>
+  } @else if (errore()) {
+    <p>{{ errore() }}</p>
   } @else {
-  @for (camera of tipiCamera; track camera.id || $index) {
-  <article>
-    <!-- Se è un URL di un'immagine, usa il tag <img> invece di stampare il testo -->
-    <img [src]="camera['immagine'] || 'assets/placeholder.jpg'" [alt]="camera.nome" style="max-width: 300px;" />
-
-    <h2>{{ camera.nome }}</h2>
-    <p>{{ camera['descrizione'] }}</p>
-    <p>A partire da {{ camera.prezzo }} € a notte</p>
-    <a routerLink="/prenotazioni">Verifica disponibilità</a>
-  </article>
-  }
+    @for (camera of tipiCamera(); track camera.id) {
+      <article>
+        <img [src]="getImmagine(camera.nome)" [alt]="camera.nome">
+        <h2>{{ camera.nome }}</h2>
+        <p>{{ camera.descrizione }}</p>
+        <p>Capienza: {{ camera.capienza }} ospiti</p>
+        <p>{{ camera.prezzo }} € a notte</p>
+        <a routerLink="/prenotazioni">Verifica disponibilità</a>
+      </article>
+    } @empty {
+      <p>Nessuna tipologia di camera disponibile al momento.</p>
+    }
   }
 </section>

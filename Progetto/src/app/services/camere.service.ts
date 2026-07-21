@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Stanza, TipoCamera } from '../interface/tipocamera';
+import { TipoCamera, Stanza } from '../interface/tipocamera';
 
 @Injectable({
   providedIn: 'root'
@@ -24,7 +24,6 @@ export class CamereService {
   eliminaStanza(id: number): Observable<string> {
     return this.http.delete(`${this.apiStanze}/cancellaStanza/${id}`, { responseType: 'text' });
   }
-
 
   getTipiCamera(): Observable<TipoCamera[]> {
     return this.http.get<TipoCamera[]>(`${this.apiTipologie}/tipologieStanze`);
