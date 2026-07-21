@@ -1,14 +1,40 @@
 <header>
-  <nav>
-    <a routerLink="/">Home</a> &nbsp;
-    <a routerLink="/prenotazioni">Prenotazioni</a> &nbsp;
-    <a routerLink="/camere">Camere</a> &nbsp;
-    <a routerLink="/servizi">Servizi</a> &nbsp;
-    <a routerLink="/contatti">Contatti</a> &nbsp;
+  <nav class="navbar">
+    <a routerLink="/">Home</a>
+    <a routerLink="/prenotazioni">Prenotazioni</a>
+    <a routerLink="/camere">Camere</a>
+    <a routerLink="/servizi">Servizi</a>
+    <a routerLink="/contatti">Contatti</a>
     <a routerLink="/utenti">Utenti</a>
   </nav>
 </header>
-<br><br>
+
 <div>
   <router-outlet></router-outlet>
 </div>
+
+@if (!router.url.startsWith('/admin')) {
+  <footer class="site-footer">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <h3>Hotel Degli Sfigati</h3>
+        <p>La sfiga ti perseguiterà ad ogni stanza</p>
+      </div>
+
+      <div class="footer-links">
+        <a routerLink="/camere">Camere</a>
+        <a routerLink="/servizi">Servizi</a>
+        <a routerLink="/contatti">Contatti</a>
+      </div>
+
+      <div class="footer-contact">
+        <p>Via delle Delusioni, 13 — Sfigopoli</p>
+        <p>info&#64;hoteldeglisfigati.it</p>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 Hotel Degli Sfigati. Tutti i diritti riservati.</p>
+    </div>
+  </footer>
+}

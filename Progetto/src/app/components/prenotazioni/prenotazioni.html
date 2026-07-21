@@ -1,7 +1,7 @@
-<section>
+<section class="booking-page">
     <h1>Prenota</h1>
 
-    <div>
+    <div class="form-group">
         <label>Cosa vuoi prenotare?</label>
         <div class="form-group">
             <label for="tipoPrenotazione">Tipo Prenotazione:</label>
@@ -38,7 +38,7 @@
         </select>
     </div>
 
-    <div>
+    <div class="form-group">
         <label>Numero Stanza</label>
         <select [(ngModel)]="stanzaSelezionata" [ngModelOptions]="{standalone: true}">
             <option value="" disabled selected>Seleziona una stanza...</option>
@@ -50,7 +50,7 @@
         </select>
     </div>
 
-    <div>
+    <div class="form-group">
         <label>Pensione</label>
         <select [(ngModel)]="pensione" [ngModelOptions]="{standalone: true}">
             @for (p of listaPensioni; track $index) {
@@ -91,7 +91,7 @@
     }
     <button type="button" (click)="aggiungiOspite()">+ Aggiungi ospite</button>
 
-    <div>
+    <div class="form-group">
         <label>Metodo di pagamento</label>
         <select [(ngModel)]="metodoPagamento" [ngModelOptions]="{standalone: true}">
             <option value="CARTA">Carta</option>
@@ -108,9 +108,9 @@
     <button type="button" (click)="prenota()">Conferma prenotazione</button>
 
     @if (messaggio) {
-    <p style="color: green;">{{ messaggio }}</p>
+    <p class="feedback success">{{ messaggio }}</p>
     }
     @if (errore) {
-    <p style="color: red;">{{ errore }}</p>
+    <p class="feedback error">{{ errore }}</p>
     }
 </section>

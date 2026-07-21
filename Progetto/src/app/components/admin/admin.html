@@ -20,10 +20,10 @@
   </div>
 } @else {
   <div>
-    <button (click)="logout()">Disconnetti (Logout)</button>
+    <button (click)="logout()">Disconnetti</button>
     <hr />
 
-    <h3>1. Creazione Tipo Camera</h3>
+    <h3>1. Creazione Tipologia Camera</h3>
     <form (ngSubmit)="salvaTipoCamera()">
       <div>
         <label>Nome Tipologia:</label>
@@ -31,83 +31,71 @@
       </div>
       <div>
         <label>Descrizione:</label>
-        <input type="text" placeholder="Descrizione della stanza..." [(ngModel)]="nuovoTipoCamera['descrizione']" name="descrizione" />
+        <input type="text" placeholder="Descrizione della stanza..." [(ngModel)]="nuovoTipoCamera.descrizione" name="descrizione" />
       </div>
       <div>
         <label>Prezzo a Notte (€):</label>
         <input type="number" [(ngModel)]="nuovoTipoCamera.prezzo" name="prezzo" />
       </div>
       <div>
-        <label>URL Immagine:</label>
-        <input type="text" placeholder="https://..." [(ngModel)]="nuovoTipoCamera['immagine']" name="immagine" />
+        <label>Capienza (numero ospiti):</label>
+        <input type="number" min="1" [(ngModel)]="nuovoTipoCamera.capienza" name="capienza" />
       </div>
-      <button type="submit">Salva Tipo Camera</button>
+      <button type="submit">Salva Tipologia</button>
     </form>
 
     <hr />
 
-    <h3>2. Assegna Stanza Fisica a Tipologia</h3>
+    <h3>2. Crea una Stanza fisica</h3>
     <form (ngSubmit)="salvaStanza()">
       <div>
         <label>Numero Stanza:</label>
         <input type="text" placeholder="es. 101" [(ngModel)]="numeroStanza" name="numeroStanza" />
       </div>
       <div>
-        <label>Piano:</label>
-        <input type="number" [(ngModel)]="pianoStanza" name="pianoStanza" />
+        <label>Stato:</label>
+        <select [(ngModel)]="statusStanza" name="statusStanza">
+          <option value="LIBERA">Libera</option>
+          <option value="OCCUPATA">Occupata</option>
+          <option value="MANUTENZIONE">In manutenzione</option>
+        </select>
       </div>
       <div>
-        <label>Tipo Camera:</label>
+        <label>Tipologia:</label>
         <select [(ngModel)]="tipoCameraSelezionato" name="tipoCamera">
           <option [ngValue]="null" disabled selected>-- Seleziona Tipologia --</option>
-          @for (t of tipiCamera; track t.id || $index) {
-            <option [ngValue]="t">
-              {{ t.nome }} ({{ t.prezzo ?? 0 }}€/notte)
-            </option>
+          @for (t of tipiCamera; track t.id) {
+            <option [ngValue]="t">{{ t.nome }} ({{ t.prezzo }}€/notte)</option>
           }
         </select>
       </div>
-
-      <div style="margin-top: 10px; margin-bottom: 10px;">
-        <label style="cursor: pointer;">
-          <input type="checkbox" [(ngModel)]="inVetrina" name="inVetrina" />
-          Mostra in Vetrina (Pagina Camere per clienti)
-        </label>
-      </div>
-
-      <button type="submit">Crea e Associa Stanza</button>
+      <button type="submit">Crea Stanza</button>
     </form>
 
     <hr />
 
-    <h3>Elenco Stanze create nel DB</h3>
+    <h3>Elenco Stanze</h3>
     <table border="1" cellpadding="6" cellspacing="0">
       <thead>
         <tr>
           <th>Numero Stanza</th>
-          <th>Piano</th>
           <th>Tipologia</th>
           <th>Prezzo Notte</th>
           <th>Stato</th>
-          <th>Vetrina</th>
           <th>Azione</th>
         </tr>
       </thead>
       <tbody>
-        @for (s of stanze; track s.id || $index) {
+        @for (s of stanze; track s.id) {
           <tr>
             <td>{{ s.numeroStanza }}</td>
-            <td>{{ s.piano }}</td>
-            <td>{{ s.tipoCamera?.nome ?? 'N/D' }}</td>
-            <td>{{ s.tipoCamera?.prezzo ? (s.tipoCamera?.prezzo + '€') : 'N/D' }}</td>
-            <td>{{ s.disponibile ? 'Disponibile' : 'Occupata' }}</td>
-            <td>{{ s.inVetrina ? 'Sì' : 'No' }}</td> 
+            <td>{{ s.tipologia?.nome ?? 'N/D' }}</td>
+            <td>{{ s.tipologia?.prezzo ? (s.tipologia.prezzo + '€') : 'N/D' }}</td>
+            <td>{{ s.status }}</td>
             <td><button (click)="eliminaStanza(s.id)">Elimina</button></td>
           </tr>
         } @empty {
-          <tr>
-            <td colspan="7">Nessuna stanza presente a sistema.</td>
-          </tr>
+          <tr><td colspan="5">Nessuna stanza presente a sistema.</td></tr>
         }
       </tbody>
     </table>

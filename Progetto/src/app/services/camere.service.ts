@@ -1,56 +1,54 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { Stanza, TipoCamera } from '../interface/tipocamera';
+import { TipoCamera, Stanza } from '../interface/tipocamera';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CamereService {
   private http = inject(HttpClient);
+
   private readonly apiStanze = '/api/dipendente/stanza';
-  private readonly apiTipologiaStanze = '/api/dipendente/tipologie';
+  private readonly apiTipologie = '/api/dipendente/tipologie';
+
 
   getStanze(): Observable<Stanza[]> {
     return this.http.get<Stanza[]>(`${this.apiStanze}/listaStanze`);
   }
 
+  creaStanza(stanza: Stanza): Observable<string> {
+    return this.http.post(`${this.apiStanze}/datiStanza`, stanza, { responseType: 'text' });
+  }
+
+  eliminaStanza(id: number): Observable<string> {
+    return this.http.delete(`${this.apiStanze}/cancellaStanza/${id}`, { responseType: 'text' });
+  }
+
   getTipiCamera(): Observable<TipoCamera[]> {
-    return this.http.get<TipoCamera[]>(`${this.apiTipologiaStanze}/tipologieStanze`);
+    return this.http.get<TipoCamera[]>(`${this.apiTipologie}/tipologieStanze`);
   }
 
-getStanzePerTipo(tipo: string): Observable<Stanza[]> {
-  return this.getStanze().pipe(
-    map(stanze => stanze.filter(s => {
-      const item = s as any;
-
-      // Estraiamo il nome dalla proprietà 'tipologia' inviata dal backend
-      const nomeTipologia = 
-        item.tipologia?.nome || 
-        item.tipologia?.tipo || 
-        item.tipologia?.nomeTipologia ||
-        (typeof item.tipologia === 'string' ? item.tipologia : null) ||
-        item.tipoCamera?.nome ||
-        item.tipo;
-
-      if (!nomeTipologia || !tipo) return false;
-
-      // Confronto case-insensitive e senza spazi extra
-      return String(nomeTipologia).trim().toLowerCase() === String(tipo).trim().toLowerCase();
-    }))
-  );
-}
-  creaStanza(stanza: Stanza): Observable<Stanza> {
-    return this.http.post<Stanza>(this.apiStanze, stanza);
+  getStanzePerTipo(nomeTipologia: string): Observable<Stanza[]> {
+    return new Observable<Stanza[]>(observer => {
+      this.getStanze().subscribe({
+        next: stanze => {
+          const filtrate = stanze.filter(s =>
+            s.tipologia?.nome?.trim().toLowerCase() === nomeTipologia.trim().toLowerCase()
+          );
+          observer.next(filtrate);
+          observer.complete();
+        },
+        error: err => observer.error(err)
+      });
+    });
   }
 
-  // 🟢 AGGIUNTO: Metodo mancante per creare un nuovo tipo di camera
-  creaTipoCamera(tipoCamera: TipoCamera): Observable<TipoCamera> {
-    return this.http.post<TipoCamera>(`${this.apiStanze}/tipo`, tipoCamera);
+  creaTipoCamera(tipoCamera: TipoCamera): Observable<string> {
+    return this.http.post(`${this.apiTipologie}/datiTipologia`, tipoCamera, { responseType: 'text' });
   }
 
-  eliminaStanza(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiStanze}/${id}`);
+  eliminaTipoCamera(id: number): Observable<string> {
+    return this.http.delete(`${this.apiTipologie}/cancellaTipologia/${id}`, { responseType: 'text' });
   }
 }
