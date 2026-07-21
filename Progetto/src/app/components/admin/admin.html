@@ -17,15 +17,18 @@
       <div class="error-msg">{{ errorMessage }}</div>
       }
       <button class="btn-primary" type="submit">Accedi</button>
-      <button class="btn-primary" type="submit">Torna indietro</button>
     </form>
   </div>
   } @else {
   <div class="admin-panel">
 
-    <!-- ===== NAVBAR ADMIN ===== -->
+    <!-- NAVBAR ADMIN -->
     <nav class="admin-navbar">
       <div class="admin-navbar-links">
+        <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'prenotazione'"
+          (click)="sezioneAttiva = 'prenotazione'">
+          Nuova Prenotazione
+        </button>
         <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'tipologie'"
           (click)="sezioneAttiva = 'tipologie'">
           Tipologie Camera
@@ -40,7 +43,193 @@
       <button class="btn-logout" (click)="logout()">Disconnetti</button>
     </nav>
 
-    <!-- ===== SEZIONE 1: TIPOLOGIA CAMERA ===== -->
+    <!-- SEZIONE 1: NUOVA PRENOTAZIONE -->
+    @if (sezioneAttiva === 'prenotazione') {
+    <section class="admin-section">
+      <h3 class="section-title">Nuova Prenotazione</h3>
+
+      <!-- RICEVUTA CONFERMATA -->
+      @if (prenotazioneConfermata) {
+      <div class="card border-success shadow-lg my-3">
+        <div class="card-header bg-success text-white text-center py-3">
+          <h2 class="m-0">🎉 Prenotazione Confermata!</h2>
+        </div>
+        <div class="card-body p-4">
+          <p class="lead text-center">Abbiamo registrato correttamente i dati della prenotazione.</p>
+          <hr />
+          <div class="row my-3">
+            <div class="col-md-6 mb-3">
+              <h5>📋 Dettagli Prenotazione</h5>
+              <ul class="list-group">
+                <li class="list-group-item">
+                  <strong>Codice Prenotazione:</strong>
+                  <span class="badge bg-primary fs-6 ms-2">{{ prenotazioneConfermata.codice_prenotazione || prenotazioneConfermata.codicePrenotazione }}</span>
+                </li>
+                <li class="list-group-item">
+                  <strong>Tipo:</strong> {{ prenotazioneConfermata.tipo_prenotazione || prenotazioneConfermata.tipoPrenotazione }}
+                </li>
+                <li class="list-group-item">
+                  <strong>Check-in:</strong> {{ checkIn }}
+                </li>
+                <li class="list-group-item" *ngIf="includeAlbergo()">
+                  <strong>Check-out:</strong> {{ checkOut }}
+                </li>
+              </ul>
+            </div>
+            <div class="col-md-6 mb-3">
+              <h5>💳 Riepilogo Pagamento</h5>
+              <ul class="list-group">
+                <li class="list-group-item">
+                  <strong>Importo Totale:</strong>
+                  <span class="fw-bold text-success fs-5">{{ prenotazioneConfermata.costo_totale || prezzoTotale() }} €</span>
+                </li>
+                <li class="list-group-item">
+                  <strong>Metodo di Pagamento:</strong> {{ metodoPagamento === 'CARTA' ? 'Carta di Credito' : 'Bonifico Bancario' }}
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Istruzioni Bonifico se selezionato -->
+          <div *ngIf="metodoPagamento === 'BONIFICO'" class="alert alert-info">
+            <h6 class="fw-bold">📌 Coordinate per Bonifico Bancario:</h6>
+            <p class="m-0">IBAN: <strong>IT60X0542811101000000123456</strong> - Causale: <strong>Prenotazione {{ prenotazioneConfermata.codice_prenotazione || prenotazioneConfermata.codicePrenotazione }}</strong></p>
+          </div>
+
+          <!-- Messaggio Carta di Credito se selezionata -->
+          <div *ngIf="metodoPagamento === 'CARTA'" class="alert alert-success">
+            <h6 class="fw-bold">💳 Pagamento con Carta:</h6>
+            <p class="m-0">Il pagamento tramite Carta di Credito è stato registrato ed autorizzato correttamente.</p>
+          </div>
+
+          <div class="text-center mt-4">
+            <button class="btn btn-outline-primary btn-lg" type="button" (click)="nuovaPrenotazione()">
+              ➕ Effettua un'altra prenotazione
+            </button>
+          </div>
+        </div>
+      </div>
+      } @else {
+      <!-- MODULO DI PRENOTAZIONE -->
+      <div class="admin-form">
+        @if (messaggio) {
+        <div class="alert alert-success fw-bold my-2">{{ messaggio }}</div>
+        }
+        @if (errore) {
+        <div class="alert alert-danger fw-bold my-2">⚠️ {{ errore }}</div>
+        }
+
+        <div class="form-group">
+          <label>Tipo Prenotazione:</label>
+          <select [(ngModel)]="tipoPrenotazione" (change)="cambioTipoPrenotazione()" class="form-select">
+            <option value="ALBERGO">Albergo</option>
+            <option value="SPA">SPA</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Check-in / Data Prenotazione</label>
+            <input class="form-input" type="date" [(ngModel)]="checkIn" (change)="onDateChange()">
+          </div>
+          @if (includeAlbergo()) {
+          <div class="form-group">
+            <label>Check-out</label>
+            <input class="form-input" type="date" [(ngModel)]="checkOut" (change)="onDateChange()">
+          </div>
+          }
+        </div>
+
+        @if (includeAlbergo()) {
+        <p class="nights-count">Notti: {{ numeroNotti() }}</p>
+
+        <div class="form-group">
+          <label>Tipo Camera</label>
+          <select class="form-select" [(ngModel)]="tipoCamera" (ngModelChange)="onTipoCameraChange($event)">
+            <option value="" disabled selected>Seleziona un tipo di camera</option>
+            @for (tipo of tipiCamera; track $index) {
+            <option [value]="getValoreTipoCamera(tipo)">
+              {{ getValoreTipoCamera(tipo) }}
+            </option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Numero Stanza</label>
+          <select class="form-select" [(ngModel)]="stanzaSelezionata">
+            <option value="" disabled selected>Seleziona una stanza...</option>
+            @for (stanza of stanzeFiltrate; track $index) {
+            <option [value]="getStanzaId(stanza)">
+              Stanza {{ getStanzaNumero(stanza) }}
+            </option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Pensione</label>
+          <select class="form-select" [(ngModel)]="pensione">
+            @for (p of listaPensioni; track $index) {
+            <option [value]="p.tipo">
+              {{ p.nome || p.tipo }} (+{{ p.prezzo }} €/giorno)
+            </option>
+            }
+          </select>
+        </div>
+
+        <!-- SERVIZI AGGIUNTIVI (SOLO ALBERGO) -->
+        <div class="servizi-container my-3">
+          <label class="fw-bold d-block mb-2">Servizi Aggiuntivi:</label>
+          <div *ngIf="listaServizi.length > 0; else noServizi" class="servizi-grid">
+            <div *ngFor="let s of listaServizi" class="servizio-card">
+              <label class="servizio-label">
+                <input type="checkbox" [checked]="isServizioSelezionato(getServizioId(s))"
+                  (change)="toggleServizio(getServizioId(s))" />
+                <span class="servizio-nome">{{ getServizioNome(s) }}</span>
+                <span class="servizio-prezzo">+{{ getServizioPrezzo(s) }} €</span>
+              </label>
+            </div>
+          </div>
+          <ng-template #noServizi>
+            <p class="text-muted fst-italic">Nessun servizio aggiuntivo disponibile.</p>
+          </ng-template>
+        </div>
+        }
+
+        <!-- OSPII -->
+        <h4 class="section-title mt-4">Ospiti</h4>
+        @for (ospite of ospiti; track $index) {
+        <div class="guest-row my-2">
+          <input class="form-input" type="text" placeholder="Nome" [(ngModel)]="ospite.nome">
+          <input class="form-input" type="text" placeholder="Cognome" [(ngModel)]="ospite.cognome">
+          <input class="form-input" type="date" [(ngModel)]="ospite.dataNascita">
+          <button class="btn-remove" type="button" (click)="rimuoviOspite($index)">Rimuovi</button>
+        </div>
+        }
+        <button class="btn-secondary my-2" type="button" (click)="aggiungiOspite()">+ Aggiungi ospite</button>
+
+        <!-- METODO DI PAGAMENTO CON CARTA E BONIFICO -->
+        <div class="form-group my-3">
+          <label class="fw-bold">Metodo di Pagamento:</label>
+          <select [(ngModel)]="metodoPagamento" class="form-select">
+            <option value="CARTA">Carta di Credito</option>
+            <option value="BONIFICO">Bonifico Bancario</option>
+          </select>
+        </div>
+
+        <!-- RIEPILOGO PREZZO (SENZA CAPARRA) -->
+        <div class="price-summary my-3">
+          <p class="fs-5">Prezzo totale: <strong>{{ prezzoTotale() }} €</strong></p>
+        </div>
+
+        <button class="btn-primary" type="button" (click)="prenota()">Conferma prenotazione</button>
+      </div>
+      }
+    </section>
+    }
+
+    <!-- SEZIONE 2: TIPOLOGIA CAMERA -->
     @if (sezioneAttiva === 'tipologie') {
     <section class="admin-section">
       <h3 class="section-title">Creazione Tipologia Camera</h3>
@@ -62,7 +251,7 @@
           </div>
           <div class="form-group">
             <label>Capienza (numero ospiti):</label>
-            <input class="form-input" type="number" min="1" [(ngModel)]="nuovoTipoCamera.capienza" name="capienza" />
+            <input class="form-input" type="number" min="1" [(ngModel)]="nuovoTipoCamera['capienza']" name="capienza" />
           </div>
         </div>
         <button class="btn-primary" type="submit">Salva Tipologia</button>
@@ -70,7 +259,7 @@
     </section>
     }
 
-    <!-- ===== SEZIONE 2: CREA STANZA ===== -->
+    <!-- SEZIONE 3: CREA STANZA -->
     @if (sezioneAttiva === 'stanze') {
     <section class="admin-section">
       <h3 class="section-title">Crea una Stanza fisica</h3>
@@ -101,7 +290,7 @@
     </section>
     }
 
-    <!-- ===== SEZIONE 3: ELENCO STANZE ===== -->
+    <!-- SEZIONE 4: ELENCO STANZE -->
     @if (sezioneAttiva === 'elenco') {
     <section class="admin-section">
       <h3 class="section-title">Elenco Stanze</h3>

@@ -1,13 +1,14 @@
+
+
 export interface TipoCamera {
   id?: number;
-  nomeTipologia?: string;
   nome?: string;
+  nomeTipologia?: string; // 🟢 AGGIUNGI QUESTA RIGA
   descrizione?: string;
-  capienza?: number;
   prezzo?: number;
-  immagine?: string;
+  capienza?: number;
+  [key: string]: any;
 }
-
 export interface Stanza {
   id?: number;
   idStanza?: number;

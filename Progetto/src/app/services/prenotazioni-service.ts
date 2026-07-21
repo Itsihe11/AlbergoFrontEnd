@@ -1,10 +1,24 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { PensioneInfo } from '../interface/pensioneinfo';
-import { ServizioInfo } from '../interface/servizioinfo';
-import { TipoCamera, Stanza } from '../interface/tipocamera';
-import { Prenotazione, PayloadPrenotazione, Ospite } from '../interface/prenotazione';
+import { Prenotazione, Ospite } from '../interface/prenotazione';
+
+// 🟢 AGGIUNGI 'export' DAVANTI AD interface PensioneInfo
+export interface PensioneInfo {
+  id?: number;
+  tipo: string;
+  nome?: string;
+  prezzo: number;
+}
+
+// 🟢 Assicurati che sia esportata anche questa
+export interface ServizioInfo {
+  idservizio?: number;
+  id?: number;
+  nomeservizio: string;
+  prezzi?: number;
+  prezzo?: number;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -25,19 +39,19 @@ export class PrenotazioniService {
     return this.http.get<ServizioInfo[]>(`${this.urlPrenotazione}/servizi`);
   }
 
-  getTipiCamera(): Observable<TipoCamera[]> {
-    return this.http.get<TipoCamera[]>('/api/dipendente/tipologie/tipologieStanze');
+  getTipiCamera(): Observable<any[]> {
+    return this.http.get<any[]>('/api/dipendente/tipologie/tipologieStanze');
   }
 
-  getStanzeDisponibili(checkIn: string, checkOut: string): Observable<Stanza[]> {
-    return this.http.get<Stanza[]>(`${this.urlPrenotazione}/disponibile/${checkIn}/${checkOut}`);
+  getStanzeDisponibili(checkIn: string, checkOut: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.urlPrenotazione}/disponibile/${checkIn}/${checkOut}`);
   }
 
-  getTutteLeStanze(): Observable<Stanza[]> {
-    return this.http.get<Stanza[]>('/api/dipendente/stanza/listaStanze');
+  getTutteLeStanze(): Observable<any[]> {
+    return this.http.get<any[]>('/api/dipendente/stanza/listaStanze');
   }
 
-  creaPrenotazione(prenotazione: PayloadPrenotazione): Observable<Prenotazione> {
+  creaPrenotazione(prenotazione: any): Observable<Prenotazione> {
     return this.http.post<Prenotazione>(`${this.urlPrenotazione}/prenota`, prenotazione);
   }
 
