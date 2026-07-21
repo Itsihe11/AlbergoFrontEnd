@@ -1,6 +1,30 @@
-<section>
+<section class="contact-page">
   <h1>Contatti</h1>
-  <p>{{ indirizzo }}</p>
-  <p>{{ telefono }}</p>
-  <p>{{ email }}</p>
+  <p class="contact-intro">Siamo a tua disposizione per qualsiasi informazione</p>
+
+  <div class="contact-card">
+    <div class="contact-item">
+      <span class="contact-icon">📍</span>
+      <div>
+        <span class="contact-label">Indirizzo</span>
+        <p>{{ indirizzo }}</p>
+      </div>
+    </div>
+
+    <div class="contact-item">
+      <span class="contact-icon">📞</span>
+      <div>
+        <span class="contact-label">Telefono</span>
+        <p><a class="contact-link" [href]="'tel:' + telefono">{{ telefono }}</a></p>
+      </div>
+    </div>
+
+    <div class="contact-item">
+      <span class="contact-icon">✉️</span>
+      <div>
+        <span class="contact-label">Email</span>
+        <p><a class="contact-link" [href]="'mailto:' + email">{{ email }}</a></p>
+      </div>
+    </div>
+  </div>
 </section>
