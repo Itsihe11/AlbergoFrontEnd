@@ -1,16 +1,21 @@
 export interface TipoCamera {
   id?: number;
-  nome: string;
-  prezzo: number;
+  nomeTipologia?: string;
+  nome?: string;
   descrizione?: string;
   capienza?: number;
-  tipoCamera?: string; // TODO temporaneo: alias legacy usato da Prenotazioni, non esiste sul backend
-  [key: string]: any; // TODO temporaneo: da togliere quando Prenotazioni userà solo i campi reali
+  prezzo?: number;
+  immagine?: string;
 }
 
 export interface Stanza {
   id?: number;
-  numeroStanza: string;
-  tipologia: TipoCamera;
+  idStanza?: number;
+  numeroStanza?: string;
+  numero?: string;
   status?: string;
+  stato?: string;
+  tipologiaStanza?: TipoCamera;
+  tipologia?: TipoCamera;
+  disponibile?: boolean;
 }

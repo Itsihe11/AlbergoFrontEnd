@@ -79,19 +79,19 @@ export class Admin implements OnInit {
   }
 
   salvaTipoCamera(): void {
-    if (!this.nuovoTipoCamera.nome || this.nuovoTipoCamera.prezzo <= 0) {
-      alert('Inserisci un nome e un prezzo validi.');
-      return;
-    }
-
-    this.camereService.creaTipoCamera(this.nuovoTipoCamera).subscribe({
-      next: () => {
-        this.nuovoTipoCamera = { nome: '', descrizione: '', prezzo: 0, capienza: 2 };
-        this.caricaDati();
-      },
-      error: err => console.error('Errore creazione tipologia:', err)
-    });
+    if (!this.nuovoTipoCamera.nome || (this.nuovoTipoCamera.prezzo ?? 0) <= 0) {
+    alert('Inserisci un nome e un prezzo validi.');
+    return;
   }
+
+  this.camereService.creaTipoCamera(this.nuovoTipoCamera).subscribe({
+    next: () => {
+      this.nuovoTipoCamera = { nome: '', descrizione: '', prezzo: 0, capienza: 2 };
+      this.caricaDati();
+    },
+    error: err => console.error('Errore creazione tipologia:', err)
+  });
+}
 
   salvaStanza(): void {
     if (!this.numeroStanza || !this.tipoCameraSelezionato) {
