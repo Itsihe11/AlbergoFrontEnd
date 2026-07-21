@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router'; // 🟢 Importato Router per il logout
 import { AdminService } from '../../services/admin.service';
 import { CamereService } from '../../services/camere.service';
 import { PrenotazioniService, PensioneInfo } from '../../services/prenotazioni-service';
@@ -19,6 +20,7 @@ export class Admin implements OnInit {
   private adminService = inject(AdminService);
   private camereService = inject(CamereService);
   private prenotazioniService = inject(PrenotazioniService);
+  private router = inject(Router); // 🟢 Inject del Router
 
   // Auth & Navigation
   username = '';
@@ -49,7 +51,7 @@ export class Admin implements OnInit {
   pensione: string = 'MEZZA';
   checkIn: string = '';
   checkOut: string = '';
-  metodoPagamento: string = 'CARTA'; // 🟢 Default impostato su CARTA (selezionabile anche BONIFICO)
+  metodoPagamento: string = 'CARTA';
   ospiti: Ospite[] = [{ nome: '', cognome: '', dataNascita: '' }];
 
   listaPensioni: PensioneInfo[] = [];
@@ -65,7 +67,26 @@ export class Admin implements OnInit {
   prenotazioneConfermata: any = null;
 
   ngOnInit(): void {
-    this.isLogged = this.adminService.isLoggedIn();
+    // 🟢 1. CONTROLLO SESSIONE DA LOCALSTORAGE
+    const rawUser = localStorage.getItem('utente_logged');
+    if (rawUser) {
+      try {
+        const user = JSON.parse(rawUser);
+        if (user.ruolo === 'ADMIN') {
+          this.isLogged = true;
+          this.adminService.setLoggedIn(true);
+        }
+      } catch (e) {
+        console.error('Errore parsing sessione admin:', e);
+      }
+    }
+
+    // Fallback al controllo standard del servizio
+    if (!this.isLogged) {
+      this.isLogged = this.adminService.isLoggedIn();
+    }
+
+    // 🟢 2. SE LOGGATO, CARICA SUBITO I DATI SENZA CHIEDERE LOGIN
     if (this.isLogged) {
       this.caricaDati();
     }
@@ -80,8 +101,9 @@ export class Admin implements OnInit {
     const datiLogin: RichiestaAdmin = { username: this.username, password: this.password };
 
     this.adminService.login(datiLogin).subscribe({
-      next: () => {
+      next: (res) => {
         this.adminService.setLoggedIn(true);
+        localStorage.setItem('utente_logged', JSON.stringify({ ruolo: 'ADMIN', username: this.username }));
         this.isLogged = true;
         this.errorMessage = '';
         this.caricaDati();
@@ -94,9 +116,12 @@ export class Admin implements OnInit {
 
   logout(): void {
     this.adminService.logout();
+    localStorage.removeItem('utente_logged'); // 🟢 Rimuove la sessione salvata
     this.isLogged = false;
+    this.router.navigate(['/utenti']); // 🟢 Riporta alla schermata principale di login
   }
 
+  // --- RESTO DEL CODICE INVARIATO ---
   caricaDati(): void {
     this.camereService.getTipiCamera().subscribe({
       next: dati => this.tipiCamera = dati,
@@ -360,64 +385,62 @@ export class Admin implements OnInit {
   }
 
   prenota(): void {
-  this.messaggio = '';
-  this.errore = '';
+    this.messaggio = '';
+    this.errore = '';
 
-  if (!this.checkIn) {
-    this.errore = 'Seleziona prima la data di Check-in / Prenotazione!';
-    return;
-  }
-
-  if (this.includeAlbergo() && !this.checkOut) {
-    this.errore = 'Seleziona la data di Check-out!';
-    return;
-  }
-
-  if (this.includeAlbergo() && !this.stanzaSelezionata) {
-    this.errore = 'Seleziona una stanza disponibile!';
-    return;
-  }
-
-  let idPensioneVal: number = 3;
-  if (this.includeAlbergo()) {
-    if (this.pensione === 'COMPLETA') idPensioneVal = 1;
-    else if (this.pensione === 'MEZZA') idPensioneVal = 2;
-    else idPensioneVal = 3;
-  }
-
-  // 🟢 AGGIORNATO: dovePrenotazione impostato su 'SEDE'
-  const payload = {
-    idStanza: this.includeAlbergo() && this.stanzaSelezionata ? Number(this.stanzaSelezionata) : null,
-    checkin: this.checkIn,
-    checkout: this.checkOut ? this.checkOut : this.checkIn,
-    checkIn: this.checkIn,
-    checkOut: this.checkOut ? this.checkOut : this.checkIn,
-    idPensione: idPensioneVal,
-    tipoPrenotazione: this.tipoPrenotazione,
-    dovePrenotazione: 'SEDE', // 👈 Cambiato da 'WEB' a 'SEDE'
-    tipoPagamento: this.metodoPagamento,
-    ospiti: this.ospiti,
-    serviziAggiuntivi: this.includeAlbergo() ? this.serviziSelezionatiIds.map(id => Number(id)) : []
-  };
-
-  console.log('Payload inviato da Admin:', payload);
-
-  this.prenotazioniService.creaPrenotazione(payload).subscribe({
-    next: (res: any) => {
-      this.prenotazioneConfermata = res;
-      this.messaggio = 'Prenotazione in sede registrata con successo!';
-    },
-    error: (err: any) => {
-      console.error('Errore risposta Spring Boot:', err);
-      if (err.error && typeof err.error === 'string') {
-        this.errore = err.error;
-      } else if (err.error && err.error.message) {
-        this.errore = err.error.message;
-      } else {
-        this.errore = 'Si è verificato un errore HTTP 500 sul server durante la registrazione.';
-      }
+    if (!this.checkIn) {
+      this.errore = 'Seleziona prima la data di Check-in / Prenotazione!';
+      return;
     }
-  });
-}
-  
+
+    if (this.includeAlbergo() && !this.checkOut) {
+      this.errore = 'Seleziona la data di Check-out!';
+      return;
+    }
+
+    if (this.includeAlbergo() && !this.stanzaSelezionata) {
+      this.errore = 'Seleziona una stanza disponibile!';
+      return;
+    }
+
+    let idPensioneVal: number = 3;
+    if (this.includeAlbergo()) {
+      if (this.pensione === 'COMPLETA') idPensioneVal = 1;
+      else if (this.pensione === 'MEZZA') idPensioneVal = 2;
+      else idPensioneVal = 3;
+    }
+
+    const payload = {
+      idStanza: this.includeAlbergo() && this.stanzaSelezionata ? Number(this.stanzaSelezionata) : null,
+      checkin: this.checkIn,
+      checkout: this.checkOut ? this.checkOut : this.checkIn,
+      checkIn: this.checkIn,
+      checkOut: this.checkOut ? this.checkOut : this.checkIn,
+      idPensione: idPensioneVal,
+      tipoPrenotazione: this.tipoPrenotazione,
+      dovePrenotazione: 'SEDE',
+      tipoPagamento: this.metodoPagamento,
+      ospiti: this.ospiti,
+      serviziAggiuntivi: this.includeAlbergo() ? this.serviziSelezionatiIds.map(id => Number(id)) : []
+    };
+
+    console.log('Payload inviato da Admin:', payload);
+
+    this.prenotazioniService.creaPrenotazione(payload).subscribe({
+      next: (res: any) => {
+        this.prenotazioneConfermata = res;
+        this.messaggio = 'Prenotazione in sede registrata con successo!';
+      },
+      error: (err: any) => {
+        console.error('Errore risposta Spring Boot:', err);
+        if (err.error && typeof err.error === 'string') {
+          this.errore = err.error;
+        } else if (err.error && err.error.message) {
+          this.errore = err.error.message;
+        } else {
+          this.errore = 'Si è verificato un errore HTTP 500 sul server durante la registrazione.';
+        }
+      }
+    });
+  }
 }

@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http'; // 🟢 1. Importato HttpClient
 import { PrenotazioniService } from '../../services/prenotazioni-service';
 
 @Component({
@@ -13,6 +14,7 @@ import { PrenotazioniService } from '../../services/prenotazioni-service';
 })
 export class Utenti {
   private router = inject(Router);
+  private http = inject(HttpClient); // 🟢 2. Iniettato HttpClient
   private prenotazioniService = inject(PrenotazioniService);
 
   modalitaAccesso: 'codice' | 'account' = 'codice';
@@ -37,7 +39,6 @@ export class Utenti {
           localStorage.setItem('prenotazione_corrente', JSON.stringify(prenotazione));
           localStorage.removeItem('utente_logged');
           
-          // 🟢 Navigazione aggiornata a /clienti
           this.router.navigate(['/clienti']);
         },
         error: (err) => {
@@ -48,29 +49,38 @@ export class Utenti {
 
     } else {
       if (!this.email.trim() || !this.pin.trim()) {
-        this.errore = 'Inserisci sia Email che PIN!';
+        this.errore = 'Inserisci le credenziali complete!';
         return;
       }
 
-      this.prenotazioniService.loginUtente(this.email.trim(), this.pin.trim()).subscribe({
+      // 🟢 3. Chiamata al nuovo endpoint che controlla sia ADMIN che UTENTE
+      const payload = {
+        email: this.email.trim(),
+        pin: this.pin.trim()
+      };
+
+      this.http.post<any>('/api/utente/login', payload).subscribe({
         next: (res) => {
+          console.log('Login effettuato:', res);
           localStorage.setItem('utente_logged', JSON.stringify(res));
-          if (res.prenotazione) {
-            localStorage.setItem('prenotazione_corrente', JSON.stringify(res.prenotazione));
+
+          // 🟢 4. SMISTAMENTO IN BASE AL RUOLO
+          if (res.ruolo === 'ADMIN') {
+            console.log('Redirect verso Area Admin');
+            this.router.navigate(['/admin']);
+          } else {
+            if (res.prenotazione) {
+              localStorage.setItem('prenotazione_corrente', JSON.stringify(res.prenotazione));
+            }
+            console.log('Redirect verso Area Cliente');
+            this.router.navigate(['/clienti']);
           }
-          
-          // 🟢 Navigazione aggiornata a /clienti
-          this.router.navigate(['/clienti']);
         },
         error: (err) => {
           console.error('Errore login:', err);
-          this.errore = 'Credenziali non valide (Email o PIN errati).';
+          this.errore = err.error?.error || err.error?.message || 'Credenziali non valide (Email/Username o PIN/Password errati).';
         }
       });
     }
-  }
-
-  goToAdmin(): void {
-    this.router.navigate(['/admin']);
   }
 }

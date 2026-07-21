@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router,CanActivateFn } from '@angular/router';
 import { AuthService } from '../services/auth-services';
 
 
@@ -24,14 +24,16 @@ export const clienteGuard = (): boolean => {
   return false;
 };
 
-export const adminGuard = (): boolean => {
-  const authService = inject(AuthService);
+export const adminGuard: CanActivateFn = () => {
   const router = inject(Router);
+  const user = JSON.parse(localStorage.getItem('utente_logged') || '{}');
 
-  if (authService.isLoggedIn() && authService.ruolo === 'ADMIN') {
+  // 🟢 Controlla se il ruolo è "ADMIN"
+  if (user && user.ruolo === 'ADMIN') {
     return true;
   }
 
-  router.navigate(['/utenti']); 
+  console.warn('Accesso negato dal Guard: non sei Admin!');
+  router.navigate(['/utenti']);
   return false;
 };
