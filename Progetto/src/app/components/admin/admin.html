@@ -31,7 +31,7 @@
         </button>
         <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'tipologie'"
           (click)="sezioneAttiva = 'tipologie'">
-          Tipologie Camera
+          Crea Tipologie Camera
         </button>
         <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'stanze'" (click)="sezioneAttiva = 'stanze'">
           Crea Stanza
@@ -112,11 +112,19 @@
       } @else {
       <!-- MODULO DI PRENOTAZIONE -->
       <div class="admin-form">
-        @if (messaggio) {
-        <div class="alert alert-success fw-bold my-2">{{ messaggio }}</div>
-        }
+
+        <!-- BANNER DI ERRORE BEN VISIBILE -->
         @if (errore) {
-        <div class="alert alert-danger fw-bold my-2">⚠️ {{ errore }}</div>
+        <div class="alert alert-danger fw-bold my-3 shadow-sm p-3 border border-danger rounded" style="background-color: #f8d7da; color: #721c24;">
+          ⚠️ {{ errore }}
+        </div>
+        }
+
+        <!-- BANNER DI SUCCESSO -->
+        @if (messaggio) {
+        <div class="alert alert-success fw-bold my-3 shadow-sm p-3 border border-success rounded" style="background-color: #d4edda; color: #155724;">
+          {{ messaggio }}
+        </div>
         }
 
         <div class="form-group">
@@ -218,7 +226,7 @@
           </select>
         </div>
 
-        <!-- RIEPILOGO PREZZO (SENZA CAPARRA) -->
+        <!-- RIEPILOGO PREZZO -->
         <div class="price-summary my-3">
           <p class="fs-5">Prezzo totale: <strong>{{ prezzoTotale() }} €</strong></p>
         </div>
@@ -236,18 +244,16 @@
       <form class="admin-form" (ngSubmit)="salvaTipoCamera()">
         <div class="form-group">
           <label>Nome Tipologia:</label>
-          <input class="form-input" type="text" placeholder="es. Suite Deluxe" [(ngModel)]="nuovoTipoCamera.nome"
-            name="nome" />
+          <input class="form-input" type="text" placeholder="es. Suite Deluxe" [(ngModel)]="nuovoTipoCamera.nome" name="nome" required />
         </div>
         <div class="form-group">
           <label>Descrizione:</label>
-          <input class="form-input" type="text" placeholder="Descrizione della stanza..."
-            [(ngModel)]="nuovoTipoCamera.descrizione" name="descrizione" />
+          <input class="form-input" type="text" placeholder="Descrizione della stanza..." [(ngModel)]="nuovoTipoCamera.descrizione" name="descrizione" />
         </div>
         <div class="form-row">
           <div class="form-group">
             <label>Prezzo a Notte (€):</label>
-            <input class="form-input" type="number" [(ngModel)]="nuovoTipoCamera.prezzo" name="prezzo" />
+            <input class="form-input" type="number" min="1" [(ngModel)]="nuovoTipoCamera.prezzo" name="prezzo" required />
           </div>
           <div class="form-group">
             <label>Capienza (numero ospiti):</label>
@@ -266,22 +272,24 @@
       <form class="admin-form" (ngSubmit)="salvaStanza()">
         <div class="form-group">
           <label>Numero Stanza:</label>
-          <input class="form-input" type="text" placeholder="es. 101" [(ngModel)]="numeroStanza" name="numeroStanza" />
+          <input class="form-input" type="text" placeholder="es. 101" [(ngModel)]="numeroStanza" name="numeroStanza" required />
         </div>
         <div class="form-group">
           <label>Stato:</label>
           <select class="form-select" [(ngModel)]="statusStanza" name="statusStanza">
-            <option value="LIBERA">Libera</option>
+            <option value="disponibile">disponibile</option>
             <option value="OCCUPATA">Occupata</option>
             <option value="MANUTENZIONE">In manutenzione</option>
           </select>
         </div>
         <div class="form-group">
           <label>Tipologia:</label>
-          <select class="form-select" [(ngModel)]="tipoCameraSelezionato" name="tipoCamera">
+          <select class="form-select" [(ngModel)]="idTipoCameraSelezionato" name="tipoCamera" required>
             <option [ngValue]="null" disabled selected>-- Seleziona Tipologia --</option>
-            @for (t of tipiCamera; track t.id) {
-            <option [ngValue]="t">{{ t.nome }} ({{ t.prezzo }}€/notte)</option>
+            @for (t of tipiCamera; track $index) {
+            <option [value]="getTipologiaId(t)">
+              {{ getValoreTipoCamera(t) }} ({{ t.prezzo }}€/notte)
+            </option>
             }
           </select>
         </div>

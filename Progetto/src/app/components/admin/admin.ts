@@ -1,7 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router'; // 🟢 Importato Router per il logout
+import { Router } from '@angular/router';
 import { AdminService } from '../../services/admin.service';
 import { CamereService } from '../../services/camere.service';
 import { PrenotazioniService, PensioneInfo } from '../../services/prenotazioni-service';
@@ -20,7 +20,8 @@ export class Admin implements OnInit {
   private adminService = inject(AdminService);
   private camereService = inject(CamereService);
   private prenotazioniService = inject(PrenotazioniService);
-  private router = inject(Router); // 🟢 Inject del Router
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   // Auth & Navigation
   username = '';
@@ -41,8 +42,9 @@ export class Admin implements OnInit {
   };
 
   numeroStanza = '';
-  statusStanza = 'LIBERA';
+  statusStanza = 'disponibile';
   tipoCameraSelezionato: TipoCamera | null = null;
+  idTipoCameraSelezionato: number | string | null = null; // 🟢 Aggiunto per il binding sicuro da <select>
 
   // Stato Prenotazione
   tipoPrenotazione: string = 'ALBERGO';
@@ -67,7 +69,6 @@ export class Admin implements OnInit {
   prenotazioneConfermata: any = null;
 
   ngOnInit(): void {
-    // 🟢 1. CONTROLLO SESSIONE DA LOCALSTORAGE
     const rawUser = localStorage.getItem('utente_logged');
     if (rawUser) {
       try {
@@ -81,12 +82,10 @@ export class Admin implements OnInit {
       }
     }
 
-    // Fallback al controllo standard del servizio
     if (!this.isLogged) {
       this.isLogged = this.adminService.isLoggedIn();
     }
 
-    // 🟢 2. SE LOGGATO, CARICA SUBITO I DATI SENZA CHIEDERE LOGIN
     if (this.isLogged) {
       this.caricaDati();
     }
@@ -116,12 +115,11 @@ export class Admin implements OnInit {
 
   logout(): void {
     this.adminService.logout();
-    localStorage.removeItem('utente_logged'); // 🟢 Rimuove la sessione salvata
+    localStorage.removeItem('utente_logged');
     this.isLogged = false;
-    this.router.navigate(['/utenti']); // 🟢 Riporta alla schermata principale di login
+    this.router.navigate(['/utenti']);
   }
 
-  // --- RESTO DEL CODICE INVARIATO ---
   caricaDati(): void {
     this.camereService.getTipiCamera().subscribe({
       next: dati => this.tipiCamera = dati,
@@ -148,40 +146,88 @@ export class Admin implements OnInit {
   }
 
   salvaTipoCamera(): void {
-    if (!this.nuovoTipoCamera.nome || (this.nuovoTipoCamera.prezzo ?? 0) <= 0) {
-      alert('Inserisci un nome e un prezzo validi.');
+    const nomeVal = (this.nuovoTipoCamera.nome || (this.nuovoTipoCamera as any).nomeTipologia || '').toString().trim();
+    const prezzoVal = Number(this.nuovoTipoCamera.prezzo);
+
+    if (!nomeVal || isNaN(prezzoVal) || prezzoVal <= 0) {
+      alert('Inserisci un nome e un prezzo a notte maggiore di 0!');
       return;
     }
 
-    this.camereService.creaTipoCamera(this.nuovoTipoCamera).subscribe({
+    const payload = {
+      ...this.nuovoTipoCamera,
+      nome: nomeVal,
+      nomeTipologia: nomeVal,
+      prezzo: prezzoVal,
+      capienza: Number((this.nuovoTipoCamera as any).capienza || 2)
+    };
+
+    this.camereService.creaTipoCamera(payload).subscribe({
       next: () => {
-        this.nuovoTipoCamera = { nome: '', descrizione: '', prezzo: 0, capienza: 2 };
+        alert('Tipologia camera creata con successo!');
+        this.nuovoTipoCamera = {
+          nome: '',
+          descrizione: '',
+          prezzo: 0,
+          capienza: 2
+        };
         this.caricaDati();
+        this.cdr.detectChanges();
       },
-      error: err => console.error('Errore creazione tipologia:', err)
+      error: err => {
+        console.error('Errore creazione tipologia:', err);
+        alert('Si è verificato un errore durante il salvataggio sul server.');
+      }
     });
   }
 
+  // 🟢 HELPER PER ESTRARRE L'ID DELLA TIPOLOGIA
+  getTipologiaId(tipo: any): number | string {
+    if (!tipo) return '';
+    return tipo.id || tipo.idTipologia || tipo.id_tipologia || '';
+  }
+
+  // 🟢 CREAZIONE STANZA AGGIORNATA
   salvaStanza(): void {
-    if (!this.numeroStanza || !this.tipoCameraSelezionato) {
+    const numStanza = (this.numeroStanza || '').toString().trim();
+
+    // Recupera l'oggetto tipologia sia se presente direttamente, sia cercando tramite ID
+    let tipologiaObj = this.tipoCameraSelezionato;
+    if (!tipologiaObj && this.idTipoCameraSelezionato) {
+      tipologiaObj = this.tipiCamera.find(
+        t => this.getTipologiaId(t).toString() === this.idTipoCameraSelezionato?.toString()
+      ) || null;
+    }
+
+    if (!numStanza || !tipologiaObj) {
       alert('Inserisci il numero stanza e seleziona una tipologia.');
       return;
     }
 
-    const nuovaStanza: Stanza = {
-      numeroStanza: this.numeroStanza,
+    const nuovaStanza: any = {
+      numeroStanza: numStanza,
       status: this.statusStanza,
-      tipologia: this.tipoCameraSelezionato
+      tipologia: tipologiaObj,
+      tipologiaStanza: tipologiaObj
     };
+
+    console.log('Salvataggio stanza:', nuovaStanza);
 
     this.camereService.creaStanza(nuovaStanza).subscribe({
       next: () => {
+        alert('Stanza creata con successo!');
         this.numeroStanza = '';
-        this.statusStanza = 'LIBERA';
+        this.statusStanza = 'disponibile';
         this.tipoCameraSelezionato = null;
+        this.idTipoCameraSelezionato = null;
+        
         this.caricaDati();
+        this.cdr.detectChanges();
       },
-      error: err => console.error('Errore salvataggio stanza:', err)
+      error: err => {
+        console.error('Errore salvataggio stanza:', err);
+        alert('Si è verificato un errore durante il salvataggio della stanza.');
+      }
     });
   }
 
@@ -390,17 +436,42 @@ export class Admin implements OnInit {
 
     if (!this.checkIn) {
       this.errore = 'Seleziona prima la data di Check-in / Prenotazione!';
+      this.cdr.detectChanges();
       return;
     }
 
     if (this.includeAlbergo() && !this.checkOut) {
       this.errore = 'Seleziona la data di Check-out!';
+      this.cdr.detectChanges();
       return;
     }
 
     if (this.includeAlbergo() && !this.stanzaSelezionata) {
       this.errore = 'Seleziona una stanza disponibile!';
+      this.cdr.detectChanges();
       return;
+    }
+
+    if (this.includeAlbergo() && this.stanzaSelezionata) {
+      const stanzaObj = this.stanzeDisponibili.find(
+        s => this.getStanzaId(s).toString() === this.stanzaSelezionata.toString()
+      );
+
+      if (stanzaObj) {
+        const capienzaStanza = Number(
+          stanzaObj.tipologiaStanza?.capienza || 
+          stanzaObj.tipologia?.capienza || 
+          stanzaObj.capienza || 
+          0
+        );
+
+        if (capienzaStanza > 0 && this.ospiti.length > capienzaStanza) {
+          this.errore = `⚠️ Numero di ospiti (${this.ospiti.length}) superiore alla capienza massima della stanza selezionata (${capienzaStanza})!`;
+          this.cdr.detectChanges();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+      }
     }
 
     let idPensioneVal: number = 3;
@@ -428,18 +499,60 @@ export class Admin implements OnInit {
 
     this.prenotazioniService.creaPrenotazione(payload).subscribe({
       next: (res: any) => {
-        this.prenotazioneConfermata = res;
+        console.log('Risposta backend ricevuta:', res);
+
+        if (typeof res === 'string') {
+          this.prenotazioneConfermata = {
+            codicePrenotazione: res,
+            tipoPrenotazione: this.tipoPrenotazione,
+            costo_totale: this.prezzoTotale()
+          };
+        } else {
+          this.prenotazioneConfermata = {
+            ...res,
+            costo_totale: res.costo_totale || res.costoTotale || this.prezzoTotale()
+          };
+        }
+
         this.messaggio = 'Prenotazione in sede registrata con successo!';
+        this.cdr.detectChanges();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       },
       error: (err: any) => {
         console.error('Errore risposta Spring Boot:', err);
-        if (err.error && typeof err.error === 'string') {
-          this.errore = err.error;
-        } else if (err.error && err.error.message) {
-          this.errore = err.error.message;
-        } else {
-          this.errore = 'Si è verificato un errore HTTP 500 sul server durante la registrazione.';
+
+        if (err.status === 200 || err.statusText === 'OK') {
+          const codice = err.error?.text || err.error || 'CONFERMATA';
+          this.prenotazioneConfermata = {
+            codicePrenotazione: codice,
+            tipoPrenotazione: this.tipoPrenotazione,
+            costo_totale: this.prezzoTotale()
+          };
+          this.messaggio = 'Prenotazione in sede registrata con successo!';
+          this.cdr.detectChanges();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
         }
+
+        let msgExt = '';
+        if (typeof err.error === 'string') {
+          msgExt = err.error;
+        } else if (err.error && typeof err.error.message === 'string') {
+          msgExt = err.error.message;
+        } else if (err.message) {
+          msgExt = err.message;
+        }
+
+        if (msgExt.includes('capienza') || msgExt.includes('Numero ospiti')) {
+          this.errore = '⚠️ Impossibile completare la prenotazione: Numero di ospiti superiore alla capienza massima della stanza!';
+        } else if (msgExt) {
+          this.errore = `⚠️ Errore dal server: ${msgExt}`;
+        } else {
+          this.errore = '⚠️ Errore durante la registrazione. Verificare i dati inseriti.';
+        }
+
+        this.cdr.detectChanges();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     });
   }
