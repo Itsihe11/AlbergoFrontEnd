@@ -1,39 +1,76 @@
 import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AuthService } from '../../services/auth-services';
+import { PrenotazioniService } from '../../services/prenotazioni-service';
 
 @Component({
   selector: 'app-utenti',
-  imports: [FormsModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './utenti.html',
-  styleUrl: './utenti.css',
+  styleUrls: []
 })
-
-
 export class Utenti {
-
-  authService = inject(AuthService);
   private router = inject(Router);
-  
-  email = '';
-  password = '';
-  errore: string | null = null;
+  private prenotazioniService = inject(PrenotazioniService);
+
+  modalitaAccesso: 'codice' | 'account' = 'codice';
+
+  codicePrenotazione: string = '';
+  email: string = '';
+  pin: string = '';
+
+  errore: string = '';
 
   login(): void {
-  this.errore = null;
+    this.errore = '';
 
-  this.authService.login(this.email, this.password).subscribe({
-    next: (res) => {
-      if (res.ruolo === 'CLIENTE') {
-        this.router.navigate(['/clienti']);
-      } else if (res.ruolo === 'ADMIN') {
-        this.router.navigate(['/admin']);
+    if (this.modalitaAccesso === 'codice') {
+      if (!this.codicePrenotazione.trim()) {
+        this.errore = 'Inserisci il Codice Prenotazione!';
+        return;
       }
-    },
-    error: () => {
-      this.errore = 'Credenziali non valide. Riprova.';
+
+      this.prenotazioniService.getPrenotazioneByCodice(this.codicePrenotazione.trim()).subscribe({
+        next: (prenotazione) => {
+          localStorage.setItem('prenotazione_corrente', JSON.stringify(prenotazione));
+          localStorage.removeItem('utente_logged');
+          
+          // 🟢 Navigazione aggiornata a /clienti
+          this.router.navigate(['/clienti']);
+        },
+        error: (err) => {
+          console.error('Errore backend:', err);
+          this.errore = 'Codice Prenotazione non trovato o non valido.';
+        }
+      });
+
+    } else {
+      if (!this.email.trim() || !this.pin.trim()) {
+        this.errore = 'Inserisci sia Email che PIN!';
+        return;
+      }
+
+      this.prenotazioniService.loginUtente(this.email.trim(), this.pin.trim()).subscribe({
+        next: (res) => {
+          localStorage.setItem('utente_logged', JSON.stringify(res));
+          if (res.prenotazione) {
+            localStorage.setItem('prenotazione_corrente', JSON.stringify(res.prenotazione));
+          }
+          
+          // 🟢 Navigazione aggiornata a /clienti
+          this.router.navigate(['/clienti']);
+        },
+        error: (err) => {
+          console.error('Errore login:', err);
+          this.errore = 'Credenziali non valide (Email o PIN errati).';
+        }
+      });
     }
-  });
-}
+  }
+
+  goToAdmin(): void {
+    this.router.navigate(['/admin']);
+  }
 }

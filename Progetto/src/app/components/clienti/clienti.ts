@@ -1,88 +1,125 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { PrenotazioniService } from '../../services/prenotazioni-service';
-import { Prenotazione, Ospite } from '../../interface/prenotazione';
 
 @Component({
   selector: 'app-clienti',
-  imports: [FormsModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './clienti.html',
-  styleUrl: './clienti.css',
+  styleUrls: []
 })
 export class Clienti implements OnInit {
-
+  private router = inject(Router);
   private prenotazioniService = inject(PrenotazioniService);
 
-  prenotazioni: Prenotazione[] = [];
-  caricamento = true;
-  errore: string | null = null;
-  messaggio: string | null = null;
+  prenotazione: any = null;
+  messaggio: string = '';
+  errore: string = '';
 
-  // per il form di cessione
-  prenotazioneInCessione: number | string | null = null;
-  nuovoIntestatario: Ospite = { nome: '', cognome: '', dataNascita: '' };
+  // Gestione Modal / Modifica Ospiti
+  mostraModalModifica: boolean = false;
+  nuoviOspiti: any[] = [];
+  
+  nuovaEmail: string = '';
+  nuovoPin: string = '';
 
   ngOnInit(): void {
-    this.caricaPrenotazioni();
+    const raw = localStorage.getItem('prenotazione_corrente');
+    if (raw) {
+      this.prenotazione = JSON.parse(raw);
+    } else {
+      this.router.navigate(['/utenti']);
+    }
   }
 
-  caricaPrenotazioni(): void {
-    this.caricamento = true;
-    this.prenotazioniService.getPrenotazioniCliente().subscribe({
-      next: (dati: Prenotazione[]) => { // 🟢 Tipo esplicito per risolvere TS7006
-        this.prenotazioni = dati;
-        this.caricamento = false;
+  annullaPrenotazione(): void {
+    if (!confirm('Sei sicuro di voler annullare questa prenotazione?')) return;
+
+    const codice = this.prenotazione.codice_prenotazione || this.prenotazione.codicePrenotazione;
+
+    this.prenotazioniService.annullaPrenotazione(codice).subscribe({
+      next: () => {
+        alert('Prenotazione annullata con successo.');
+        this.logout();
       },
       error: () => {
-        this.errore = 'Impossibile caricare le prenotazioni.';
-        this.caricamento = false;
+        this.errore = 'Impossibile annullare la prenotazione.';
       }
     });
   }
 
-  annulla(id: number | string | undefined): void {
-    if (!id) return;
-    if (!confirm('Sei sicuro di voler annullare questa prenotazione? La caparra non verrà rimborsata.')) {
+  apriModificaOspiti(): void {
+    this.errore = ''; // Reset errore precedente
+    this.messaggio = '';
+    // clona la lista attuale
+    this.nuoviOspiti = JSON.parse(JSON.stringify(this.prenotazione.ospiti || []));
+    this.nuovaEmail = this.prenotazione.email || '';
+    this.nuovoPin = this.prenotazione.pin || '';
+    this.mostraModalModifica = true;
+  }
+
+  aggiungiOspite(): void {
+    this.nuoviOspiti.push({ nome: '', cognome: '', datanascita: '' });
+  }
+
+  rimuoviOspite(index: number): void {
+    if (this.nuoviOspiti.length > 1) {
+      this.nuoviOspiti.splice(index, 1);
+    }
+  }
+
+  salvaModificaOspiti(): void {
+    this.errore = '';
+    this.messaggio = '';
+
+    if (!this.nuovaEmail.trim() || !this.nuovoPin.trim()) {
+      this.errore = 'Per modificare gli ospiti devi inserire Email e PIN!';
       return;
     }
 
-    this.prenotazioniService.annullaPrenotazione(id).subscribe({
-      next: () => {
-        this.messaggio = 'Prenotazione annullata.';
-        this.caricaPrenotazioni();
+    const ospitiFormattati = this.nuoviOspiti.map(ospite => ({
+      nome: ospite.nome,
+      cognome: ospite.cognome,
+      datanascita: (ospite.datanascita || ospite.dataNascita) ? (ospite.datanascita || ospite.dataNascita) : null
+    }));
+
+    const payload = {
+      codicePrenotazione: this.prenotazione.codice_prenotazione || this.prenotazione.codicePrenotazione,
+      emailUtente: this.nuovaEmail.trim(),
+      pinUtente: this.nuovoPin.trim(),
+      ospiti: ospitiFormattati
+    };
+
+    // 🟢 UNICA CHIAMATA AL SERVICE
+this.prenotazioniService.modificaOspitiECreaAccount(payload).subscribe({
+next: () => {
+        // 🟢 Aggiorna ospiti, email e pin nell'oggetto locale
+        this.prenotazione.ospiti = [...ospitiFormattati];
+        this.prenotazione.email = this.nuovaEmail.trim();
+        this.prenotazione.pin = this.nuovoPin.trim();
+
+        // 🟢 Aggiorna lo stato in LocalStorage
+        localStorage.setItem('prenotazione_corrente', JSON.stringify(this.prenotazione));
+        
+        this.mostraModalModifica = false;
+        this.messaggio = 'Ospiti aggiornati e account creato con successo!';
       },
-      error: () => {
-        this.errore = 'Errore durante l\'annullamento.';
+      error: (err) => {
+        this.errore = err.error?.error || 'Superata capienza massima della stanza.';
       }
     });
   }
 
-  apriCessione(id: number | string | undefined): void {
-    if (!id) return;
-    this.prenotazioneInCessione = id;
-    this.nuovoIntestatario = { nome: '', cognome: '', dataNascita: '' };
+  chiudiModal(): void {
+    this.mostraModalModifica = false;
   }
 
-  annullaCessione(): void {
-    this.prenotazioneInCessione = null;
-  }
-
-  confermaCessione(): void {
-    if (!this.prenotazioneInCessione) return;
-    if (!this.nuovoIntestatario.nome || !this.nuovoIntestatario.cognome || !this.nuovoIntestatario.dataNascita) {
-      this.errore = 'Compila tutti i dati del nuovo intestatario.';
-      return;
-    }
-
-    this.prenotazioniService.cedePrenotazione(this.prenotazioneInCessione, this.nuovoIntestatario).subscribe({
-      next: () => {
-        this.messaggio = 'Prenotazione ceduta con successo.';
-        this.prenotazioneInCessione = null;
-        this.caricaPrenotazioni();
-      },
-      error: () => {
-        this.errore = 'Errore durante la cessione.';
-      }
-    });
+  logout(): void {
+    localStorage.removeItem('prenotazione_corrente');
+    localStorage.removeItem('utente_logged');
+    this.router.navigate(['/utenti']);
   }
 }

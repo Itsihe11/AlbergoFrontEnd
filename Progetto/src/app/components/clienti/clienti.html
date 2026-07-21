@@ -1,49 +1,147 @@
-<section>
-    <h1>Le tue prenotazioni</h1>
+<div class="container my-4">
 
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📋 Area Cliente - Dettagli Prenotazione</h2>
+        <button class="btn btn-outline-danger" (click)="logout()">Esci 🚪</button>
+    </div>
+
+    <!-- MESSAGGI DI ERRORE O CONFERMA -->
     @if (messaggio) {
-    <p>{{ messaggio }}</p>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ messaggio }}
+    </div>
     }
     @if (errore) {
-    <p>{{ errore }}</p>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ errore }}
+    </div>
     }
 
-    @if (caricamento) {
-    <p>Caricamento prenotazioni...</p>
-    } @else if (prenotazioni.length === 0) {
-    <p>Non hai prenotazioni attive.</p>
-    } @else {
-    @for (p of prenotazioni; track p.id) {
-    <article>
-        <h2>Prenotazione #{{ p.id }} — {{ p.stato }}</h2>
-        <p>Tipo: {{ p.tipoPrenotazione }}</p>
-        @if (p.tipoCamera) {
-        <p>Camera: {{ p.tipoCamera }}</p>
-        }
-        <p>Check-in: {{ p.checkIn }} — Check-out: {{ p.checkOut }}</p>
-        <p>Totale: {{ p.prezzoTotale }} € (caparra: {{ p.caparra }} €)</p>
-
-        <h3>Ospiti</h3>
-        @for (ospite of p.ospiti; track ospite.nome) {
-        <p>{{ ospite.nome }} {{ ospite.cognome }} — {{ ospite.dataNascita }}</p>
-        }
-
-        @if (p.stato === 'CONFERMATA') {
-        <button (click)="annulla(p.id)">Annulla prenotazione</button>
-        <button (click)="apriCessione(p.id)">Cedi a un'altra persona</button>
-        }
-
-        @if (prenotazioneInCessione === p.id) {
-        <div>
-            <h3>Cedi prenotazione a:</h3>
-            <input type="text" placeholder="Nome" [(ngModel)]="nuovoIntestatario.nome">
-            <input type="text" placeholder="Cognome" [(ngModel)]="nuovoIntestatario.cognome">
-            <input type="date" [(ngModel)]="nuovoIntestatario.dataNascita">
-            <button (click)="confermaCessione()">Conferma cessione</button>
-            <button (click)="annullaCessione()">Annulla</button>
+    <!-- SCHEDA DETTAGLI PRENOTAZIONE -->
+    @if (prenotazione) {
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="m-0">Prenotazione #{{ prenotazione.codice_prenotazione || prenotazione.codicePrenotazione }}</h4>
+            <span class="badge bg-light text-dark fw-bold">{{ prenotazione.stato || 'CONFERMATA' }}</span>
         </div>
-        }
-    </article>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <p><strong>Tipo Prenotazione:</strong> {{ prenotazione.tipo_prenotazione ||
+                        prenotazione.tipoPrenotazione }}</p>
+                    <p><strong>Canale:</strong> {{ prenotazione.dove_prenotazione || prenotazione.dovePrenotazione }}
+                    </p>
+                    <p><strong>Metodo di Pagamento:</strong> {{ prenotazione.tipo_pagamento ||
+                        prenotazione.tipoPagamento }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Costo Totale:</strong> {{ prenotazione.costo_totale || prenotazione.costoTotale }} €</p>
+                    <p><strong>Acconto/Deposito:</strong> {{ prenotazione.deposito }} €</p>
+                    <p><strong>Stato Pagamento:</strong> {{ prenotazione.pagato ? 'Saldato' : 'In Sospeso' }}</p>
+                </div>
+            </div>
+
+            <hr />
+
+            <!-- ELENCO OSPITI -->
+            <h5 class="fw-bold mb-3">👥 Ospiti Registrati:</h5>
+            <ul class="list-group mb-4">
+                @for (ospite of prenotazione.ospiti; track $index) {
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span><strong>{{ ospite.nome }} {{ ospite.cognome }}</strong></span>
+                    @if (ospite.datanascita) {
+                    <small class="text-muted">
+                        Nascita: {{ ospite.datanascita | date:'dd/MM/yyyy' }}
+                    </small>
+                    }
+                </li>
+                } @empty {
+                <li class="list-group-item text-muted">Nessun ospite dettagliato presente al momento.</li>
+                }
+            </ul>
+
+            <!-- PULSANTI AZIONE -->
+            <div class="d-flex gap-2">
+                <button class="btn btn-warning" (click)="apriModificaOspiti()">
+                    ✏️ Modifica Ospiti
+                </button>
+                <button class="btn btn-danger" (click)="annullaPrenotazione()">
+                    🗑️ Annulla Prenotazione
+                </button>
+            </div>
+
+        </div>
+    </div>
     }
-    }
-</section>
+
+ <!-- MODAL MODIFICA OSPITI & CREAZIONE ACCOUNT -->
+@if (mostraModalModifica) {
+  <div class="modal d-block bg-dark bg-opacity-50" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">✏️ Modifica Ospiti e Crea Account</h5>
+          <button type="button" class="btn-close btn-close-white" (click)="chiudiModal()"></button>
+        </div>
+        
+        <div class="modal-body">
+
+          <!-- 🔴 1. BOX DI ERRORE (VISIBILE ALL'UTENTE DENTRO IL MODAL) -->
+          @if (errore) {
+            <div class="alert alert-danger mb-3 fw-bold" role="alert">
+              ⚠️ {{ errore }}
+            </div>
+          }
+
+          <div class="alert alert-info">
+            📌 <strong>Nota:</strong> Per salvare le modifiche agli ospiti è obbligatorio creare un account inserendo Email e PIN.
+          </div>
+
+          <!-- ELENCO EDITABILE OSPITI -->
+          <h6 class="fw-bold mb-3">Inserisci Ospiti:</h6>
+          @for (ospite of nuoviOspiti; track $index) {
+            <div class="row g-2 mb-2 align-items-center">
+              <div class="col-md-4">
+                <input type="text" class="form-control" placeholder="Nome" [(ngModel)]="ospite.nome">
+              </div>
+              <div class="col-md-4">
+                <input type="text" class="form-control" placeholder="Cognome" [(ngModel)]="ospite.cognome">
+              </div>
+              <div class="col-md-3">
+                <input type="date" class="form-control" [(ngModel)]="ospite.datanascita">
+              </div>
+              <div class="col-md-1 text-end">
+                <button class="btn btn-outline-danger btn-sm w-100" (click)="rimuoviOspite($index)">X</button>
+              </div>
+            </div>
+          }
+          <button class="btn btn-sm btn-secondary mb-3" (click)="aggiungiOspite()">+ Aggiungi Ospite</button>
+
+          <hr />
+
+          <!-- CREAZIONE ACCOUNT -->
+          <h6 class="fw-bold text-primary mb-3">🔐 Crea Account Utente (Obbligatorio):</h6>
+          <div class="row g-2">
+            <div class="col-md-6 mb-2">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" placeholder="nome@email.com" [(ngModel)]="nuovaEmail">
+            </div>
+            <div class="col-md-6 mb-2">
+              <label class="form-label">PIN / Password</label>
+              <input type="password" class="form-control" placeholder="••••" [(ngModel)]="nuovoPin">
+            </div>
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="chiudiModal()">Chiudi</button>
+          <button type="button" class="btn btn-primary" (click)="salvaModificaOspiti()">Salva Modifiche</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+</div>

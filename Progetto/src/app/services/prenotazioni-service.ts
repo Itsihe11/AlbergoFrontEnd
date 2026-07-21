@@ -27,6 +27,18 @@ export class PrenotazioniService {
   private http = inject(HttpClient);
   private readonly urlPrenotazione = '/api/prenotazione';
 
+  // 🟢 Aggiungi questo metodo dentro PrenotazioniService
+loginUtente(email: string, pin: string): Observable<any> {
+  return this.http.post<any>(`${this.urlPrenotazione}/login-utente`, { email, pin });
+}
+getPrenotazioneByCodice(codice: string): Observable<any> {
+  return this.http.get<any>(`${this.urlPrenotazione}/codice/${codice}`);
+}
+
+modificaOspitiECreaAccount(payload: any): Observable<any> {
+  return this.http.put<any>(`${this.urlPrenotazione}/modifica-ospiti-account`, payload);
+}
+
   getPensioni(): Observable<PensioneInfo[]> {
     return this.http.get<PensioneInfo[]>(`${this.urlPrenotazione}/pensione`);
   }

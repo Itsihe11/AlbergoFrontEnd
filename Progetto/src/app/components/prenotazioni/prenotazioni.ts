@@ -371,7 +371,7 @@ export class Prenotazioni implements OnInit {
     }
   }
 
-  prenota(): void {
+ prenota(): void {
     this.messaggio = '';
     this.errore = '';
 
@@ -393,7 +393,7 @@ export class Prenotazioni implements OnInit {
       return;
     }
 
-    // 2. MAPPATURA PENSIONE (1: COMPLETA, 2: MEZZA, 3: NESSUNA)
+    // MAPPATURA PENSIONE
     let idPensioneVal: number = 3;
     if (this.includeAlbergo()) {
       if (this.pensione === 'COMPLETA') {
@@ -430,26 +430,59 @@ export class Prenotazioni implements OnInit {
 
     this.prenotazioniService.creaPrenotazione(payload).subscribe({
       next: (res: any) => {
-        // 🟢 SALVA LA RISPOSTA RICEVUTA DA SPRING BOOT
-        this.prenotazioneConfermata = res;
+        console.log('Risposta backend ricevuta:', res);
+
+        // 🟢 Se il backend restituisce solo una stringa, costruiamo l'oggetto di riepilogo
+        if (typeof res === 'string') {
+          this.prenotazioneConfermata = {
+            codicePrenotazione: res,
+            tipoPrenotazione: this.tipoPrenotazione,
+            costo_totale: this.prezzoTotale(),
+            deposito: this.caparra()
+          };
+        } else {
+          // Se la risposta è un oggetto JSON
+          this.prenotazioneConfermata = {
+            ...res,
+            costo_totale: res.costo_totale || res.costoTotale || this.prezzoTotale(),
+            deposito: res.deposito || res.caparra || this.caparra()
+          };
+        }
+
         this.messaggio = 'Prenotazione confermata con successo!';
-        
-        // Scorri in cima per mostrare subito la scheda di conferma
+        this.cdr.detectChanges(); // 🟢 FORZA IL CAMBIO SCHERMATA DENTRO ANGULAR
         window.scrollTo({ top: 0, behavior: 'smooth' });
       },
       error: (err: any) => {
         console.error('Errore risposta Spring Boot:', err);
 
+        // 🟢 GESTIONE TRAPPOLA: Se lo status è 200 (SUCCESS) ma l'errore è un parsing JSON di testo
+        if (err.status === 200 || err.statusText === 'OK') {
+          const testoCodice = err.error?.text || err.error || 'CONFERMATA';
+          this.prenotazioneConfermata = {
+            codicePrenotazione: testoCodice,
+            tipoPrenotazione: this.tipoPrenotazione,
+            costo_totale: this.prezzoTotale(),
+            deposito: this.caparra()
+          };
+          this.cdr.detectChanges(); // 🟢 FORZA IL CAMBIO SCHERMATA
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+
+        // Gestione errori reali (400, 500, ecc.)
         if (err.error && typeof err.error === 'string') {
           this.errore = err.error;
+        } else if (err.error && err.error.error) {
+          this.errore = err.error.error;
         } else if (err.error && err.error.message) {
           this.errore = err.error.message;
-        } else if (err.message) {
-          this.errore = err.message;
         } else {
           this.errore = 'Si è verificato un errore durante la registrazione della prenotazione.';
         }
+        this.cdr.detectChanges();
       }
     });
   }
+  
 }
