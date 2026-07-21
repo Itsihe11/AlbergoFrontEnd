@@ -47,7 +47,7 @@ export class Admin implements OnInit {
   idTipoCameraSelezionato: number | string | null = null; // 🟢 Aggiunto per il binding sicuro da <select>
 
   // Stato Prenotazione
-  tipoPrenotazione: string = 'ALBERGO';
+  tipoPrenotazione: string = 'SPA';
   tipoCamera: string = '';
   stanzaSelezionata: string = '';
   pensione: string = 'MEZZA';
