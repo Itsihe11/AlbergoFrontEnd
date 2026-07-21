@@ -16,14 +16,22 @@ export class Camere implements OnInit {
   errore = signal<string | null>(null);
 
   private immaginiPerTipologia: Record<string, string> = {
-    'Singola': '/assets/camere/singola.jpg',
-    'Doppia': '/assets/camere/doppia.webp',
-    'Suite': '/assets/camere/suite.jpg'
+    'Singola': '/camere/singola.jpg',
+    'Doppia': '/camere/doppia.webp',
+    'Suite': '/camere/suite.jpg'
   };
-  private immagineDefault = '/assets/camere/placeholder.jpg';
+  private immagineDefault = '/camere/placeholder.jpg';
 
   getImmagine(nomeTipologia: string): string {
-    return this.immaginiPerTipologia[nomeTipologia] ?? this.immagineDefault;
+    if (!nomeTipologia) return this.immagineDefault;
+
+    const nomeLower = nomeTipologia.toLowerCase();
+
+    if (nomeLower.includes('singol')) return 'assets/camere/singole.jpg';
+    if (nomeLower.includes('doppi')) return 'assets/camere/doppia.webp';
+    if (nomeLower.includes('suite') || nomeLower.includes('superior')) return 'assets/camere/suite.jpg';
+
+    return this.immagineDefault;
   }
 
   ngOnInit(): void {
