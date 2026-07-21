@@ -1,3 +1,5 @@
+@if (!router.url.startsWith('/admin')) {
+
 <header>
   <nav class="navbar">
     <a routerLink="/">Home</a>
@@ -8,7 +10,7 @@
     <a routerLink="/utenti">Utenti</a>
   </nav>
 </header>
-
+}
 <div>
   <router-outlet></router-outlet>
 </div>

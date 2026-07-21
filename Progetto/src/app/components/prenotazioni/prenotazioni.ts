@@ -26,7 +26,7 @@ export class Prenotazioni implements OnInit {
   pensione: string = 'MEZZA';
   checkIn: string = '';
   checkOut: string = '';
-  metodoPagamento: string = 'BONIFICO';
+  metodoPagamento: string = 'BONIFICO'; // Solo Bonifico
   ospiti: Ospite[] = [{ nome: '', cognome: '', dataNascita: '' }];
 
   // Dati da DB / Fallback fortemente tipizzati
@@ -46,19 +46,25 @@ export class Prenotazioni implements OnInit {
   messaggio: string = '';
   errore: string = '';
 
-  // --- HELPER DI LETTURA PER SERVIZI ---
-  getServizioId(s: ServizioInfo): number {
-    return Number(s.idservizio ?? s.id ?? 0);
+
+
+  // 🟢 AGGIUNTO: Memorizza la risposta di Spring Boot per mostrare la ricevuta
+  prenotazioneConfermata: any = null;
+
+  // 🟢 AGGIUNTO: Ripristina il modulo per inserire una nuova prenotazione
+  nuovaPrenotazione(): void {
+    this.prenotazioneConfermata = null;
+    this.messaggio = '';
+    this.errore = '';
+    this.stanzaSelezionata = '';
+    this.tipoCamera = '';
+    this.serviziSelezionatiIds = [];
+    this.checkIn = '';
+    this.checkOut = '';
+    this.ospiti = [{ nome: '', cognome: '', dataNascita: '' }];
   }
 
-  getServizioNome(s: ServizioInfo): string {
-    return s.nomeservizio || s.nome || 'Servizio';
-  }
-
-  getServizioPrezzo(s: ServizioInfo): number {
-    return Number(s.prezzi ?? s.prezzo ?? 0);
-  }
-
+  // HELPER SERVIZI AGGIUNTIVI
   toggleServizio(id: any): void {
     const numId = Number(id);
     const index = this.serviziSelezionatiIds.indexOf(numId);
@@ -71,6 +77,21 @@ export class Prenotazioni implements OnInit {
 
   isServizioSelezionato(id: any): boolean {
     return this.serviziSelezionatiIds.includes(Number(id));
+  }
+
+  getServizioId(servizio: any): number {
+    if (!servizio) return 0;
+    return Number(servizio.idservizio || servizio.idServizio || servizio.id || 0);
+  }
+
+  getServizioNome(servizio: any): string {
+    if (!servizio) return '';
+    return servizio.nomeservizio || servizio.nomeServizio || servizio.nome || 'Servizio';
+  }
+
+  getServizioPrezzo(servizio: any): number {
+    if (!servizio) return 0;
+    return Number(servizio.prezzi || servizio.prezzo || 0);
   }
 
   ngOnInit(): void {
@@ -271,6 +292,7 @@ export class Prenotazioni implements OnInit {
     if (!this.includeAlbergo()) {
       this.stanzaSelezionata = '';
       this.tipoCamera = '';
+      this.serviziSelezionatiIds = [];
     }
   }
 
@@ -288,6 +310,7 @@ export class Prenotazioni implements OnInit {
     const notti = this.numeroNotti();
 
     // 1. Calcolo Albergo
+    // 1. Calcolo Albergo (Prezzo Stanza + Pensione + Servizi)
     if (this.includeAlbergo()) {
       if (this.stanzaSelezionata) {
         const stanzaObj = this.stanzeDisponibili.find(
@@ -302,6 +325,16 @@ export class Prenotazioni implements OnInit {
       const pSel = this.listaPensioni.find((p: PensioneInfo) => p.tipo === this.pensione);
       if (pSel) {
         totale += (pSel.prezzo * notti * this.ospiti.length);
+      }
+
+      // Servizi aggiuntivi (solo se Albergo)
+      if (this.serviziSelezionatiIds && this.serviziSelezionatiIds.length > 0) {
+        for (const id of this.serviziSelezionatiIds) {
+          const sObj = this.listaServizi.find(s => this.getServizioId(s) === Number(id));
+          if (sObj) {
+            totale += this.getServizioPrezzo(sObj);
+          }
+        }
       }
     }
 
@@ -354,6 +387,12 @@ export class Prenotazioni implements OnInit {
       return;
     }
 
+    if (this.includeAlbergo() && !this.stanzaSelezionata) {
+      this.errore = 'Seleziona una stanza disponibile!';
+      return;
+    }
+
+    // 2. MAPPATURA PENSIONE (1: COMPLETA, 2: MEZZA, 3: NESSUNA)
     let idPensioneVal: number = 3;
     if (this.includeAlbergo()) {
       if (this.pensione === 'COMPLETA') {
@@ -381,7 +420,7 @@ export class Prenotazioni implements OnInit {
       idPensione: idPensioneVal,
       tipoPrenotazione: this.tipoPrenotazione,
       dovePrenotazione: 'WEB',
-      tipoPagamento: this.metodoPagamento,
+      tipoPagamento: 'BONIFICO',
       ospiti: this.ospiti,
       serviziAggiuntivi: serviziIds
     };
@@ -390,11 +429,25 @@ export class Prenotazioni implements OnInit {
 
     this.prenotazioniService.creaPrenotazione(payload).subscribe({
       next: (res: any) => {
+        // 🟢 SALVA LA RISPOSTA RICEVUTA DA SPRING BOOT
+        this.prenotazioneConfermata = res;
         this.messaggio = 'Prenotazione confermata con successo!';
+        
+        // Scorri in cima per mostrare subito la scheda di conferma
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       },
       error: (err: any) => {
         console.error('Errore risposta Spring Boot:', err);
-        this.errore = 'Si è verificato un errore durante la registrazione della prenotazione.';
+
+        if (err.error && typeof err.error === 'string') {
+          this.errore = err.error;
+        } else if (err.error && err.error.message) {
+          this.errore = err.error.message;
+        } else if (err.message) {
+          this.errore = err.message;
+        } else {
+          this.errore = 'Si è verificato un errore durante la registrazione della prenotazione.';
+        }
       }
     });
   }
