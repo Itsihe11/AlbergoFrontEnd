@@ -1,19 +1,34 @@
+import { ServizioInfo } from "./servizioinfo";
+import { PensioneInfo } from "./pensioneinfo";
+
 export interface Ospite {
   nome: string;
   cognome: string;
   dataNascita: string;
 }
 
-export interface Prenotazione {
-  id?: number;
-  tipoPrenotazione: 'ALBERGO' | 'ALBERGO_SPA' | 'SPA';
-  tipoCamera?: string;
+export interface PayloadPrenotazione {
+  idStanza: number | null;
+  checkin: string;
+  checkout: string;
   checkIn: string;
   checkOut: string;
-  pensione?: 'MEZZA' | 'COMPLETA' | 'NESSUNA';
+  idPensione: number;
+  tipoPrenotazione: string;
+  dovePrenotazione: string;
+  tipoPagamento: string;
   ospiti: Ospite[];
-  metodoPagamento: 'BONIFICO' | 'CARTA';
-  caparra: number;
-  prezzoTotale: number;
-  stato?: 'CONFERMATA' | 'ANNULLATA';
+  serviziAggiuntivi: number[];
+}
+
+export interface Prenotazione {
+  id?: number;
+  tipoPrenotazione: string;
+  checkIn: string;
+  checkOut: string;
+  tipoPagamento: string;
+  prezzoTotale?: number;
+  caparra?: number;
+  ospiti?: Ospite[];
+  servizi?: ServizioInfo[];
 }

@@ -1,8 +1,12 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PrenotazioniService, PensioneInfo } from '../../services/prenotazioni-service';
-import { Ospite } from '../../interface/prenotazione';
+import { finalize } from 'rxjs';
+import { PrenotazioniService } from '../../services/prenotazioni-service';
+import { PensioneInfo } from '../../interface/pensioneinfo';
+import { ServizioInfo } from '../../interface/servizioinfo';
+import { TipoCamera, Stanza } from '../../interface/tipocamera';
+import { Ospite, PayloadPrenotazione } from '../../interface/prenotazione';
 
 @Component({
   selector: 'app-prenotazioni',
@@ -13,6 +17,7 @@ import { Ospite } from '../../interface/prenotazione';
 })
 export class Prenotazioni implements OnInit {
   private prenotazioniService = inject(PrenotazioniService);
+  private cdr = inject(ChangeDetectorRef);
 
   // Form State
   tipoPrenotazione: string = 'ALBERGO'; // 'ALBERGO' oppure 'SPA'
@@ -24,80 +29,98 @@ export class Prenotazioni implements OnInit {
   metodoPagamento: string = 'BONIFICO';
   ospiti: Ospite[] = [{ nome: '', cognome: '', dataNascita: '' }];
 
-  // Dati da DB / Fallback
+  // Dati da DB / Fallback fortemente tipizzati
   listaPensioni: PensioneInfo[] = [];
   prezzoSpa: number = 200;
 
-  tipiCamera: any[] = [];
-  stanzeDisponibili: any[] = [];
+  tipiCamera: TipoCamera[] = [];
+  stanzeDisponibili: Stanza[] = [];
 
-  // Servizi Aggiuntivi (Caricati da DB)
-  listaServizi: any[] = [];
+  // Servizi Aggiuntivi
+  listaServizi: ServizioInfo[] = [];
   serviziSelezionatiIds: number[] = [];
 
-  // Flags e Feedback UI
+  // UI Flags & Messages
   caricamentoCamere: boolean = false;
-  erroreCamere: string = '';
   caricamentoStanze: boolean = false;
   messaggio: string = '';
   errore: string = '';
 
-  toggleServizio(id: any): void {
-  const numId = Number(id);
-  const index = this.serviziSelezionatiIds.indexOf(numId);
-  if (index > -1) {
-    this.serviziSelezionatiIds.splice(index, 1);
-  } else {
-    this.serviziSelezionatiIds.push(numId);
+  // --- HELPER DI LETTURA PER SERVIZI ---
+  getServizioId(s: ServizioInfo): number {
+    return Number(s.idservizio ?? s.id ?? 0);
   }
-}
 
-isServizioSelezionato(id: any): boolean {
-  return this.serviziSelezionatiIds.includes(Number(id));
-}
+  getServizioNome(s: ServizioInfo): string {
+    return s.nomeservizio || s.nome || 'Servizio';
+  }
+
+  getServizioPrezzo(s: ServizioInfo): number {
+    return Number(s.prezzi ?? s.prezzo ?? 0);
+  }
+
+  toggleServizio(id: any): void {
+    const numId = Number(id);
+    const index = this.serviziSelezionatiIds.indexOf(numId);
+    if (index > -1) {
+      this.serviziSelezionatiIds.splice(index, 1);
+    } else {
+      this.serviziSelezionatiIds.push(numId);
+    }
+  }
+
+  isServizioSelezionato(id: any): boolean {
+    return this.serviziSelezionatiIds.includes(Number(id));
+  }
 
   ngOnInit(): void {
-    // 1. Carica pensioni da Spring Boot
+    // 1. Pensioni
     this.prenotazioniService.getPensioni().subscribe({
       next: (data: PensioneInfo[]) => {
         if (data && data.length > 0) this.listaPensioni = data;
+        this.cdr.detectChanges();
       },
       error: (err: any) => console.warn('Pensione API offline: usati dati di fallback.', err)
     });
 
-    // 2. Carica prezzo SPA
+    // 2. SPA
     this.prenotazioniService.getPrezzoSpa().subscribe({
       next: (val: number) => {
         if (val) this.prezzoSpa = val;
+        this.cdr.detectChanges();
       },
       error: (err: any) => console.warn('SPA API offline: usato prezzo di fallback.', err)
     });
 
-    // 3. Carica i servizi aggiuntivi dal DB
+    // 3. Servizi
     this.caricaServizi();
 
-    // 4. Carica i tipi di camera
+    // 4. Tipi Camera
     this.caricaTipiCamera();
 
-    // 5. Carica inizialmente tutte le stanze dal DB
+    // 5. Tutte le stanze
     this.caricaTutteLeStanze();
   }
 
   caricaServizi(): void {
-    if (typeof this.prenotazioniService.getServizi === 'function') {
-      this.prenotazioniService.getServizi().subscribe({
-        next: (res: any[]) => {
-          if (res) this.listaServizi = res;
-        },
-        error: (err: any) => console.warn('Servizi API offline.', err)
-      });
-    }
+    this.prenotazioniService.getServizi().pipe(
+      finalize(() => {
+        this.cdr.detectChanges(); 
+      })
+    ).subscribe({
+      next: (res: ServizioInfo[]) => {
+        if (res) {
+          this.listaServizi = res;
+        }
+      },
+      error: (err: any) => console.warn('Servizi API offline.', err)
+    });
   }
 
   caricaTipiCamera(): void {
     this.caricamentoCamere = true;
     this.prenotazioniService.getTipiCamera().subscribe({
-      next: (res: any[]) => {
+      next: (res: TipoCamera[]) => {
         if (res && res.length > 0) {
           this.tipiCamera = res;
         } else {
@@ -124,7 +147,7 @@ isServizioSelezionato(id: any): boolean {
   caricaTutteLeStanze(): void {
     this.caricamentoStanze = true;
     this.prenotazioniService.getTutteLeStanze().subscribe({
-      next: (res: any[]) => {
+      next: (res: Stanza[]) => {
         if (res && res.length > 0) {
           this.stanzeDisponibili = res;
         } else {
@@ -152,7 +175,7 @@ isServizioSelezionato(id: any): boolean {
     this.caricamentoStanze = true;
 
     this.prenotazioniService.getStanzeDisponibili(this.checkIn, this.checkOut).subscribe({
-      next: (res: any[]) => {
+      next: (res: Stanza[]) => {
         if (res && res.length > 0) {
           this.stanzeDisponibili = res;
         } else {
@@ -186,15 +209,14 @@ isServizioSelezionato(id: any): boolean {
     this.cercaStanzeDisponibili();
   }
 
-  // FILTRO DINAMICO
-  get stanzeFiltrate(): any[] {
+  get stanzeFiltrate(): Stanza[] {
     if (!this.tipoCamera) {
       return this.stanzeDisponibili;
     }
 
     const tipoSel = this.tipoCamera.toString().toLowerCase().trim();
 
-    return this.stanzeDisponibili.filter((stanza: any) => {
+    return this.stanzeDisponibili.filter((stanza: Stanza) => {
       const nomeTipo = this.getTipologiaStanzaNome(stanza).toLowerCase().trim();
       const idTipo = stanza.tipologiaStanza?.id?.toString() || stanza.tipologia?.id?.toString() || '';
 
@@ -207,34 +229,32 @@ isServizioSelezionato(id: any): boolean {
     });
   }
 
-  getValoreTipoCamera(tipo: any): string {
+  getValoreTipoCamera(tipo: TipoCamera | string): string {
     if (!tipo) return '';
     if (typeof tipo === 'string') return tipo;
-    return tipo.nomeTipologia || tipo.nome || tipo.tipo || tipo.tipoCamera || '';
+    return tipo.nomeTipologia || tipo.nome || '';
   }
 
-  getStanzaId(stanza: any): string | number {
+  getStanzaId(stanza: Stanza | string | number): string | number {
     if (!stanza) return '';
     if (typeof stanza === 'string' || typeof stanza === 'number') return stanza;
     return stanza.id || stanza.idStanza || stanza.numeroStanza || stanza.numero || '';
   }
 
-  getStanzaNumero(stanza: any): string | number {
+  getStanzaNumero(stanza: Stanza | string | number): string | number {
     if (!stanza) return '';
     if (typeof stanza === 'string' || typeof stanza === 'number') return stanza;
     return stanza.numeroStanza || stanza.numero || stanza.id || stanza.idStanza || '';
   }
 
-  getTipologiaStanzaNome(stanza: any): string {
+  getTipologiaStanzaNome(stanza: Stanza): string {
     if (!stanza) return '';
     if (typeof stanza.tipologiaStanza === 'string') return stanza.tipologiaStanza;
     if (typeof stanza.tipologia === 'string') return stanza.tipologia;
     return stanza.tipologiaStanza?.nomeTipologia ||
            stanza.tipologiaStanza?.nome ||
            stanza.tipologia?.nomeTipologia ||
-           stanza.tipologia?.nome ||
-           stanza.tipoCamera ||
-           stanza.tipo || '';
+           stanza.tipologia?.nome || '';
   }
 
   includeAlbergo(): boolean {
@@ -267,7 +287,7 @@ isServizioSelezionato(id: any): boolean {
     let totale = 0;
     const notti = this.numeroNotti();
 
-    // 1. Calcolo Albergo (Prezzo Stanza + Pensione * notti)
+    // 1. Calcolo Albergo
     if (this.includeAlbergo()) {
       if (this.stanzaSelezionata) {
         const stanzaObj = this.stanzeDisponibili.find(
@@ -290,12 +310,12 @@ isServizioSelezionato(id: any): boolean {
       totale += this.prezzoSpa;
     }
 
-    // 3. Calcolo Servizi Aggiuntivi
+    // 3. Calcolo Servizi Aggiuntivi pulito tramite helper
     if (this.serviziSelezionatiIds && this.serviziSelezionatiIds.length > 0) {
       for (const id of this.serviziSelezionatiIds) {
-        const sObj = this.listaServizi.find(s => (s.idservizio || s.id) === Number(id));
+        const sObj = this.listaServizi.find(s => this.getServizioId(s) === Number(id));
         if (sObj) {
-          totale += (sObj.prezzi || sObj.prezzo || 0);
+          totale += this.getServizioPrezzo(sObj);
         }
       }
     }
@@ -321,7 +341,6 @@ isServizioSelezionato(id: any): boolean {
     this.messaggio = '';
     this.errore = '';
 
-    // 1. VALIDAZIONE DATE
     if (!this.checkIn) {
       this.errore = 'Seleziona prima la data di Check-in / Prenotazione!';
       return;
@@ -335,7 +354,6 @@ isServizioSelezionato(id: any): boolean {
       return;
     }
 
-    // 2. MAPPATURA PENSIONE (1: COMPLETA, 2: MEZZA, 3: NESSUNA)
     let idPensioneVal: number = 3;
     if (this.includeAlbergo()) {
       if (this.pensione === 'COMPLETA') {
@@ -347,17 +365,14 @@ isServizioSelezionato(id: any): boolean {
       }
     }
 
-    // 3. MAPPATURA STANZA
     let idStanzaVal: number | null = null;
     if (this.includeAlbergo() && this.stanzaSelezionata) {
       idStanzaVal = Number(this.stanzaSelezionata);
     }
 
-    // 4. MAPPATURA ID SERVIZI AGGIUNTIVI
     const serviziIds = this.serviziSelezionatiIds.map(id => Number(id));
 
-    // 5. STRUTTURA PAYLOAD
-    const payload = {
+    const payload: PayloadPrenotazione = {
       idStanza: idStanzaVal,
       checkin: checkInFinale,
       checkout: checkOutFinale,
@@ -371,14 +386,14 @@ isServizioSelezionato(id: any): boolean {
       serviziAggiuntivi: serviziIds
     };
 
-    console.log(' Payload inviato a Spring Boot:', payload);
+    console.log('Payload inviato a Spring Boot:', payload);
 
     this.prenotazioniService.creaPrenotazione(payload).subscribe({
       next: (res: any) => {
         this.messaggio = 'Prenotazione confermata con successo!';
       },
       error: (err: any) => {
-        console.error(' Errore risposta Spring Boot:', err);
+        console.error('Errore risposta Spring Boot:', err);
         this.errore = 'Si è verificato un errore durante la registrazione della prenotazione.';
       }
     });

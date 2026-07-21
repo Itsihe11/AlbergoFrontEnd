@@ -62,23 +62,20 @@
     </div>
     }
 
-<div class="servizi-container my-3">
-  <label class="fw-bold d-block mb-2">Servizi Aggiuntivi:</label>
-  
-  <div class="servizi-grid">
-    <div *ngFor="let s of listaServizi" class="servizio-card">
-      <label class="servizio-label">
-        <input 
-          type="checkbox" 
-          [checked]="isServizioSelezionato(s.idservizio || s.id)"
-          (change)="toggleServizio(s.idservizio || s.id)" 
-        />
-        <span class="servizio-nome">{{ s.nomeservizio }}</span>
-        <span class="servizio-prezzo">+{{ s.prezzo || s.prezzi }} €</span>
-      </label>
+    <div class="servizi-container my-3">
+        <label class="fw-bold d-block mb-2">Servizi Aggiuntivi:</label>
+
+        <div class="servizi-grid">
+            <div *ngFor="let s of listaServizi" class="servizio-card">
+                <label class="servizio-label">
+                    <input type="checkbox" [checked]="isServizioSelezionato(getServizioId(s))"
+                        (change)="toggleServizio(getServizioId(s))" />
+                    <span class="servizio-nome">{{ getServizioNome(s) }}</span>
+                    <span class="servizio-prezzo">+{{ getServizioPrezzo(s) }} €</span>
+                </label>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
     <h2>Ospiti</h2>
     @for (ospite of ospiti; track $index) {
