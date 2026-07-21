@@ -1,103 +1,136 @@
-<h2>Pannello Amministrazione Albergo</h2>
+<div class="admin-page">
 
 @if (!isLogged) {
-  <div>
+  <div class="login-box">
+    <h2 class="admin-title">Pannello Amministrazione Albergo</h2>
     <h3>Accesso Riservato</h3>
-    <form (ngSubmit)="onLogin()">
-      <div>
+    <form class="login-form" (ngSubmit)="onLogin()">
+      <div class="form-group">
         <label>Username:</label>
-        <input type="text" [(ngModel)]="username" name="username" />
+        <input class="form-input" type="text" [(ngModel)]="username" name="username" />
       </div>
-      <div>
+      <div class="form-group">
         <label>Password:</label>
-        <input type="password" [(ngModel)]="password" name="password" />
+        <input class="form-input" type="password" [(ngModel)]="password" name="password" />
       </div>
       @if (errorMessage) {
-        <div style="color: red;">{{ errorMessage }}</div>
+        <div class="error-msg">{{ errorMessage }}</div>
       }
-      <button type="submit">Accedi</button>
+      <button class="btn-primary" type="submit">Accedi</button>
     </form>
   </div>
 } @else {
-  <div>
-    <button (click)="logout()">Disconnetti</button>
-    <hr />
+  <div class="admin-panel">
 
-    <h3>1. Creazione Tipologia Camera</h3>
-    <form (ngSubmit)="salvaTipoCamera()">
-      <div>
-        <label>Nome Tipologia:</label>
-        <input type="text" placeholder="es. Suite Deluxe" [(ngModel)]="nuovoTipoCamera.nome" name="nome" />
+    <!-- ===== NAVBAR ADMIN ===== -->
+    <nav class="admin-navbar">
+      <div class="admin-navbar-links">
+        <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'tipologie'" (click)="sezioneAttiva = 'tipologie'">
+          Tipologie Camera
+        </button>
+        <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'stanze'" (click)="sezioneAttiva = 'stanze'">
+          Crea Stanza
+        </button>
+        <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'elenco'" (click)="sezioneAttiva = 'elenco'">
+          Elenco Stanze
+        </button>
       </div>
-      <div>
-        <label>Descrizione:</label>
-        <input type="text" placeholder="Descrizione della stanza..." [(ngModel)]="nuovoTipoCamera.descrizione" name="descrizione" />
-      </div>
-      <div>
-        <label>Prezzo a Notte (€):</label>
-        <input type="number" [(ngModel)]="nuovoTipoCamera.prezzo" name="prezzo" />
-      </div>
-      <div>
-        <label>Capienza (numero ospiti):</label>
-        <input type="number" min="1" [(ngModel)]="nuovoTipoCamera.capienza" name="capienza" />
-      </div>
-      <button type="submit">Salva Tipologia</button>
-    </form>
+      <button class="btn-logout" (click)="logout()">Disconnetti</button>
+    </nav>
 
-    <hr />
+    <!-- ===== SEZIONE 1: TIPOLOGIA CAMERA ===== -->
+    @if (sezioneAttiva === 'tipologie') {
+    <section class="admin-section">
+      <h3 class="section-title">Creazione Tipologia Camera</h3>
+      <form class="admin-form" (ngSubmit)="salvaTipoCamera()">
+        <div class="form-group">
+          <label>Nome Tipologia:</label>
+          <input class="form-input" type="text" placeholder="es. Suite Deluxe" [(ngModel)]="nuovoTipoCamera.nome" name="nome" />
+        </div>
+        <div class="form-group">
+          <label>Descrizione:</label>
+          <input class="form-input" type="text" placeholder="Descrizione della stanza..." [(ngModel)]="nuovoTipoCamera.descrizione" name="descrizione" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Prezzo a Notte (€):</label>
+            <input class="form-input" type="number" [(ngModel)]="nuovoTipoCamera.prezzo" name="prezzo" />
+          </div>
+          <div class="form-group">
+            <label>Capienza (numero ospiti):</label>
+            <input class="form-input" type="number" min="1" [(ngModel)]="nuovoTipoCamera.capienza" name="capienza" />
+          </div>
+        </div>
+        <button class="btn-primary" type="submit">Salva Tipologia</button>
+      </form>
+    </section>
+    }
 
-    <h3>2. Crea una Stanza fisica</h3>
-    <form (ngSubmit)="salvaStanza()">
-      <div>
-        <label>Numero Stanza:</label>
-        <input type="text" placeholder="es. 101" [(ngModel)]="numeroStanza" name="numeroStanza" />
-      </div>
-      <div>
-        <label>Stato:</label>
-        <select [(ngModel)]="statusStanza" name="statusStanza">
-          <option value="LIBERA">Libera</option>
-          <option value="OCCUPATA">Occupata</option>
-          <option value="MANUTENZIONE">In manutenzione</option>
-        </select>
-      </div>
-      <div>
-        <label>Tipologia:</label>
-        <select [(ngModel)]="tipoCameraSelezionato" name="tipoCamera">
-          <option [ngValue]="null" disabled selected>-- Seleziona Tipologia --</option>
-          @for (t of tipiCamera; track t.id) {
-            <option [ngValue]="t">{{ t.nome }} ({{ t.prezzo }}€/notte)</option>
-          }
-        </select>
-      </div>
-      <button type="submit">Crea Stanza</button>
-    </form>
+    <!-- ===== SEZIONE 2: CREA STANZA ===== -->
+    @if (sezioneAttiva === 'stanze') {
+    <section class="admin-section">
+      <h3 class="section-title">Crea una Stanza fisica</h3>
+      <form class="admin-form" (ngSubmit)="salvaStanza()">
+        <div class="form-group">
+          <label>Numero Stanza:</label>
+          <input class="form-input" type="text" placeholder="es. 101" [(ngModel)]="numeroStanza" name="numeroStanza" />
+        </div>
+        <div class="form-group">
+          <label>Stato:</label>
+          <select class="form-select" [(ngModel)]="statusStanza" name="statusStanza">
+            <option value="LIBERA">Libera</option>
+            <option value="OCCUPATA">Occupata</option>
+            <option value="MANUTENZIONE">In manutenzione</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tipologia:</label>
+          <select class="form-select" [(ngModel)]="tipoCameraSelezionato" name="tipoCamera">
+            <option [ngValue]="null" disabled selected>-- Seleziona Tipologia --</option>
+            @for (t of tipiCamera; track t.id) {
+              <option [ngValue]="t">{{ t.nome }} ({{ t.prezzo }}€/notte)</option>
+            }
+          </select>
+        </div>
+        <button class="btn-primary" type="submit">Crea Stanza</button>
+      </form>
+    </section>
+    }
 
-    <hr />
+    <!-- ===== SEZIONE 3: ELENCO STANZE ===== -->
+    @if (sezioneAttiva === 'elenco') {
+    <section class="admin-section">
+      <h3 class="section-title">Elenco Stanze</h3>
+      <div class="table-wrapper">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Numero Stanza</th>
+              <th>Tipologia</th>
+              <th>Prezzo Notte</th>
+              <th>Stato</th>
+              <th>Azione</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of stanze; track s.id) {
+              <tr>
+                <td>{{ s.numeroStanza }}</td>
+                <td>{{ s.tipologia?.nome ?? 'N/D' }}</td>
+                <td>{{ s.tipologia?.prezzo ? (s.tipologia.prezzo + '€') : 'N/D' }}</td>
+                <td><span class="status-badge" [class]="s.status">{{ s.status }}</span></td>
+                <td><button class="btn-delete" (click)="eliminaStanza(s.id)">Elimina</button></td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5" class="empty-row">Nessuna stanza presente a sistema.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+    }
 
-    <h3>Elenco Stanze</h3>
-    <table border="1" cellpadding="6" cellspacing="0">
-      <thead>
-        <tr>
-          <th>Numero Stanza</th>
-          <th>Tipologia</th>
-          <th>Prezzo Notte</th>
-          <th>Stato</th>
-          <th>Azione</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (s of stanze; track s.id) {
-          <tr>
-            <td>{{ s.numeroStanza }}</td>
-            <td>{{ s.tipologia?.nome ?? 'N/D' }}</td>
-            <td>{{ s.tipologia?.prezzo ? (s.tipologia.prezzo + '€') : 'N/D' }}</td>
-            <td>{{ s.status }}</td>
-            <td><button (click)="eliminaStanza(s.id)">Elimina</button></td>
-          </tr>
-        } @empty {
-          <tr><td colspan="5">Nessuna stanza presente a sistema.</td></tr>
-        }
-      </tbody>
-    </table>
   </div>
 }
+
+</div>

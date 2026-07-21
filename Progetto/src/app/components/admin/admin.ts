@@ -17,6 +17,7 @@ export class Admin implements OnInit {
   password = '';
   errorMessage = '';
   isLogged = false;
+  sezioneAttiva: 'tipologie' | 'stanze' | 'elenco' = 'tipologie';
 
   tipiCamera: TipoCamera[] = [];
   stanze: Stanza[] = [];
