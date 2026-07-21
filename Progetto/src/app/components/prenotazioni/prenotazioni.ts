@@ -18,6 +18,7 @@ import { Ospite, PayloadPrenotazione } from '../../interface/prenotazione';
 export class Prenotazioni implements OnInit {
   private prenotazioniService = inject(PrenotazioniService);
   private cdr = inject(ChangeDetectorRef);
+  formBlock: boolean = false;
 
   // Form State
   tipoPrenotazione: string = 'ALBERGO'; // 'ALBERGO' oppure 'SPA'

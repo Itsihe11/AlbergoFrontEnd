@@ -13,7 +13,7 @@
       @for (camera of tipiCamera(); track camera.id) {
         <article class="room-card">
           <div class="room-image-wrapper">
-            <img class="room-image" [src]="getImmagine(camera.nome)" [alt]="camera.nome">
+            <img class="room-image" [src]="getImmagine(camera.nome || '')" [alt]="camera.nome || 'Camera'">
           </div>
           <div class="room-content">
             <h2>{{ camera.nome }}</h2>

@@ -1,132 +1,94 @@
-<!-- 🟢 1. SCHERMATA DI RICEVUTA E CONFERMA (Visibile solo a prenotazione completata) -->
-<div *ngIf="prenotazioneConfermata; else formBlock" class="container my-4">
-  <div class="card border-success shadow-lg">
-    <div class="card-header bg-success text-white text-center py-3">
-      <h2 class="m-0">🎉 Prenotazione Confermata!</h2>
+@if (prenotazioneConfermata) {
+  <!-- ========================================== -->
+  <!-- 🟢 1. SCHERMATA DI RICEVUTA E CONFERMA     -->
+  <!-- ========================================== -->
+  <div class="container my-4">
+    <div class="alert alert-success">
+      Prenotazione confermata con successo!
     </div>
-    
-    <div class="card-body p-4">
-      <p class="lead text-center">
-        Grazie per la tua prenotazione. Abbiamo registrato correttamente i tuoi dati.
-      </p>
 
-      <hr />
-
-      <div class="row my-3">
-        <div class="col-md-6 mb-3">
-          <h5>📋 Dettagli Prenotazione</h5>
-          <ul class="list-group">
-            <li class="list-group-item">
-              <strong>Codice Prenotazione:</strong> 
-              <span class="badge bg-primary fs-6 ms-2">{{ prenotazioneConfermata.codice_prenotazione || prenotazioneConfermata.codicePrenotazione }}</span>
-            </li>
-            <li class="list-group-item">
-              <strong>Tipo:</strong> {{ prenotazioneConfermata.tipo_prenotazione || prenotazioneConfermata.tipoPrenotazione }}
-            </li>
-            <li class="list-group-item">
-              <strong>Check-in:</strong> {{ checkIn }}
-            </li>
-            <li class="list-group-item" *ngIf="includeAlbergo()">
-              <strong>Check-out:</strong> {{ checkOut }}
-            </li>
-          </ul>
-        </div>
-
-        <div class="col-md-6 mb-3">
-          <h5>💳 Riepilogo Pagamento</h5>
-          <ul class="list-group">
-            <li class="list-group-item">
-              <strong>Importo Totale:</strong> 
-              <span class="fw-bold text-success">{{ prenotazioneConfermata.costo_totale || prezzoTotale() }} €</span>
-            </li>
-            <li class="list-group-item">
-              <strong>Caparra Richiesta (10%):</strong> 
-              <span class="fw-bold text-danger">{{ prenotazioneConfermata.deposito || caparra() }} €</span>
-            </li>
-            <li class="list-group-item">
-              <strong>Metodo:</strong> Bonifico Bancario
-            </li>
-          </ul>
-        </div>
+    <div class="card border-success shadow-lg">
+      <div class="card-header bg-success text-white text-center py-3">
+        <h2 class="m-0">🎉 Prenotazione Confermata!</h2>
       </div>
 
-      <!-- Box Istruzioni Bonifico -->
-      <div class="alert alert-info border-info">
-        <h6 class="fw-bold">📌 Istruzioni per il Bonifico Bancario:</h6>
-        <p class="m-0">
-          Per confermare definitivamente la prenotazione, effettua il versamento della caparra di 
-          <strong>{{ prenotazioneConfermata.deposito || caparra() }} €</strong> tramite bonifico alle seguenti coordinate:
+      <div class="card-body p-4">
+        <p class="lead text-center">
+          Grazie per la tua prenotazione. Abbiamo registrato correttamente i tuoi dati.
         </p>
-        <ul class="mt-2 mb-0">
-          <li><strong>IBAN:</strong> IT60X0542811101000000123456</li>
-          <li><strong>Intestatario:</strong> Hotel Progetto Albergo S.r.l.</li>
-          <li><strong>Causale:</strong> Caparra Prenotazione {{ prenotazioneConfermata.codice_prenotazione || prenotazioneConfermata.codicePrenotazione }}</li>
-        </ul>
-      </div>
 
-    <p>Notti: {{ numeroNotti() }}</p>
+        <hr />
 
-    @if (includeAlbergo()) {
-    <div>
-        <label>Tipo camera</label>
-        <select [(ngModel)]="tipoCamera" [ngModelOptions]="{standalone: true}"
-            (ngModelChange)="onTipoCameraChange($event)">
-            <option value="" disabled selected>Seleziona un tipo di camera</option>
-            @for (tipo of tipiCamera; track $index) {
-            <option [value]="getValoreTipoCamera(tipo)">
-                {{ getValoreTipoCamera(tipo) }}
-            </option>
-            }
-        </select>
-    </div>
+        <div class="row my-3">
+          <!-- Dettagli Prenotazione -->
+          <div class="col-md-6 mb-3">
+            <h5>📋 Dettagli Prenotazione</h5>
+            <ul class="list-group">
+              <li class="list-group-item">
+                <strong>Codice Prenotazione:</strong> {{ prenotazioneConfermata.codice_prenotazione || prenotazioneConfermata.codicePrenotazione }}
+              </li>
+              <li class="list-group-item">
+                <strong>Tipo:</strong> {{ prenotazioneConfermata.tipo_prenotazione || prenotazioneConfermata.tipoPrenotazione }}
+              </li>
+              <li class="list-group-item">
+                <strong>Check-in:</strong> {{ checkIn }}
+              </li>
+              @if (includeAlbergo()) {
+                <li class="list-group-item">
+                  <strong>Check-out:</strong> {{ checkOut }}
+                </li>
+              }
+            </ul>
+          </div>
 
-    <div class="form-group">
-        <label>Numero Stanza</label>
-        <select [(ngModel)]="stanzaSelezionata" [ngModelOptions]="{standalone: true}">
-            <option value="" disabled selected>Seleziona una stanza...</option>
-            @for (stanza of stanzeFiltrate; track $index) {
-            <option [value]="getStanzaId(stanza)">
-                Stanza {{ getStanzaNumero(stanza) }}
-            </option>
-            }
-        </select>
-    </div>
-
-    <div class="form-group">
-        <label>Pensione</label>
-        <select [(ngModel)]="pensione" [ngModelOptions]="{standalone: true}">
-            @for (p of listaPensioni; track $index) {
-            <option [value]="p.tipo">
-                {{ p.nome || p.tipo }} (+{{ p.prezzo }} €/giorno)
-            </option>
-            }
-        </select>
-    </div>
-    }
-
-    <div class="servizi-container my-3">
-        <label class="fw-bold d-block mb-2">Servizi Aggiuntivi:</label>
-
-        <div class="servizi-grid">
-            <div *ngFor="let s of listaServizi" class="servizio-card">
-                <label class="servizio-label">
-                    <input type="checkbox" [checked]="isServizioSelezionato(getServizioId(s))"
-                        (change)="toggleServizio(getServizioId(s))" />
-                    <span class="servizio-nome">{{ getServizioNome(s) }}</span>
-                    <span class="servizio-prezzo">+{{ getServizioPrezzo(s) }} €</span>
-                </label>
-            </div>
+          <!-- Riepilogo Pagamento -->
+          <div class="col-md-6 mb-3">
+            <h5>💳 Riepilogo Pagamento</h5>
+            <ul class="list-group">
+              <li class="list-group-item">
+                <strong>Importo Totale:</strong>
+                <span class="fw-bold text-success">{{ prenotazioneConfermata.costo_totale || prezzoTotale() }} €</span>
+              </li>
+              <li class="list-group-item">
+                <strong>Caparra Richiesta (10%):</strong>
+                <span class="fw-bold text-danger">{{ prenotazioneConfermata.deposito || caparra() }} €</span>
+              </li>
+              <li class="list-group-item">
+                <strong>Metodo:</strong> Bonifico Bancario
+              </li>
+            </ul>
+          </div>
         </div>
-      <div class="text-center mt-4">
-        <button class="btn btn-outline-primary btn-lg" type="button" (click)="nuovaPrenotazione()">
-          ➕ Effettua un'altra prenotazione
-        </button>
+
+        <!-- Box Istruzioni Bonifico -->
+        <div class="alert alert-info border-info mt-3">
+          <h6 class="fw-bold">📌 Istruzioni per il Bonifico Bancario:</h6>
+          <p class="m-0">
+            Per confermare definitivamente la prenotazione, effettua il versamento della caparra di
+            <strong>{{ prenotazioneConfermata.deposito || caparra() }} €</strong> tramite bonifico alle seguenti coordinate:
+          </p>
+          <ul class="mt-2 mb-0">
+            <li><strong>IBAN:</strong> IT60X0542811101000000123456</li>
+            <li><strong>Intestatario:</strong> Hotel Progetto Albergo S.r.l.</li>
+            <li><strong>Causale:</strong> Caparra Prenotazione {{ prenotazioneConfermata.codice_prenotazione || prenotazioneConfermata.codicePrenotazione }}</li>
+          </ul>
+        </div>
+
+        <div class="text-center mt-4">
+          <button class="btn btn-outline-primary btn-lg" type="button" (click)="nuovaPrenotazione()">
+            ➕ Effettua un'altra prenotazione
+          </button>
+        </div>
       </div>
     </div>
+  </div>
 
-<!-- 🟢 2. MODULO DI PRENOTAZIONE STANDARD (Inizialmente Visibile) -->
-<ng-template #formBlock>
-  <section class="booking-page">
+} @else {
+
+  <!-- ========================================== -->
+  <!-- 🟢 2. MODULO DI PRENOTAZIONE STANDARD      -->
+  <!-- ========================================== -->
+  <section class="booking-page container my-4">
     <h1>Prenota</h1>
 
     <!-- MESSAGGI DI ERRORE / CONFERMA IN ALTO -->
@@ -210,11 +172,7 @@
       <div *ngIf="listaServizi.length > 0; else noServizi" class="servizi-grid">
         <div *ngFor="let s of listaServizi" class="servizio-card">
           <label class="servizio-label">
-            <input 
-              type="checkbox" 
-              [checked]="isServizioSelezionato(getServizioId(s))"
-              (change)="toggleServizio(getServizioId(s))" 
-            />
+            <input type="checkbox" [checked]="isServizioSelezionato(getServizioId(s))" (change)="toggleServizio(getServizioId(s))" />
             <span class="servizio-nome">{{ getServizioNome(s) }}</span>
             <span class="servizio-prezzo">+{{ getServizioPrezzo(s) }} €</span>
           </label>
@@ -241,4 +199,5 @@
 
     <button class="btn-primary" type="button" (click)="prenota()">Conferma prenotazione</button>
   </section>
-</ng-template>
+
+}

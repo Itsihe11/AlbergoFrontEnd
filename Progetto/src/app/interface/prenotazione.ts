@@ -29,6 +29,8 @@ export interface Prenotazione {
   tipoPagamento: string;
   prezzoTotale?: number;
   caparra?: number;
+  stato?: string;
+  tipoCamera?: string;
   ospiti?: Ospite[];
   servizi?: ServizioInfo[];
 }
