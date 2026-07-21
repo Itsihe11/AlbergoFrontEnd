@@ -16,11 +16,11 @@ export class Camere implements OnInit {
   errore = signal<string | null>(null);
 
   private immaginiPerTipologia: Record<string, string> = {
-    'Singola': 'assets/camere/singola.jpg',
-    'Doppia': 'assets/camere/doppia.webp',
-    'Suite': 'assets/camere/suite.jpg'
+    'Singola': '/assets/camere/singola.jpg',
+    'Doppia': '/assets/camere/doppia.webp',
+    'Suite': '/assets/camere/suite.jpg'
   };
-  private immagineDefault = 'assets/camere/placeholder.jpg';
+  private immagineDefault = '/assets/camere/placeholder.jpg';
 
   getImmagine(nomeTipologia: string): string {
     return this.immaginiPerTipologia[nomeTipologia] ?? this.immagineDefault;
