@@ -1,6 +1,6 @@
 <div class="admin-page">
 
-@if (!isLogged) {
+  @if (!isLogged) {
   <div class="login-box">
     <h2 class="admin-title">Pannello Amministrazione Albergo</h2>
     <h3>Accesso Riservato</h3>
@@ -14,18 +14,20 @@
         <input class="form-input" type="password" [(ngModel)]="password" name="password" />
       </div>
       @if (errorMessage) {
-        <div class="error-msg">{{ errorMessage }}</div>
+      <div class="error-msg">{{ errorMessage }}</div>
       }
       <button class="btn-primary" type="submit">Accedi</button>
+      <button class="btn-primary" type="submit">Torna indietro</button>
     </form>
   </div>
-} @else {
+  } @else {
   <div class="admin-panel">
 
     <!-- ===== NAVBAR ADMIN ===== -->
     <nav class="admin-navbar">
       <div class="admin-navbar-links">
-        <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'tipologie'" (click)="sezioneAttiva = 'tipologie'">
+        <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'tipologie'"
+          (click)="sezioneAttiva = 'tipologie'">
           Tipologie Camera
         </button>
         <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'stanze'" (click)="sezioneAttiva = 'stanze'">
@@ -45,11 +47,13 @@
       <form class="admin-form" (ngSubmit)="salvaTipoCamera()">
         <div class="form-group">
           <label>Nome Tipologia:</label>
-          <input class="form-input" type="text" placeholder="es. Suite Deluxe" [(ngModel)]="nuovoTipoCamera.nome" name="nome" />
+          <input class="form-input" type="text" placeholder="es. Suite Deluxe" [(ngModel)]="nuovoTipoCamera.nome"
+            name="nome" />
         </div>
         <div class="form-group">
           <label>Descrizione:</label>
-          <input class="form-input" type="text" placeholder="Descrizione della stanza..." [(ngModel)]="nuovoTipoCamera.descrizione" name="descrizione" />
+          <input class="form-input" type="text" placeholder="Descrizione della stanza..."
+            [(ngModel)]="nuovoTipoCamera.descrizione" name="descrizione" />
         </div>
         <div class="form-row">
           <div class="form-group">
@@ -88,7 +92,7 @@
           <select class="form-select" [(ngModel)]="tipoCameraSelezionato" name="tipoCamera">
             <option [ngValue]="null" disabled selected>-- Seleziona Tipologia --</option>
             @for (t of tipiCamera; track t.id) {
-              <option [ngValue]="t">{{ t.nome }} ({{ t.prezzo }}€/notte)</option>
+            <option [ngValue]="t">{{ t.nome }} ({{ t.prezzo }}€/notte)</option>
             }
           </select>
         </div>
@@ -114,15 +118,17 @@
           </thead>
           <tbody>
             @for (s of stanze; track s.id) {
-              <tr>
-                <td>{{ s.numeroStanza }}</td>
-                <td>{{ s.tipologia?.nome ?? 'N/D' }}</td>
-                <td>{{ s.tipologia?.prezzo ? (s.tipologia.prezzo + '€') : 'N/D' }}</td>
-                <td><span class="status-badge" [class]="s.status">{{ s.status }}</span></td>
-                <td><button class="btn-delete" (click)="eliminaStanza(s.id)">Elimina</button></td>
-              </tr>
+            <tr>
+              <td>{{ s.numeroStanza }}</td>
+              <td>{{ s.tipologia?.nome ?? 'N/D' }}</td>
+              <td>{{ s.tipologia?.prezzo ? (s.tipologia.prezzo + '€') : 'N/D' }}</td>
+              <td><span class="status-badge" [class]="s.status">{{ s.status }}</span></td>
+              <td><button class="btn-delete" (click)="eliminaStanza(s.id)">Elimina</button></td>
+            </tr>
             } @empty {
-              <tr><td colspan="5" class="empty-row">Nessuna stanza presente a sistema.</td></tr>
+            <tr>
+              <td colspan="5" class="empty-row">Nessuna stanza presente a sistema.</td>
+            </tr>
             }
           </tbody>
         </table>
@@ -131,6 +137,6 @@
     }
 
   </div>
-}
+  }
 
 </div>
