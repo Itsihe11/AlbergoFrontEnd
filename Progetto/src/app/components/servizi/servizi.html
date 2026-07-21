@@ -1,16 +1,16 @@
-<section>
+<section class="services-hero">
   <h1>I nostri servizi</h1>
 </section>
 
-<section>
+<section class="services-list">
   @for (servizio of servizi; track servizio.nome) {
-    <article>
+    <article class="service-card">
       <h2>{{ servizio.nome }}</h2>
       <p>{{ servizio.descrizione }}</p>
     </article>
   }
 </section>
 
-<section>
+<section class="services-cta">
   <a routerLink="/prenotazioni">Prenota la SPA</a>
 </section>
