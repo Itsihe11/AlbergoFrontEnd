@@ -9,7 +9,7 @@ import { Prenotazione } from '../../interface/prenotazione';
 @Injectable({
   providedIn: 'root'
 })
-export class CamereService {
+export class Camere {
 
   private apiStanze = '/api/dipendente/stanza';
   private apiPrenotazioni = '/api/prenotazione';
