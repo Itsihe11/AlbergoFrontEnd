@@ -18,41 +18,44 @@ import { Ospite, PayloadPrenotazione } from '../../interface/prenotazione';
 export class Prenotazioni implements OnInit {
   private prenotazioniService = inject(PrenotazioniService);
   private cdr = inject(ChangeDetectorRef);
+
   formBlock: boolean = false;
 
   // Form State
-  tipoPrenotazione: string = 'ALBERGO'; // 'ALBERGO' oppure 'SPA'
+  tipoPrenotazione: string = 'ALBERGO';
   tipoCamera: string = '';
   stanzaSelezionata: string = '';
   pensione: string = 'MEZZA';
   checkIn: string = '';
   checkOut: string = '';
-  metodoPagamento: string = 'BONIFICO'; // Solo Bonifico
-  ospiti: Ospite[] = [{ nome: '', cognome: '', dataNascita: '' }];
+  metodoPagamento: string = 'BONIFICO';
 
-  // Dati da DB / Fallback fortemente tipizzati
+  ospiti: Ospite[] = [{ nome: '', cognome: '', dataNascita: '' }];
   listaPensioni: PensioneInfo[] = [];
   prezzoSpa: number = 200;
-
   tipiCamera: TipoCamera[] = [];
   stanzeDisponibili: Stanza[] = [];
-
-  // Servizi Aggiuntivi
   listaServizi: ServizioInfo[] = [];
   serviziSelezionatiIds: number[] = [];
 
-  // UI Flags & Messages
   caricamentoCamere: boolean = false;
   caricamentoStanze: boolean = false;
+
   messaggio: string = '';
   errore: string = '';
-
-
-
-  // 🟢 AGGIUNTO: Memorizza la risposta di Spring Boot per mostrare la ricevuta
   prenotazioneConfermata: any = null;
 
-  // 🟢 AGGIUNTO: Ripristina il modulo per inserire una nuova prenotazione
+  // Helper privato per scrollare la pagina in cima in modo fluido
+  private scrollToTop(): void {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Helper per mostrare un messaggio di errore e fare lo scroll in cima
+  private mostraErrore(messaggioErrore: string): void {
+    this.errore = messaggioErrore;
+    this.scrollToTop();
+  }
+
   nuovaPrenotazione(): void {
     this.prenotazioneConfermata = null;
     this.messaggio = '';
@@ -65,7 +68,6 @@ export class Prenotazioni implements OnInit {
     this.ospiti = [{ nome: '', cognome: '', dataNascita: '' }];
   }
 
-  // HELPER SERVIZI AGGIUNTIVI
   toggleServizio(id: any): void {
     const numId = Number(id);
     const index = this.serviziSelezionatiIds.indexOf(numId);
@@ -96,7 +98,6 @@ export class Prenotazioni implements OnInit {
   }
 
   ngOnInit(): void {
-    // 1. Pensioni
     this.prenotazioniService.getPensioni().subscribe({
       next: (data: PensioneInfo[]) => {
         if (data && data.length > 0) this.listaPensioni = data;
@@ -105,7 +106,6 @@ export class Prenotazioni implements OnInit {
       error: (err: any) => console.warn('Pensione API offline: usati dati di fallback.', err)
     });
 
-    // 2. SPA
     this.prenotazioniService.getPrezzoSpa().subscribe({
       next: (val: number) => {
         if (val) this.prezzoSpa = val;
@@ -114,20 +114,15 @@ export class Prenotazioni implements OnInit {
       error: (err: any) => console.warn('SPA API offline: usato prezzo di fallback.', err)
     });
 
-    // 3. Servizi
     this.caricaServizi();
-
-    // 4. Tipi Camera
     this.caricaTipiCamera();
-
-    // 5. Tutte le stanze
     this.caricaTutteLeStanze();
   }
 
   caricaServizi(): void {
     this.prenotazioniService.getServizi().pipe(
       finalize(() => {
-        this.cdr.detectChanges(); 
+        this.cdr.detectChanges();
       })
     ).subscribe({
       next: (res: ServizioInfo[]) => {
@@ -195,7 +190,6 @@ export class Prenotazioni implements OnInit {
 
     this.stanzaSelezionata = '';
     this.caricamentoStanze = true;
-
     this.prenotazioniService.getStanzeDisponibili(this.checkIn, this.checkOut).subscribe({
       next: (res: Stanza[]) => {
         if (res && res.length > 0) {
@@ -215,10 +209,10 @@ export class Prenotazioni implements OnInit {
 
   private useDefaultStanze(): void {
     this.stanzeDisponibili = [
-      { id: 1, numeroStanza: '101', tipologiaStanza: { nomeTipologia: 'Singola Standard', prezzo: 50 } },
-      { id: 2, numeroStanza: '102', tipologiaStanza: { nomeTipologia: 'Singola Standard', prezzo: 50 } },
-      { id: 3, numeroStanza: '201', tipologiaStanza: { nomeTipologia: 'Doppia Deluxe', prezzo: 90 } },
-      { id: 4, numeroStanza: '301', tipologiaStanza: { nomeTipologia: 'Suite', prezzo: 150 } }
+      { id: 1, numeroStanza: '101', tipologiaStanza: { nomeTipologia: 'Singola Standard', prezzo: 50, capienza: 1 } },
+      { id: 2, numeroStanza: '102', tipologiaStanza: { nomeTipologia: 'Singola Standard', prezzo: 50, capienza: 1 } },
+      { id: 3, numeroStanza: '201', tipologiaStanza: { nomeTipologia: 'Doppia Deluxe', prezzo: 90, capienza: 2 } },
+      { id: 4, numeroStanza: '301', tipologiaStanza: { nomeTipologia: 'Suite', prezzo: 150, capienza: 4 } }
     ];
   }
 
@@ -235,15 +229,11 @@ export class Prenotazioni implements OnInit {
     if (!this.tipoCamera) {
       return this.stanzeDisponibili;
     }
-
     const tipoSel = this.tipoCamera.toString().toLowerCase().trim();
-
     return this.stanzeDisponibili.filter((stanza: Stanza) => {
       const nomeTipo = this.getTipologiaStanzaNome(stanza).toLowerCase().trim();
       const idTipo = stanza.tipologiaStanza?.id?.toString() || stanza.tipologia?.id?.toString() || '';
-
       if (!nomeTipo && !idTipo) return true;
-
       return (nomeTipo !== '' && nomeTipo === tipoSel) ||
              (idTipo !== '' && idTipo === tipoSel) ||
              nomeTipo.includes(tipoSel) ||
@@ -279,6 +269,22 @@ export class Prenotazioni implements OnInit {
            stanza.tipologia?.nome || '';
   }
 
+  capienzaStanzaSelezionata(): number | null {
+    if (!this.stanzaSelezionata) return null;
+    const stanzaObj = this.stanzeDisponibili.find(
+      s => this.getStanzaId(s).toString() === this.stanzaSelezionata.toString()
+    );
+    if (!stanzaObj) return null;
+    const capienza = stanzaObj.tipologiaStanza?.capienza ?? stanzaObj.tipologia?.capienza;
+    return capienza ?? null;
+  }
+
+  superaCapienza(): boolean {
+    const capienza = this.capienzaStanzaSelezionata();
+    if (capienza === null) return false;
+    return this.ospiti.length > capienza;
+  }
+
   includeAlbergo(): boolean {
     return this.tipoPrenotazione === 'ALBERGO';
   }
@@ -310,8 +316,6 @@ export class Prenotazioni implements OnInit {
     let totale = 0;
     const notti = this.numeroNotti();
 
-    // 1. Calcolo Albergo
-    // 1. Calcolo Albergo (Prezzo Stanza + Pensione + Servizi)
     if (this.includeAlbergo()) {
       if (this.stanzaSelezionata) {
         const stanzaObj = this.stanzeDisponibili.find(
@@ -328,7 +332,6 @@ export class Prenotazioni implements OnInit {
         totale += (pSel.prezzo * notti * this.ospiti.length);
       }
 
-      // Servizi aggiuntivi (solo se Albergo)
       if (this.serviziSelezionatiIds && this.serviziSelezionatiIds.length > 0) {
         for (const id of this.serviziSelezionatiIds) {
           const sObj = this.listaServizi.find(s => this.getServizioId(s) === Number(id));
@@ -339,19 +342,8 @@ export class Prenotazioni implements OnInit {
       }
     }
 
-    // 2. Calcolo SPA
     if (this.includeSpa()) {
       totale += this.prezzoSpa;
-    }
-
-    // 3. Calcolo Servizi Aggiuntivi pulito tramite helper
-    if (this.serviziSelezionatiIds && this.serviziSelezionatiIds.length > 0) {
-      for (const id of this.serviziSelezionatiIds) {
-        const sObj = this.listaServizi.find(s => this.getServizioId(s) === Number(id));
-        if (sObj) {
-          totale += this.getServizioPrezzo(sObj);
-        }
-      }
     }
 
     return totale;
@@ -371,12 +363,13 @@ export class Prenotazioni implements OnInit {
     }
   }
 
- prenota(): void {
+  prenota(): void {
     this.messaggio = '';
     this.errore = '';
 
+    // Controlli client-side
     if (!this.checkIn) {
-      this.errore = 'Seleziona prima la data di Check-in / Prenotazione!';
+      this.mostraErrore('Seleziona prima la data di Check-in / Prenotazione!');
       return;
     }
 
@@ -384,16 +377,22 @@ export class Prenotazioni implements OnInit {
     const checkOutFinale = this.checkOut ? this.checkOut : this.checkIn;
 
     if (this.includeAlbergo() && !this.checkOut) {
-      this.errore = 'Seleziona la data di Check-out!';
+      this.mostraErrore('Seleziona la data di Check-out!');
       return;
     }
 
     if (this.includeAlbergo() && !this.stanzaSelezionata) {
-      this.errore = 'Seleziona una stanza disponibile!';
+      this.mostraErrore('Seleziona una stanza disponibile!');
       return;
     }
 
-    // MAPPATURA PENSIONE
+    // Controllo capienza
+    if (this.includeAlbergo() && this.superaCapienza()) {
+      const capienza = this.capienzaStanzaSelezionata();
+      this.mostraErrore(`Numero ospiti (${this.ospiti.length}) superiore alla capienza massima della stanza (max ${capienza}).`);
+      return;
+    }
+
     let idPensioneVal: number = 3;
     if (this.includeAlbergo()) {
       if (this.pensione === 'COMPLETA') {
@@ -430,59 +429,24 @@ export class Prenotazioni implements OnInit {
 
     this.prenotazioniService.creaPrenotazione(payload).subscribe({
       next: (res: any) => {
-        console.log('Risposta backend ricevuta:', res);
-
-        // 🟢 Se il backend restituisce solo una stringa, costruiamo l'oggetto di riepilogo
-        if (typeof res === 'string') {
-          this.prenotazioneConfermata = {
-            codicePrenotazione: res,
-            tipoPrenotazione: this.tipoPrenotazione,
-            costo_totale: this.prezzoTotale(),
-            deposito: this.caparra()
-          };
-        } else {
-          // Se la risposta è un oggetto JSON
-          this.prenotazioneConfermata = {
-            ...res,
-            costo_totale: res.costo_totale || res.costoTotale || this.prezzoTotale(),
-            deposito: res.deposito || res.caparra || this.caparra()
-          };
-        }
-
+        this.prenotazioneConfermata = res;
         this.messaggio = 'Prenotazione confermata con successo!';
-        this.cdr.detectChanges(); // 🟢 FORZA IL CAMBIO SCHERMATA DENTRO ANGULAR
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        this.scrollToTop();
       },
       error: (err: any) => {
         console.error('Errore risposta Spring Boot:', err);
+        let msgErrore = 'Si è verificato un errore durante la registrazione della prenotazione.';
 
-        // 🟢 GESTIONE TRAPPOLA: Se lo status è 200 (SUCCESS) ma l'errore è un parsing JSON di testo
-        if (err.status === 200 || err.statusText === 'OK') {
-          const testoCodice = err.error?.text || err.error || 'CONFERMATA';
-          this.prenotazioneConfermata = {
-            codicePrenotazione: testoCodice,
-            tipoPrenotazione: this.tipoPrenotazione,
-            costo_totale: this.prezzoTotale(),
-            deposito: this.caparra()
-          };
-          this.cdr.detectChanges(); // 🟢 FORZA IL CAMBIO SCHERMATA
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          return;
-        }
-
-        // Gestione errori reali (400, 500, ecc.)
         if (err.error && typeof err.error === 'string') {
-          this.errore = err.error;
-        } else if (err.error && err.error.error) {
-          this.errore = err.error.error;
+          msgErrore = err.error;
         } else if (err.error && err.error.message) {
-          this.errore = err.error.message;
-        } else {
-          this.errore = 'Si è verificato un errore durante la registrazione della prenotazione.';
+          msgErrore = err.error.message;
+        } else if (err.message) {
+          msgErrore = err.message;
         }
-        this.cdr.detectChanges();
+
+        this.mostraErrore(msgErrore);
       }
     });
   }
-  
 }
