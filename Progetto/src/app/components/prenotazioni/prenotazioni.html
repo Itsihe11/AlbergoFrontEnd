@@ -3,7 +3,7 @@
 
     <div>
         <label>Cosa vuoi prenotare?</label>
-        <select [(ngModel)]="tipoPrenotazione">
+       <select [(ngModel)]="tipoPrenotazione" (ngModelChange)="cambioTipoPrenotazione()">
             <option value="ALBERGO">Solo Albergo</option>
             <option value="ALBERGO_SPA">Albergo + SPA</option>
             <option value="SPA">Solo SPA</option>
@@ -18,8 +18,11 @@
     } @else {
     <div>
         <label>Tipo camera</label>
-        <select [(ngModel)]="tipoCamera" name="tipoCamera" (change)="onTipoCameraChange($any($event.target).value)">
-            <option value="" disabled selected>Seleziona un tipo di camera</option>
+       <select
+    [(ngModel)]="tipoCamera"
+    name="tipoCamera"
+    (ngModelChange)="onTipoCameraChange($event)">
+            <option value="" disabled >Seleziona un tipo di camera</option>
             @for (tipo of tipiCamera; track tipo.id || tipo.nome) {
             <option [value]="tipo.nome || tipo['tipo'] || tipo.tipoCamera">
                 {{ tipo.nome || tipo['tipo'] || tipo.tipoCamera }}
@@ -34,7 +37,7 @@
         <p><small>Caricamento stanze disponibili...</small></p>
         } @else if (stanzeDisponibili.length > 0) {
         <select [(ngModel)]="stanzaSelezionata">
-            <option value="" disabled selected>Seleziona una stanza...</option>
+            <option value="" disabled >Seleziona una stanza...</option>
             <!-- 🟢 track con $index per evitare problemi di chiavi duplicate se id è undefined -->
             @for (stanza of stanzeDisponibili; track stanza.id || $index) {
             <option [value]="stanza.id">

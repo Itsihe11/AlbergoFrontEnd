@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject , ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PrenotazioniService } from '../../services/prenotazioni-service';
 import { CamereService } from '../../services/camere.service';
@@ -16,6 +16,7 @@ export class Prenotazioni implements OnInit {
 
   private prenotazioniService = inject(PrenotazioniService);
   private camereService = inject(CamereService);
+  private cdr = inject(ChangeDetectorRef);
 
   tipiCamera: TipoCamera[] = [];
   stanzeDisponibili: Stanza[] = [];
@@ -27,7 +28,7 @@ export class Prenotazioni implements OnInit {
   prezzoSpa = 200;
   supplementoPensioneCompleta = 15;
 
-  tipoPrenotazione: 'ALBERGO' | 'ALBERGO_SPA' | 'SPA' = 'ALBERGO';
+  tipoPrenotazione: 'ALBERGO' | 'ALBERGO_SPA' | 'SPA' = 'SPA';
   tipoCamera = '';
   stanzaSelezionata: number | null = null;
   checkIn = '';
@@ -41,20 +42,32 @@ export class Prenotazioni implements OnInit {
   errore: string | null = null;
 
   ngOnInit(): void {
-    this.caricamentoCamere = true;
-    this.camereService.getTipiCamera().subscribe({
-      next: (data) => {
-        console.log('Tipi camera ricevuti dal backend:', data);
-        this.tipiCamera = data;
-        this.caricamentoCamere = false;
-      },
-      error: (err) => {
-        console.error('Errore nel recupero tipi camera:', err);
-        this.erroreCamere = 'Impossibile caricare i tipi di camera.';
-        this.caricamentoCamere = false;
-      }
-    });
-  }
+  this.caricamentoCamere = true;
+
+  this.camereService.getTipiCamera().subscribe({
+    next: (data) => {
+      console.log('Tipi camera ricevuti dal backend:', data);
+
+      this.tipiCamera = data;
+      this.caricamentoCamere = false;
+
+const primoTipo =
+  this.tipiCamera[0]?.nome ||
+  this.tipiCamera[0]?.['tipo'] ||
+  this.tipiCamera[0]?.['tipoCamera'];
+
+if (primoTipo) {
+  this.tipoCamera = primoTipo;
+  this.onTipoCameraChange(primoTipo);
+}
+    },
+    error: (err) => {
+      console.error('Errore nel recupero tipi camera:', err);
+      this.erroreCamere = 'Impossibile caricare i tipi di camera.';
+      this.caricamentoCamere = false;
+    }
+  });
+}
 
  onTipoCameraChange(tipoSelezionato: string): void {
   if (!tipoSelezionato) {
@@ -67,11 +80,14 @@ export class Prenotazioni implements OnInit {
   this.stanzeDisponibili = []; // Resettiamo la lista precedente
 
   this.camereService.getStanzePerTipo(tipoSelezionato).subscribe({
-    next: (stanze) => {
-      console.log('Stanze filtrate trovate:', stanze); // 🔍 Utile per il debug
-      this.stanzeDisponibili = stanze;
-      this.caricamentoStanze = false;
-    },
+next: (stanze) => {
+  console.log('Stanze filtrate trovate:', stanze);
+
+  this.stanzeDisponibili = stanze;
+  this.caricamentoStanze = false;
+
+  this.cdr.detectChanges();
+},
     error: (err) => {
       console.error('Errore nel caricamento delle stanze:', err);
       this.caricamentoStanze = false;
@@ -180,4 +196,28 @@ export class Prenotazioni implements OnInit {
       }
     });
   }
+  cambioTipoPrenotazione(): void {
+  if (this.includeAlbergo() && this.tipiCamera.length === 0) {
+    this.caricamentoCamere = true;
+
+    this.camereService.getTipiCamera().subscribe({
+      next: (data) => {
+        this.tipiCamera = data;
+        this.caricamentoCamere = false;
+      },
+      error: (err) => {
+        console.error('Errore caricamento camere:', err);
+        this.erroreCamere = 'Impossibile caricare i tipi di camera.';
+        this.caricamentoCamere = false;
+      }
+    });
+  }
+
+  // Se torna a SPA pulisco eventuali selezioni camere
+  if (!this.includeAlbergo()) {
+    this.tipoCamera = '';
+    this.stanzaSelezionata = null;
+    this.stanzeDisponibili = [];
+  }
+}
 }
