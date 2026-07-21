@@ -16,7 +16,7 @@ export class CamereService {
   private apiTipologiaStanze ='/api/dipendente/tipologie'
 
 
-  // 🟢 Lista locale per simulare il Database in memoria
+  
   private stanzeLocali: Stanza[] = [];
   private prenotazioniLocali: Prenotazione[] = [];
   private idContatoreStanze = 100;
