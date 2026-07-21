@@ -1,25 +1,31 @@
-<section>
+<section class="rooms-hero">
   <h1>Le nostre camere</h1>
   <p>{{ tipiCamera().length }} tipologie disponibili</p>
 </section>
 
-<section>
+<section class="rooms-list">
   @if (caricamento()) {
-    <p>Caricamento camere...</p>
+    <p class="status-msg">Caricamento camere...</p>
   } @else if (errore()) {
-    <p>{{ errore() }}</p>
+    <p class="status-msg error">{{ errore() }}</p>
   } @else {
-    @for (camera of tipiCamera(); track camera.id) {
-      <article>
-        <img [src]="getImmagine(camera.nome)" [alt]="camera.nome">
-        <h2>{{ camera.nome }}</h2>
-        <p>{{ camera.descrizione }}</p>
-        <p>Capienza: {{ camera.capienza }} ospiti</p>
-        <p>{{ camera.prezzo }} € a notte</p>
-        <a routerLink="/prenotazioni">Verifica disponibilità</a>
-      </article>
-    } @empty {
-      <p>Nessuna tipologia di camera disponibile al momento.</p>
-    }
+    <div class="rooms-grid">
+      @for (camera of tipiCamera(); track camera.id) {
+        <article class="room-card">
+          <div class="room-image-wrapper">
+            <img class="room-image" [src]="getImmagine(camera.nome)" [alt]="camera.nome">
+          </div>
+          <div class="room-content">
+            <h2>{{ camera.nome }}</h2>
+            <p class="room-description">{{ camera.descrizione }}</p>
+            <p class="room-capacity">Capienza: {{ camera.capienza }} ospiti</p>
+            <p class="room-price">{{ camera.prezzo }} € <span>a notte</span></p>
+            <a class="room-cta" routerLink="/prenotazioni">Verifica disponibilità</a>
+          </div>
+        </article>
+      } @empty {
+        <p class="status-msg">Nessuna tipologia di camera disponibile al momento.</p>
+      }
+    </div>
   }
 </section>
