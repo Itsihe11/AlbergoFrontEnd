@@ -1,116 +1,193 @@
-<section class="booking-page">
+<!-- 🟢 1. SCHERMATA DI RICEVUTA E CONFERMA (Visibile solo a prenotazione completata) -->
+<div *ngIf="prenotazioneConfermata; else formBlock" class="container my-4">
+  <div class="card border-success shadow-lg">
+    <div class="card-header bg-success text-white text-center py-3">
+      <h2 class="m-0">🎉 Prenotazione Confermata!</h2>
+    </div>
+    
+    <div class="card-body p-4">
+      <p class="lead text-center">
+        Grazie per la tua prenotazione. Abbiamo registrato correttamente i tuoi dati.
+      </p>
+
+      <hr />
+
+      <div class="row my-3">
+        <div class="col-md-6 mb-3">
+          <h5>📋 Dettagli Prenotazione</h5>
+          <ul class="list-group">
+            <li class="list-group-item">
+              <strong>Codice Prenotazione:</strong> 
+              <span class="badge bg-primary fs-6 ms-2">{{ prenotazioneConfermata.codice_prenotazione || prenotazioneConfermata.codicePrenotazione }}</span>
+            </li>
+            <li class="list-group-item">
+              <strong>Tipo:</strong> {{ prenotazioneConfermata.tipo_prenotazione || prenotazioneConfermata.tipoPrenotazione }}
+            </li>
+            <li class="list-group-item">
+              <strong>Check-in:</strong> {{ checkIn }}
+            </li>
+            <li class="list-group-item" *ngIf="includeAlbergo()">
+              <strong>Check-out:</strong> {{ checkOut }}
+            </li>
+          </ul>
+        </div>
+
+        <div class="col-md-6 mb-3">
+          <h5>💳 Riepilogo Pagamento</h5>
+          <ul class="list-group">
+            <li class="list-group-item">
+              <strong>Importo Totale:</strong> 
+              <span class="fw-bold text-success">{{ prenotazioneConfermata.costo_totale || prezzoTotale() }} €</span>
+            </li>
+            <li class="list-group-item">
+              <strong>Caparra Richiesta (10%):</strong> 
+              <span class="fw-bold text-danger">{{ prenotazioneConfermata.deposito || caparra() }} €</span>
+            </li>
+            <li class="list-group-item">
+              <strong>Metodo:</strong> Bonifico Bancario
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Box Istruzioni Bonifico -->
+      <div class="alert alert-info border-info">
+        <h6 class="fw-bold">📌 Istruzioni per il Bonifico Bancario:</h6>
+        <p class="m-0">
+          Per confermare definitivamente la prenotazione, effettua il versamento della caparra di 
+          <strong>{{ prenotazioneConfermata.deposito || caparra() }} €</strong> tramite bonifico alle seguenti coordinate:
+        </p>
+        <ul class="mt-2 mb-0">
+          <li><strong>IBAN:</strong> IT60X0542811101000000123456</li>
+          <li><strong>Intestatario:</strong> Hotel Progetto Albergo S.r.l.</li>
+          <li><strong>Causale:</strong> Caparra Prenotazione {{ prenotazioneConfermata.codice_prenotazione || prenotazioneConfermata.codicePrenotazione }}</li>
+        </ul>
+      </div>
+
+      <div class="text-center mt-4">
+        <button class="btn btn-outline-primary btn-lg" type="button" (click)="nuovaPrenotazione()">
+          ➕ Effettua un'altra prenotazione
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 🟢 2. MODULO DI PRENOTAZIONE STANDARD (Inizialmente Visibile) -->
+<ng-template #formBlock>
+  <section class="booking-page">
     <h1>Prenota</h1>
 
-    <div class="form-group">
-        <label for="tipoPrenotazione">Tipo Prenotazione:</label>
-        <select id="tipoPrenotazione" [(ngModel)]="tipoPrenotazione" name="tipoPrenotazione" class="form-select">
-            <option value="ALBERGO">Albergo</option>
-            <option value="SPA">SPA</option>
-        </select>
+    <!-- MESSAGGI DI ERRORE / CONFERMA IN ALTO -->
+    <div *ngIf="messaggio" class="alert alert-success fw-bold my-2">
+      {{ messaggio }}
     </div>
 
+    <div *ngIf="errore" class="alert alert-danger fw-bold my-2">
+      ⚠️ {{ errore }}
+    </div>
+
+    <!-- SELEZIONE TIPO PRENOTAZIONE -->
+    <div class="form-group my-3">
+      <label class="fw-bold">Tipo Prenotazione:</label>
+      <select [(ngModel)]="tipoPrenotazione" (change)="cambioTipoPrenotazione()" class="form-control">
+        <option value="ALBERGO">Albergo</option>
+        <option value="SPA">SPA</option>
+      </select>
+    </div>
+
+    <!-- DATE -->
     <div class="form-row">
-        <div class="form-group">
-            <label>Check-in / Data Prenotazione</label>
-            <input class="form-input" type="date" [(ngModel)]="checkIn" [ngModelOptions]="{standalone: true}" (change)="onDateChange()">
-        </div>
+      <div class="form-group">
+        <label>Check-in / Data Prenotazione</label>
+        <input class="form-input" type="date" [(ngModel)]="checkIn" [ngModelOptions]="{standalone: true}" (change)="onDateChange()">
+      </div>
 
-        <div class="form-group">
-            <label>Check-out</label>
-            <input class="form-input" type="date" [(ngModel)]="checkOut" [ngModelOptions]="{standalone: true}" (change)="onDateChange()">
-        </div>
+      <div class="form-group" *ngIf="includeAlbergo()">
+        <label>Check-out</label>
+        <input class="form-input" type="date" [(ngModel)]="checkOut" [ngModelOptions]="{standalone: true}" (change)="onDateChange()">
+      </div>
     </div>
 
-    <p class="nights-count">Notti: {{ numeroNotti() }}</p>
+    <p class="nights-count" *ngIf="includeAlbergo()">Notti: {{ numeroNotti() }}</p>
 
-    @if (includeAlbergo()) {
-    <div class="form-group">
+    <!-- CAMPI SPECIFICI PER ALBERGO -->
+    <div *ngIf="includeAlbergo()">
+      <div class="form-group my-2">
         <label>Tipo camera</label>
-        <select class="form-select" [(ngModel)]="tipoCamera" [ngModelOptions]="{standalone: true}"
-            (ngModelChange)="onTipoCameraChange($event)">
-            <option value="" disabled selected>Seleziona un tipo di camera</option>
-            @for (tipo of tipiCamera; track $index) {
-            <option [value]="getValoreTipoCamera(tipo)">
-                {{ getValoreTipoCamera(tipo) }}
-            </option>
-            }
+        <select class="form-select" [(ngModel)]="tipoCamera" [ngModelOptions]="{standalone: true}" (ngModelChange)="onTipoCameraChange($event)">
+          <option value="" disabled selected>Seleziona un tipo di camera</option>
+          <option *ngFor="let tipo of tipiCamera" [value]="getValoreTipoCamera(tipo)">
+            {{ getValoreTipoCamera(tipo) }}
+          </option>
         </select>
-    </div>
+      </div>
 
-    <div class="form-group">
+      <div class="form-group my-2">
         <label>Numero Stanza</label>
         <select class="form-select" [(ngModel)]="stanzaSelezionata" [ngModelOptions]="{standalone: true}">
-            <option value="" disabled selected>Seleziona una stanza...</option>
-            @for (stanza of stanzeFiltrate; track $index) {
-            <option [value]="getStanzaId(stanza)">
-                Stanza {{ getStanzaNumero(stanza) }}
-            </option>
-            }
+          <option value="" disabled selected>Seleziona una stanza...</option>
+          <option *ngFor="let stanza of stanzeFiltrate" [value]="getStanzaId(stanza)">
+            Stanza {{ getStanzaNumero(stanza) }}
+          </option>
         </select>
-    </div>
+      </div>
 
-    <div class="form-group">
+      <div class="form-group my-2">
         <label>Pensione</label>
         <select class="form-select" [(ngModel)]="pensione" [ngModelOptions]="{standalone: true}">
-            @for (p of listaPensioni; track $index) {
-            <option [value]="p.tipo">
-                {{ p.nome || p.tipo }} (+{{ p.prezzo }} €/giorno)
-            </option>
-            }
+          <option *ngFor="let p of listaPensioni" [value]="p.tipo">
+            {{ p.nome || p.tipo }} (+{{ p.prezzo }} €/giorno)
+          </option>
         </select>
+      </div>
     </div>
-    }
 
-    <div class="servizi-container">
-        <label class="section-title">Servizi Aggiuntivi</label>
+    <!-- OSPII -->
+    <h2 class="section-title mt-4">Ospiti</h2>
+    <div *ngFor="let ospite of ospiti; let i = index" class="guest-row my-2">
+      <input class="form-input" type="text" placeholder="Nome" [(ngModel)]="ospite.nome" [ngModelOptions]="{standalone: true}">
+      <input class="form-input" type="text" placeholder="Cognome" [(ngModel)]="ospite.cognome" [ngModelOptions]="{standalone: true}">
+      <input class="form-input" type="date" [(ngModel)]="ospite.dataNascita" [ngModelOptions]="{standalone: true}">
+      <button class="btn-remove" type="button" (click)="rimuoviOspite(i)">Rimuovi</button>
+    </div>
+    <button class="btn-secondary my-2" type="button" (click)="aggiungiOspite()">+ Aggiungi ospite</button>
 
-        <div class="servizi-grid">
-            <div *ngFor="let s of listaServizi" class="servizio-card">
-                <label class="servizio-label">
-                    <input
-                        class="servizio-checkbox"
-                        type="checkbox"
-                        [checked]="isServizioSelezionato(s.idservizio || s.id)"
-                        (change)="toggleServizio(s.idservizio || s.id)"
-                    />
-                    <span class="servizio-nome">{{ s.nomeservizio }}</span>
-                    <span class="servizio-prezzo">+{{ s.prezzo || s.prezzi }} €</span>
-                </label>
-            </div>
+    <!-- SERVIZI AGGIUNTIVI (SOLO ALBERGO) -->
+    <div *ngIf="includeAlbergo()" class="servizi-container my-3">
+      <label class="fw-bold d-block mb-2">Servizi Aggiuntivi:</label>
+      <div *ngIf="listaServizi.length > 0; else noServizi" class="servizi-grid">
+        <div *ngFor="let s of listaServizi" class="servizio-card">
+          <label class="servizio-label">
+            <input 
+              type="checkbox" 
+              [checked]="isServizioSelezionato(getServizioId(s))"
+              (change)="toggleServizio(getServizioId(s))" 
+            />
+            <span class="servizio-nome">{{ getServizioNome(s) }}</span>
+            <span class="servizio-prezzo">+{{ getServizioPrezzo(s) }} €</span>
+          </label>
         </div>
+      </div>
+      <ng-template #noServizi>
+        <p class="text-muted fst-italic">Nessun servizio aggiuntivo disponibile.</p>
+      </ng-template>
     </div>
 
-    <h2 class="section-title">Ospiti</h2>
-    @for (ospite of ospiti; track $index) {
-    <div class="guest-row">
-        <input class="form-input" type="text" placeholder="Nome" [(ngModel)]="ospite.nome" [ngModelOptions]="{standalone: true}">
-        <input class="form-input" type="text" placeholder="Cognome" [(ngModel)]="ospite.cognome" [ngModelOptions]="{standalone: true}">
-        <input class="form-input" type="date" [(ngModel)]="ospite.dataNascita" [ngModelOptions]="{standalone: true}">
-        <button class="btn-remove" type="button" (click)="rimuoviOspite($index)">Rimuovi</button>
-    </div>
-    }
-    <button class="btn-secondary" type="button" (click)="aggiungiOspite()">+ Aggiungi ospite</button>
-
-    <div class="form-group">
-        <label>Metodo di pagamento</label>
-        <select class="form-select" [(ngModel)]="metodoPagamento" [ngModelOptions]="{standalone: true}">
-            <option value="CARTA">Carta</option>
-            <option value="BONIFICO">Bonifico</option>
-        </select>
+    <!-- METODO DI PAGAMENTO -->
+    <div class="form-group my-3">
+      <label class="fw-bold">Metodo di Pagamento:</label>
+      <select [(ngModel)]="metodoPagamento" class="form-control">
+        <option value="BONIFICO">Bonifico Bancario</option>
+      </select>
     </div>
 
-    <div class="price-summary">
-        <p>Prezzo totale: <strong>{{ prezzoTotale() }} €</strong></p>
-        <p>Caparra richiesta (10%): <strong>{{ caparra() }} €</strong></p>
+    <!-- RIEPILOGO PREZZO -->
+    <div class="price-summary my-3">
+      <p>Prezzo totale: <strong>{{ prezzoTotale() }} €</strong></p>
+      <p>Caparra richiesta (10%): <strong>{{ caparra() }} €</strong></p>
     </div>
 
-    <!-- 🟢 IMPORTANTE: type="button" impedisce il reload del form -->
     <button class="btn-primary" type="button" (click)="prenota()">Conferma prenotazione</button>
-
-    @if (messaggio) {
-    <p class="feedback success">{{ messaggio }}</p>
-    }
-    @if (errore) {
-    <p class="feedback error">{{ errore }}</p>
-    }
-</section>
+  </section>
+</ng-template>

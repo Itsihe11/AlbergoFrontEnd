@@ -21,7 +21,7 @@ export class Prenotazioni implements OnInit {
   pensione: string = 'MEZZA';
   checkIn: string = '';
   checkOut: string = '';
-  metodoPagamento: string = 'BONIFICO';
+  metodoPagamento: string = 'BONIFICO'; // Solo Bonifico
   ospiti: Ospite[] = [{ nome: '', cognome: '', dataNascita: '' }];
 
   // Dati da DB / Fallback
@@ -42,19 +42,51 @@ export class Prenotazioni implements OnInit {
   messaggio: string = '';
   errore: string = '';
 
-  toggleServizio(id: any): void {
-  const numId = Number(id);
-  const index = this.serviziSelezionatiIds.indexOf(numId);
-  if (index > -1) {
-    this.serviziSelezionatiIds.splice(index, 1);
-  } else {
-    this.serviziSelezionatiIds.push(numId);
-  }
-}
+  // 🟢 AGGIUNTO: Memorizza la risposta di Spring Boot per mostrare la ricevuta
+  prenotazioneConfermata: any = null;
 
-isServizioSelezionato(id: any): boolean {
-  return this.serviziSelezionatiIds.includes(Number(id));
-}
+  // 🟢 AGGIUNTO: Ripristina il modulo per inserire una nuova prenotazione
+  nuovaPrenotazione(): void {
+    this.prenotazioneConfermata = null;
+    this.messaggio = '';
+    this.errore = '';
+    this.stanzaSelezionata = '';
+    this.tipoCamera = '';
+    this.serviziSelezionatiIds = [];
+    this.checkIn = '';
+    this.checkOut = '';
+    this.ospiti = [{ nome: '', cognome: '', dataNascita: '' }];
+  }
+
+  // HELPER SERVIZI AGGIUNTIVI
+  toggleServizio(id: any): void {
+    const numId = Number(id);
+    const index = this.serviziSelezionatiIds.indexOf(numId);
+    if (index > -1) {
+      this.serviziSelezionatiIds.splice(index, 1);
+    } else {
+      this.serviziSelezionatiIds.push(numId);
+    }
+  }
+
+  isServizioSelezionato(id: any): boolean {
+    return this.serviziSelezionatiIds.includes(Number(id));
+  }
+
+  getServizioId(servizio: any): number {
+    if (!servizio) return 0;
+    return Number(servizio.idservizio || servizio.idServizio || servizio.id || 0);
+  }
+
+  getServizioNome(servizio: any): string {
+    if (!servizio) return '';
+    return servizio.nomeservizio || servizio.nomeServizio || servizio.nome || 'Servizio';
+  }
+
+  getServizioPrezzo(servizio: any): number {
+    if (!servizio) return 0;
+    return Number(servizio.prezzi || servizio.prezzo || 0);
+  }
 
   ngOnInit(): void {
     // 1. Carica pensioni da Spring Boot
@@ -251,6 +283,7 @@ isServizioSelezionato(id: any): boolean {
     if (!this.includeAlbergo()) {
       this.stanzaSelezionata = '';
       this.tipoCamera = '';
+      this.serviziSelezionatiIds = [];
     }
   }
 
@@ -267,7 +300,7 @@ isServizioSelezionato(id: any): boolean {
     let totale = 0;
     const notti = this.numeroNotti();
 
-    // 1. Calcolo Albergo (Prezzo Stanza + Pensione * notti)
+    // 1. Calcolo Albergo (Prezzo Stanza + Pensione + Servizi)
     if (this.includeAlbergo()) {
       if (this.stanzaSelezionata) {
         const stanzaObj = this.stanzeDisponibili.find(
@@ -283,21 +316,21 @@ isServizioSelezionato(id: any): boolean {
       if (pSel) {
         totale += (pSel.prezzo * notti * this.ospiti.length);
       }
+
+      // Servizi aggiuntivi (solo se Albergo)
+      if (this.serviziSelezionatiIds && this.serviziSelezionatiIds.length > 0) {
+        for (const id of this.serviziSelezionatiIds) {
+          const sObj = this.listaServizi.find(s => this.getServizioId(s) === Number(id));
+          if (sObj) {
+            totale += this.getServizioPrezzo(sObj);
+          }
+        }
+      }
     }
 
     // 2. Calcolo SPA
     if (this.includeSpa()) {
       totale += this.prezzoSpa;
-    }
-
-    // 3. Calcolo Servizi Aggiuntivi
-    if (this.serviziSelezionatiIds && this.serviziSelezionatiIds.length > 0) {
-      for (const id of this.serviziSelezionatiIds) {
-        const sObj = this.listaServizi.find(s => (s.idservizio || s.id) === Number(id));
-        if (sObj) {
-          totale += (sObj.prezzi || sObj.prezzo || 0);
-        }
-      }
     }
 
     return totale;
@@ -335,6 +368,11 @@ isServizioSelezionato(id: any): boolean {
       return;
     }
 
+    if (this.includeAlbergo() && !this.stanzaSelezionata) {
+      this.errore = 'Seleziona una stanza disponibile!';
+      return;
+    }
+
     // 2. MAPPATURA PENSIONE (1: COMPLETA, 2: MEZZA, 3: NESSUNA)
     let idPensioneVal: number = 3;
     if (this.includeAlbergo()) {
@@ -353,8 +391,8 @@ isServizioSelezionato(id: any): boolean {
       idStanzaVal = Number(this.stanzaSelezionata);
     }
 
-    // 4. MAPPATURA ID SERVIZI AGGIUNTIVI
-    const serviziIds = this.serviziSelezionatiIds.map(id => Number(id));
+    // 4. MAPPATURA ID SERVIZI AGGIUNTIVI (Solo se Albergo)
+    const serviziIds = this.includeAlbergo() ? this.serviziSelezionatiIds.map(id => Number(id)) : [];
 
     // 5. STRUTTURA PAYLOAD
     const payload = {
@@ -366,20 +404,34 @@ isServizioSelezionato(id: any): boolean {
       idPensione: idPensioneVal,
       tipoPrenotazione: this.tipoPrenotazione,
       dovePrenotazione: 'WEB',
-      tipoPagamento: this.metodoPagamento,
+      tipoPagamento: 'BONIFICO',
       ospiti: this.ospiti,
       serviziAggiuntivi: serviziIds
     };
 
-    console.log(' Payload inviato a Spring Boot:', payload);
+    console.log('Payload inviato a Spring Boot:', payload);
 
     this.prenotazioniService.creaPrenotazione(payload).subscribe({
       next: (res: any) => {
+        // 🟢 SALVA LA RISPOSTA RICEVUTA DA SPRING BOOT
+        this.prenotazioneConfermata = res;
         this.messaggio = 'Prenotazione confermata con successo!';
+        
+        // Scorri in cima per mostrare subito la scheda di conferma
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       },
       error: (err: any) => {
-        console.error(' Errore risposta Spring Boot:', err);
-        this.errore = 'Si è verificato un errore durante la registrazione della prenotazione.';
+        console.error('Errore risposta Spring Boot:', err);
+
+        if (err.error && typeof err.error === 'string') {
+          this.errore = err.error;
+        } else if (err.error && err.error.message) {
+          this.errore = err.error.message;
+        } else if (err.message) {
+          this.errore = err.message;
+        } else {
+          this.errore = 'Si è verificato un errore durante la registrazione della prenotazione.';
+        }
       }
     });
   }
