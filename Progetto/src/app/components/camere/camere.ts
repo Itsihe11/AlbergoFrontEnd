@@ -29,7 +29,10 @@ export class Camere implements OnInit {
 
     if (nomeLower.includes('singol')) return 'assets/camere/singole.jpg';
     if (nomeLower.includes('doppi')) return 'assets/camere/doppia.webp';
-    if (nomeLower.includes('suite') || nomeLower.includes('superior')) return 'assets/camere/suite.jpg';
+
+    if (nomeLower.includes('spa')) return 'assets/camere/spa.jpg';
+    if (nomeLower.includes('presidential')) return 'assets/camere/presidential.avif';
+    if (nomeLower.includes('superior') || nomeLower.includes('suite')) return 'assets/camere/suite.jpg';
 
     return this.immagineDefault;
   }
