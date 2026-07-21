@@ -10,7 +10,7 @@ export interface Prenotazione {
   tipoCamera?: string;
   checkIn: string;
   checkOut: string;
-  pensione?: 'MEZZA' | 'COMPLETA';
+  pensione?: 'MEZZA' | 'COMPLETA' | 'NESSUNA';
   ospiti: Ospite[];
   metodoPagamento: 'BONIFICO' | 'CARTA';
   caparra: number;
