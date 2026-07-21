@@ -19,7 +19,7 @@ export class Clienti implements OnInit {
   messaggio: string | null = null;
 
   // per il form di cessione
-  prenotazioneInCessione: number | null = null;
+  prenotazioneInCessione: number | string | null = null;
   nuovoIntestatario: Ospite = { nome: '', cognome: '', dataNascita: '' };
 
   ngOnInit(): void {
@@ -29,7 +29,7 @@ export class Clienti implements OnInit {
   caricaPrenotazioni(): void {
     this.caricamento = true;
     this.prenotazioniService.getPrenotazioniCliente().subscribe({
-      next: (dati) => {
+      next: (dati: Prenotazione[]) => { // 🟢 Tipo esplicito per risolvere TS7006
         this.prenotazioni = dati;
         this.caricamento = false;
       },
@@ -40,7 +40,7 @@ export class Clienti implements OnInit {
     });
   }
 
-  annulla(id: number | undefined): void {
+  annulla(id: number | string | undefined): void {
     if (!id) return;
     if (!confirm('Sei sicuro di voler annullare questa prenotazione? La caparra non verrà rimborsata.')) {
       return;
@@ -57,7 +57,7 @@ export class Clienti implements OnInit {
     });
   }
 
-  apriCessione(id: number | undefined): void {
+  apriCessione(id: number | string | undefined): void {
     if (!id) return;
     this.prenotazioneInCessione = id;
     this.nuovoIntestatario = { nome: '', cognome: '', dataNascita: '' };

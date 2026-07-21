@@ -1,144 +1,310 @@
-import { Component, OnInit, inject , ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PrenotazioniService } from '../../services/prenotazioni-service';
-import { CamereService } from '../../services/camere.service';
+import { PrenotazioniService, PensioneInfo } from '../../services/prenotazioni-service';
 import { Ospite } from '../../interface/prenotazione';
-import { Stanza, TipoCamera } from '../../interface/tipocamera';
 
 @Component({
   selector: 'app-prenotazioni',
   standalone: true,
-  imports: [FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './prenotazioni.html',
-  styleUrl: './prenotazioni.css',
+  styleUrls: []
 })
 export class Prenotazioni implements OnInit {
-
   private prenotazioniService = inject(PrenotazioniService);
-  private camereService = inject(CamereService);
-  private cdr = inject(ChangeDetectorRef);
 
-  tipiCamera: TipoCamera[] = [];
-  stanzeDisponibili: Stanza[] = [];
-
-  caricamentoCamere = true;
-  caricamentoStanze = false;
-  erroreCamere: string | null = null;
-
-  prezzoSpa = 200;
-  supplementoPensioneCompleta = 15;
-
-  tipoPrenotazione: 'ALBERGO' | 'ALBERGO_SPA' | 'SPA' = 'SPA';
-  tipoCamera = '';
-  stanzaSelezionata: number | null = null;
-  checkIn = '';
-  checkOut = '';
-  pensione: 'MEZZA' | 'COMPLETA' = 'MEZZA';
-  metodoPagamento: 'BONIFICO' | 'CARTA' = 'CARTA';
-
+  // Form State
+  tipoPrenotazione: string = 'ALBERGO'; // 'ALBERGO' oppure 'SPA'
+  tipoCamera: string = '';
+  stanzaSelezionata: string = '';
+  pensione: string = 'MEZZA';
+  checkIn: string = '';
+  checkOut: string = '';
+  metodoPagamento: string = 'BONIFICO';
   ospiti: Ospite[] = [{ nome: '', cognome: '', dataNascita: '' }];
 
-  messaggio: string | null = null;
-  errore: string | null = null;
+  // Dati da DB / Fallback
+  listaPensioni: PensioneInfo[] = [];
+  prezzoSpa: number = 200;
+
+  tipiCamera: any[] = [];
+  stanzeDisponibili: any[] = [];
+
+  // Servizi Aggiuntivi (Caricati da DB)
+  listaServizi: any[] = [];
+  serviziSelezionatiIds: number[] = [];
+
+  // Flags e Feedback UI
+  caricamentoCamere: boolean = false;
+  erroreCamere: string = '';
+  caricamentoStanze: boolean = false;
+  messaggio: string = '';
+  errore: string = '';
+
+  toggleServizio(id: any): void {
+  const numId = Number(id);
+  const index = this.serviziSelezionatiIds.indexOf(numId);
+  if (index > -1) {
+    this.serviziSelezionatiIds.splice(index, 1);
+  } else {
+    this.serviziSelezionatiIds.push(numId);
+  }
+}
+
+isServizioSelezionato(id: any): boolean {
+  return this.serviziSelezionatiIds.includes(Number(id));
+}
 
   ngOnInit(): void {
-  this.caricamentoCamere = true;
+    // 1. Carica pensioni da Spring Boot
+    this.prenotazioniService.getPensioni().subscribe({
+      next: (data: PensioneInfo[]) => {
+        if (data && data.length > 0) this.listaPensioni = data;
+      },
+      error: (err: any) => console.warn('Pensione API offline: usati dati di fallback.', err)
+    });
 
-  this.camereService.getTipiCamera().subscribe({
-    next: (data) => {
-      console.log('Tipi camera ricevuti dal backend:', data);
+    // 2. Carica prezzo SPA
+    this.prenotazioniService.getPrezzoSpa().subscribe({
+      next: (val: number) => {
+        if (val) this.prezzoSpa = val;
+      },
+      error: (err: any) => console.warn('SPA API offline: usato prezzo di fallback.', err)
+    });
 
-      this.tipiCamera = data;
-      this.caricamentoCamere = false;
+    // 3. Carica i servizi aggiuntivi dal DB
+    this.caricaServizi();
 
-const primoTipo =
-  this.tipiCamera[0]?.nome ||
-  this.tipiCamera[0]?.['tipo'] ||
-  this.tipiCamera[0]?.['tipoCamera'];
+    // 4. Carica i tipi di camera
+    this.caricaTipiCamera();
 
-if (primoTipo) {
-  this.tipoCamera = primoTipo;
-  this.onTipoCameraChange(primoTipo);
-}
-    },
-    error: (err) => {
-      console.error('Errore nel recupero tipi camera:', err);
-      this.erroreCamere = 'Impossibile caricare i tipi di camera.';
-      this.caricamentoCamere = false;
-    }
-  });
-}
-
- onTipoCameraChange(tipoSelezionato: string): void {
-  if (!tipoSelezionato) {
-    this.stanzeDisponibili = [];
-    return;
+    // 5. Carica inizialmente tutte le stanze dal DB
+    this.caricaTutteLeStanze();
   }
 
-  this.tipoCamera = tipoSelezionato; // Assicuriamo che la variabile sia aggiornata
-  this.caricamentoStanze = true;
-  this.stanzeDisponibili = []; // Resettiamo la lista precedente
-
-  this.camereService.getStanzePerTipo(tipoSelezionato).subscribe({
-next: (stanze) => {
-  console.log('Stanze filtrate trovate:', stanze);
-
-  this.stanzeDisponibili = stanze;
-  this.caricamentoStanze = false;
-
-  this.cdr.detectChanges();
-},
-    error: (err) => {
-      console.error('Errore nel caricamento delle stanze:', err);
-      this.caricamentoStanze = false;
+  caricaServizi(): void {
+    if (typeof this.prenotazioniService.getServizi === 'function') {
+      this.prenotazioniService.getServizi().subscribe({
+        next: (res: any[]) => {
+          if (res) this.listaServizi = res;
+        },
+        error: (err: any) => console.warn('Servizi API offline.', err)
+      });
     }
-  });
-}
+  }
+
+  caricaTipiCamera(): void {
+    this.caricamentoCamere = true;
+    this.prenotazioniService.getTipiCamera().subscribe({
+      next: (res: any[]) => {
+        if (res && res.length > 0) {
+          this.tipiCamera = res;
+        } else {
+          this.useDefaultTipiCamera();
+        }
+        this.caricamentoCamere = false;
+      },
+      error: (err: any) => {
+        console.warn('Tipologie Camera API offline: usati dati di fallback.', err);
+        this.useDefaultTipiCamera();
+        this.caricamentoCamere = false;
+      }
+    });
+  }
+
+  private useDefaultTipiCamera(): void {
+    this.tipiCamera = [
+      { id: 1, nomeTipologia: 'Singola Standard' },
+      { id: 2, nomeTipologia: 'Doppia Deluxe' },
+      { id: 3, nomeTipologia: 'Suite' }
+    ];
+  }
+
+  caricaTutteLeStanze(): void {
+    this.caricamentoStanze = true;
+    this.prenotazioniService.getTutteLeStanze().subscribe({
+      next: (res: any[]) => {
+        if (res && res.length > 0) {
+          this.stanzeDisponibili = res;
+        } else {
+          this.useDefaultStanze();
+        }
+        this.caricamentoStanze = false;
+      },
+      error: (err: any) => {
+        console.warn('Tutte le Stanze API offline: usate stanze di fallback.', err);
+        this.useDefaultStanze();
+        this.caricamentoStanze = false;
+      }
+    });
+  }
+
+  cercaStanzeDisponibili(): void {
+    if (!this.checkIn || !this.checkOut) {
+      if (this.stanzeDisponibili.length === 0) {
+        this.caricaTutteLeStanze();
+      }
+      return;
+    }
+
+    this.stanzaSelezionata = '';
+    this.caricamentoStanze = true;
+
+    this.prenotazioniService.getStanzeDisponibili(this.checkIn, this.checkOut).subscribe({
+      next: (res: any[]) => {
+        if (res && res.length > 0) {
+          this.stanzeDisponibili = res;
+        } else {
+          this.useDefaultStanze();
+        }
+        this.caricamentoStanze = false;
+      },
+      error: (err: any) => {
+        console.warn('Stanze Disponibili API offline: usate stanze di fallback.', err);
+        this.useDefaultStanze();
+        this.caricamentoStanze = false;
+      }
+    });
+  }
+
+  private useDefaultStanze(): void {
+    this.stanzeDisponibili = [
+      { id: 1, numeroStanza: '101', tipologiaStanza: { nomeTipologia: 'Singola Standard', prezzo: 50 } },
+      { id: 2, numeroStanza: '102', tipologiaStanza: { nomeTipologia: 'Singola Standard', prezzo: 50 } },
+      { id: 3, numeroStanza: '201', tipologiaStanza: { nomeTipologia: 'Doppia Deluxe', prezzo: 90 } },
+      { id: 4, numeroStanza: '301', tipologiaStanza: { nomeTipologia: 'Suite', prezzo: 150 } }
+    ];
+  }
+
+  onTipoCameraChange(tipo: string): void {
+    this.stanzaSelezionata = '';
+    this.cercaStanzeDisponibili();
+  }
+
+  onDateChange(): void {
+    this.cercaStanzeDisponibili();
+  }
+
+  // FILTRO DINAMICO
+  get stanzeFiltrate(): any[] {
+    if (!this.tipoCamera) {
+      return this.stanzeDisponibili;
+    }
+
+    const tipoSel = this.tipoCamera.toString().toLowerCase().trim();
+
+    return this.stanzeDisponibili.filter((stanza: any) => {
+      const nomeTipo = this.getTipologiaStanzaNome(stanza).toLowerCase().trim();
+      const idTipo = stanza.tipologiaStanza?.id?.toString() || stanza.tipologia?.id?.toString() || '';
+
+      if (!nomeTipo && !idTipo) return true;
+
+      return (nomeTipo !== '' && nomeTipo === tipoSel) ||
+             (idTipo !== '' && idTipo === tipoSel) ||
+             nomeTipo.includes(tipoSel) ||
+             tipoSel.includes(nomeTipo);
+    });
+  }
+
+  getValoreTipoCamera(tipo: any): string {
+    if (!tipo) return '';
+    if (typeof tipo === 'string') return tipo;
+    return tipo.nomeTipologia || tipo.nome || tipo.tipo || tipo.tipoCamera || '';
+  }
+
+  getStanzaId(stanza: any): string | number {
+    if (!stanza) return '';
+    if (typeof stanza === 'string' || typeof stanza === 'number') return stanza;
+    return stanza.id || stanza.idStanza || stanza.numeroStanza || stanza.numero || '';
+  }
+
+  getStanzaNumero(stanza: any): string | number {
+    if (!stanza) return '';
+    if (typeof stanza === 'string' || typeof stanza === 'number') return stanza;
+    return stanza.numeroStanza || stanza.numero || stanza.id || stanza.idStanza || '';
+  }
+
+  getTipologiaStanzaNome(stanza: any): string {
+    if (!stanza) return '';
+    if (typeof stanza.tipologiaStanza === 'string') return stanza.tipologiaStanza;
+    if (typeof stanza.tipologia === 'string') return stanza.tipologia;
+    return stanza.tipologiaStanza?.nomeTipologia ||
+           stanza.tipologiaStanza?.nome ||
+           stanza.tipologia?.nomeTipologia ||
+           stanza.tipologia?.nome ||
+           stanza.tipoCamera ||
+           stanza.tipo || '';
+  }
 
   includeAlbergo(): boolean {
-    return this.tipoPrenotazione === 'ALBERGO' || this.tipoPrenotazione === 'ALBERGO_SPA';
+    return this.tipoPrenotazione === 'ALBERGO';
   }
 
   includeSpa(): boolean {
-    return this.tipoPrenotazione === 'ALBERGO_SPA' || this.tipoPrenotazione === 'SPA';
+    return this.tipoPrenotazione === 'SPA';
+  }
+
+  cambioTipoPrenotazione(): void {
+    this.messaggio = '';
+    this.errore = '';
+    if (!this.includeAlbergo()) {
+      this.stanzaSelezionata = '';
+      this.tipoCamera = '';
+    }
   }
 
   numeroNotti(): number {
     if (!this.checkIn || !this.checkOut) return 0;
-    const in_ = new Date(this.checkIn);
-    const out = new Date(this.checkOut);
-    const diff = out.getTime() - in_.getTime();
-    return diff > 0 ? Math.ceil(diff / (1000 * 60 * 60 * 24)) : 0;
+    const start = new Date(this.checkIn);
+    const end = new Date(this.checkOut);
+    const diff = end.getTime() - start.getTime();
+    const notti = Math.ceil(diff / (1000 * 3600 * 24));
+    return notti > 0 ? notti : 0;
   }
 
   prezzoTotale(): number {
     let totale = 0;
     const notti = this.numeroNotti();
 
-    if (this.includeAlbergo() && notti > 0) {
-      const camera = this.tipiCamera.find(c => 
-        c.nome === this.tipoCamera || 
-        (c as any).tipoCamera === this.tipoCamera || 
-        (c as any).tipo === this.tipoCamera
-      );
+    // 1. Calcolo Albergo (Prezzo Stanza + Pensione * notti)
+    if (this.includeAlbergo()) {
+      if (this.stanzaSelezionata) {
+        const stanzaObj = this.stanzeDisponibili.find(
+          s => this.getStanzaId(s).toString() === this.stanzaSelezionata.toString()
+        );
+        if (stanzaObj) {
+          const prezzoStanza = stanzaObj.tipologiaStanza?.prezzo || stanzaObj.tipologia?.prezzo || 0;
+          totale += (prezzoStanza * notti);
+        }
+      }
 
-      const prezzoCamera = camera?.prezzo ?? 0;
-      totale += prezzoCamera * notti;
-
-      if (this.pensione === 'COMPLETA') {
-        totale += this.supplementoPensioneCompleta * notti * this.ospiti.length;
+      const pSel = this.listaPensioni.find((p: PensioneInfo) => p.tipo === this.pensione);
+      if (pSel) {
+        totale += (pSel.prezzo * notti * this.ospiti.length);
       }
     }
 
+    // 2. Calcolo SPA
     if (this.includeSpa()) {
       totale += this.prezzoSpa;
+    }
+
+    // 3. Calcolo Servizi Aggiuntivi
+    if (this.serviziSelezionatiIds && this.serviziSelezionatiIds.length > 0) {
+      for (const id of this.serviziSelezionatiIds) {
+        const sObj = this.listaServizi.find(s => (s.idservizio || s.id) === Number(id));
+        if (sObj) {
+          totale += (sObj.prezzi || sObj.prezzo || 0);
+        }
+      }
     }
 
     return totale;
   }
 
   caparra(): number {
-    return Math.round(this.prezzoTotale() * 0.10 * 100) / 100;
+    return Math.round(this.prezzoTotale() * 0.1);
   }
 
   aggiungiOspite(): void {
@@ -152,72 +318,69 @@ next: (stanze) => {
   }
 
   prenota(): void {
-    this.errore = null;
-    this.messaggio = null;
+    this.messaggio = '';
+    this.errore = '';
 
-    if (!this.checkIn || !this.checkOut || this.numeroNotti() <= 0) {
-      this.errore = 'Inserisci date di check-in e check-out valide.';
+    // 1. VALIDAZIONE DATE
+    if (!this.checkIn) {
+      this.errore = 'Seleziona prima la data di Check-in / Prenotazione!';
       return;
     }
 
-    if (this.includeAlbergo() && !this.stanzaSelezionata) {
-      this.errore = 'Seleziona una stanza valida.';
+    const checkInFinale = this.checkIn;
+    const checkOutFinale = this.checkOut ? this.checkOut : this.checkIn;
+
+    if (this.includeAlbergo() && !this.checkOut) {
+      this.errore = 'Seleziona la data di Check-out!';
       return;
     }
 
-    if (this.ospiti.some(o => !o.nome || !o.cognome || !o.dataNascita)) {
-      this.errore = 'Compila i dati di tutti gli ospiti.';
-      return;
+    // 2. MAPPATURA PENSIONE (1: COMPLETA, 2: MEZZA, 3: NESSUNA)
+    let idPensioneVal: number = 3;
+    if (this.includeAlbergo()) {
+      if (this.pensione === 'COMPLETA') {
+        idPensioneVal = 1;
+      } else if (this.pensione === 'MEZZA') {
+        idPensioneVal = 2;
+      } else {
+        idPensioneVal = 3;
+      }
     }
 
-    const payloadPrenotazione: any = {
+    // 3. MAPPATURA STANZA
+    let idStanzaVal: number | null = null;
+    if (this.includeAlbergo() && this.stanzaSelezionata) {
+      idStanzaVal = Number(this.stanzaSelezionata);
+    }
+
+    // 4. MAPPATURA ID SERVIZI AGGIUNTIVI
+    const serviziIds = this.serviziSelezionatiIds.map(id => Number(id));
+
+    // 5. STRUTTURA PAYLOAD
+    const payload = {
+      idStanza: idStanzaVal,
+      checkin: checkInFinale,
+      checkout: checkOutFinale,
+      checkIn: checkInFinale,
+      checkOut: checkOutFinale,
+      idPensione: idPensioneVal,
       tipoPrenotazione: this.tipoPrenotazione,
-      tipoCamera: this.includeAlbergo() ? this.tipoCamera : undefined,
-      stanzaId: this.includeAlbergo() ? this.stanzaSelezionata : undefined,
-      checkIn: this.checkIn,
-      checkOut: this.checkOut,
-      pensione: this.includeAlbergo() ? this.pensione : undefined,
+      dovePrenotazione: 'WEB',
+      tipoPagamento: this.metodoPagamento,
       ospiti: this.ospiti,
-      metodoPagamento: this.metodoPagamento,
-      caparra: this.caparra(),
-      prezzoTotale: this.prezzoTotale(),
+      serviziAggiuntivi: serviziIds
     };
 
-    console.log('Payload inviato a PrenotazioniService:', payloadPrenotazione);
+    console.log(' Payload inviato a Spring Boot:', payload);
 
-    this.prenotazioniService.creaPrenotazione(payloadPrenotazione).subscribe({
-      next: (res) => {
-        console.log('Risposta dal servizio prenotazioni:', res);
-        this.messaggio = 'Prenotazione effettuata con successo!';
+    this.prenotazioniService.creaPrenotazione(payload).subscribe({
+      next: (res: any) => {
+        this.messaggio = 'Prenotazione confermata con successo!';
       },
-      error: (err) => {
-        console.error('Errore durante il salvataggio:', err);
-        this.errore = 'Errore durante il salvataggio della prenotazione.';
+      error: (err: any) => {
+        console.error(' Errore risposta Spring Boot:', err);
+        this.errore = 'Si è verificato un errore durante la registrazione della prenotazione.';
       }
     });
   }
-  cambioTipoPrenotazione(): void {
-  if (this.includeAlbergo() && this.tipiCamera.length === 0) {
-    this.caricamentoCamere = true;
-
-    this.camereService.getTipiCamera().subscribe({
-      next: (data) => {
-        this.tipiCamera = data;
-        this.caricamentoCamere = false;
-      },
-      error: (err) => {
-        console.error('Errore caricamento camere:', err);
-        this.erroreCamere = 'Impossibile caricare i tipi di camera.';
-        this.caricamentoCamere = false;
-      }
-    });
-  }
-
-  // Se torna a SPA pulisco eventuali selezioni camere
-  if (!this.includeAlbergo()) {
-    this.tipoCamera = '';
-    this.stanzaSelezionata = null;
-    this.stanzeDisponibili = [];
-  }
-}
 }

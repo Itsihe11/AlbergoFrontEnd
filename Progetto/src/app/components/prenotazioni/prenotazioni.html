@@ -3,29 +3,36 @@
 
     <div>
         <label>Cosa vuoi prenotare?</label>
-       <select [(ngModel)]="tipoPrenotazione" (ngModelChange)="cambioTipoPrenotazione()">
-            <option value="ALBERGO">Solo Albergo</option>
-            <option value="ALBERGO_SPA">Albergo + SPA</option>
-            <option value="SPA">Solo SPA</option>
-        </select>
+        <div class="form-group">
+            <label for="tipoPrenotazione">Tipo Prenotazione:</label>
+            <select id="tipoPrenotazione" [(ngModel)]="tipoPrenotazione" name="tipoPrenotazione" class="form-control">
+                <option value="ALBERGO">Albergo</option>
+                <option value="SPA">SPA</option>
+            </select>
+        </div>
     </div>
 
+    <div>
+        <label>Check-in / Data Prenotazione</label>
+        <input type="date" [(ngModel)]="checkIn" [ngModelOptions]="{standalone: true}" (change)="onDateChange()">
+    </div>
+
+    <div>
+        <label>Check-out</label>
+        <input type="date" [(ngModel)]="checkOut" [ngModelOptions]="{standalone: true}" (change)="onDateChange()">
+    </div>
+
+    <p>Notti: {{ numeroNotti() }}</p>
+
     @if (includeAlbergo()) {
-    @if (caricamentoCamere) {
-    <p>Caricamento tipi di camera disponibili...</p>
-    } @else if (erroreCamere) {
-    <p>{{ erroreCamere }}</p>
-    } @else {
     <div>
         <label>Tipo camera</label>
-       <select
-    [(ngModel)]="tipoCamera"
-    name="tipoCamera"
-    (ngModelChange)="onTipoCameraChange($event)">
-            <option value="" disabled >Seleziona un tipo di camera</option>
-            @for (tipo of tipiCamera; track tipo.id || tipo.nome) {
-            <option [value]="tipo.nome || tipo['tipo'] || tipo.tipoCamera">
-                {{ tipo.nome || tipo['tipo'] || tipo.tipoCamera }}
+        <select [(ngModel)]="tipoCamera" [ngModelOptions]="{standalone: true}"
+            (ngModelChange)="onTipoCameraChange($event)">
+            <option value="" disabled selected>Seleziona un tipo di camera</option>
+            @for (tipo of tipiCamera; track $index) {
+            <option [value]="getValoreTipoCamera(tipo)">
+                {{ getValoreTipoCamera(tipo) }}
             </option>
             }
         </select>
@@ -33,63 +40,60 @@
 
     <div>
         <label>Numero Stanza</label>
-        @if (caricamentoStanze) {
-        <p><small>Caricamento stanze disponibili...</small></p>
-        } @else if (stanzeDisponibili.length > 0) {
-        <select [(ngModel)]="stanzaSelezionata">
-            <option value="" disabled >Seleziona una stanza...</option>
-            <!-- 🟢 track con $index per evitare problemi di chiavi duplicate se id è undefined -->
-            @for (stanza of stanzeDisponibili; track stanza.id || $index) {
-            <option [value]="stanza.id">
-                Stanza {{ stanza.id }}
+        <select [(ngModel)]="stanzaSelezionata" [ngModelOptions]="{standalone: true}">
+            <option value="" disabled selected>Seleziona una stanza...</option>
+            @for (stanza of stanzeFiltrate; track $index) {
+            <option [value]="getStanzaId(stanza)">
+                Stanza {{ getStanzaNumero(stanza) }}
             </option>
             }
         </select>
-        } @else {
-        <p><small>Nessuna stanza disponibile per questo tipo.</small></p>
-        }
     </div>
-    }
 
     <div>
         <label>Pensione</label>
-        <select [(ngModel)]="pensione">
-            <option value="MEZZA">Mezza pensione</option>
-            <option value="COMPLETA">Pensione completa</option>
+        <select [(ngModel)]="pensione" [ngModelOptions]="{standalone: true}">
+            @for (p of listaPensioni; track $index) {
+            <option [value]="p.tipo">
+                {{ p.nome || p.tipo }} (+{{ p.prezzo }} €/giorno)
+            </option>
+            }
         </select>
     </div>
     }
 
-    @if (includeSpa()) {
-    <p>Include accesso SPA (200 € una tantum)</p>
-    }
-
-    <div>
-        <label>Check-in</label>
-        <input type="date" [(ngModel)]="checkIn">
+<div class="servizi-container my-3">
+  <label class="fw-bold d-block mb-2">Servizi Aggiuntivi:</label>
+  
+  <div class="servizi-grid">
+    <div *ngFor="let s of listaServizi" class="servizio-card">
+      <label class="servizio-label">
+        <input 
+          type="checkbox" 
+          [checked]="isServizioSelezionato(s.idservizio || s.id)"
+          (change)="toggleServizio(s.idservizio || s.id)" 
+        />
+        <span class="servizio-nome">{{ s.nomeservizio }}</span>
+        <span class="servizio-prezzo">+{{ s.prezzo || s.prezzi }} €</span>
+      </label>
     </div>
-
-    <div>
-        <label>Check-out</label>
-        <input type="date" [(ngModel)]="checkOut">
-    </div>
-
-    <p>Notti: {{ numeroNotti() }}</p>
+  </div>
+</div>
 
     <h2>Ospiti</h2>
     @for (ospite of ospiti; track $index) {
     <div>
-        <input type="text" placeholder="Nome" [(ngModel)]="ospite.nome">
-        <input type="text" placeholder="Cognome" [(ngModel)]="ospite.cognome">
-        <input type="date" [(ngModel)]="ospite.dataNascita">
-        <button (click)="rimuoviOspite($index)">Rimuovi</button>
+        <input type="text" placeholder="Nome" [(ngModel)]="ospite.nome" [ngModelOptions]="{standalone: true}">
+        <input type="text" placeholder="Cognome" [(ngModel)]="ospite.cognome" [ngModelOptions]="{standalone: true}">
+        <input type="date" [(ngModel)]="ospite.dataNascita" [ngModelOptions]="{standalone: true}">
+        <button type="button" (click)="rimuoviOspite($index)">Rimuovi</button>
     </div>
     }
-    <button (click)="aggiungiOspite()">+ Aggiungi ospite</button>
+    <button type="button" (click)="aggiungiOspite()">+ Aggiungi ospite</button>
 
     <div>
         <label>Metodo di pagamento</label>
-        <select [(ngModel)]="metodoPagamento">
+        <select [(ngModel)]="metodoPagamento" [ngModelOptions]="{standalone: true}">
             <option value="CARTA">Carta</option>
             <option value="BONIFICO">Bonifico</option>
         </select>
@@ -98,10 +102,10 @@
     <div>
         <p>Prezzo totale: {{ prezzoTotale() }} €</p>
         <p>Caparra richiesta (10%): {{ caparra() }} €</p>
-        <p><small>La caparra non è rimborsabile in caso di annullamento.</small></p>
     </div>
 
-    <button (click)="prenota()">Conferma prenotazione</button>
+    <!-- 🟢 IMPORTANTE: type="button" impedisce il reload del form -->
+    <button type="button" (click)="prenota()">Conferma prenotazione</button>
 
     @if (messaggio) {
     <p style="color: green;">{{ messaggio }}</p>
