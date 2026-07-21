@@ -13,11 +13,10 @@ import { RichiestaAdmin } from '../../interface/richiestaadmin';
   templateUrl: './admin.html'
 })
 export class Admin implements OnInit {
-  username: string = '';
-  password: string = '';
-  errorMessage: string = '';
-  messaggioSuccesso: string = '';
-  isLogged: boolean = false;
+  username = '';
+  password = '';
+  errorMessage = '';
+  isLogged = false;
 
   tipiCamera: TipoCamera[] = [];
   stanze: Stanza[] = [];
@@ -26,13 +25,12 @@ export class Admin implements OnInit {
     nome: '',
     descrizione: '',
     prezzo: 0,
-    immagine: ''
+    capienza: 2
   };
 
-  numeroStanza: string = '';
-  pianoStanza: number = 1;
+  numeroStanza = '';
+  statusStanza = 'LIBERA';
   tipoCameraSelezionato: TipoCamera | null = null;
-  inVetrina: boolean = false;
 
   constructor(
     private adminService: AdminService,
@@ -52,19 +50,16 @@ export class Admin implements OnInit {
       return;
     }
 
-    const datiLogin: RichiestaAdmin = {
-      username: this.username,
-      password: this.password
-    };
+    const datiLogin: RichiestaAdmin = { username: this.username, password: this.password };
 
     this.adminService.login(datiLogin).subscribe({
-      next: (response) => {
+      next: () => {
         this.adminService.setLoggedIn(true);
         this.isLogged = true;
-        this.messaggioSuccesso = response;
+        this.errorMessage = '';
         this.caricaDati();
       },
-      error: (err) => {
+      error: err => {
         this.errorMessage = err.error || 'Credenziali non valide.';
       }
     });
@@ -72,55 +67,51 @@ export class Admin implements OnInit {
 
   caricaDati(): void {
     this.camereService.getTipiCamera().subscribe({
-      next: (dati) => (this.tipiCamera = dati),
-      error: (err) => console.error('Errore durante il caricamento dei tipi camera:', err)
+      next: dati => this.tipiCamera = dati,
+      error: err => console.error('Errore caricamento tipologie:', err)
     });
 
     this.camereService.getStanze().subscribe({
-      next: (dati) => (this.stanze = dati),
-      error: (err) => console.error('Errore durante il caricamento delle stanze:', err)
+      next: dati => this.stanze = dati,
+      error: err => console.error('Errore caricamento stanze:', err)
     });
   }
 
   salvaTipoCamera(): void {
-    if (!this.nuovoTipoCamera.nome || (this.nuovoTipoCamera.prezzo ?? 0) <= 0) {
+    if (!this.nuovoTipoCamera.nome || this.nuovoTipoCamera.prezzo <= 0) {
       alert('Inserisci un nome e un prezzo validi.');
       return;
     }
 
     this.camereService.creaTipoCamera(this.nuovoTipoCamera).subscribe({
       next: () => {
-        alert('Tipo camera creato con successo!');
-        this.nuovoTipoCamera = { nome: '', descrizione: '', prezzo: 0, immagine: '' };
-        this.caricaDati(); 
+        this.nuovoTipoCamera = { nome: '', descrizione: '', prezzo: 0, capienza: 2 };
+        this.caricaDati();
       },
-      error: (err) => console.error('Errore creazione tipo camera:', err)
+      error: err => console.error('Errore creazione tipologia:', err)
     });
   }
 
   salvaStanza(): void {
     if (!this.numeroStanza || !this.tipoCameraSelezionato) {
-      alert('Seleziona un numero stanza e un tipo di camera.');
+      alert('Inserisci il numero stanza e seleziona una tipologia.');
       return;
     }
 
     const nuovaStanza: Stanza = {
       numeroStanza: this.numeroStanza,
-      piano: this.pianoStanza,
-      disponibile: true,
-      inVetrina: this.inVetrina, 
-      tipoCamera: this.tipoCameraSelezionato
+      status: this.statusStanza,
+      tipologia: this.tipoCameraSelezionato
     };
 
     this.camereService.creaStanza(nuovaStanza).subscribe({
       next: () => {
         this.numeroStanza = '';
-        this.pianoStanza = 1;
+        this.statusStanza = 'LIBERA';
         this.tipoCameraSelezionato = null;
-        this.inVetrina = false;
         this.caricaDati();
       },
-      error: (err) => console.error('Errore salvataggio stanza:', err)
+      error: err => console.error('Errore salvataggio stanza:', err)
     });
   }
 
@@ -128,7 +119,7 @@ export class Admin implements OnInit {
     if (!id) return;
     this.camereService.eliminaStanza(id).subscribe({
       next: () => this.caricaDati(),
-      error: (err) => console.error('Errore eliminazione stanza:', err)
+      error: err => console.error('Errore eliminazione stanza:', err)
     });
   }
 
