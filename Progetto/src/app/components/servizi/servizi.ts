@@ -18,6 +18,7 @@ export class Servizi {
     { nome: 'TV in camera', descrizione: 'Smart TV con accesso multimedia.' },
     { nome: 'Climatizzazione', descrizione: 'Aria condizionata inclusa nel pacchetto.' },
     { nome: 'Parcheggio', descrizione: 'Parcheggio gratuito senza tasse aggiuntive.' },
-    { nome: 'SPA', descrizione: "Prenotabile insieme all'hotel (+200€ una tantum)." }
+    { nome: 'SPA', descrizione: "Prenotabile insieme all'hotel (+200€ una tantum)." },
+    { nome: 'Wi-fi', descrizione: "Connessione stabile e gratuita in tutto l'hotel"}
   ];
 }
