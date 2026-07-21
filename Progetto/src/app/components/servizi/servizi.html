@@ -9,6 +9,7 @@
   } @else {
     @for (servizio of servizi; track getServizioId(servizio)) {
       <article class="service-card">
+        <img class="service-image" [src]="getImmagine(getServizioNome(servizio))" [alt]="getServizioNome(servizio)">
         <h2>{{ getServizioNome(servizio) }}</h2>
         @if (servizio.descrizione) {
           <p>{{ servizio.descrizione }}</p>

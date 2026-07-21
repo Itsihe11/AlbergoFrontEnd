@@ -20,25 +20,42 @@ export class Servizi implements OnInit {
   errore: string = '';
 
   private serviziFallback: ServizioInfo[] = [
-    { idservizio: 1, nomeservizio: 'Animali ammessi', prezzi: 0 },
-    { idservizio: 2, nomeservizio: 'TV in camera', prezzi: 0 },
-    { idservizio: 3, nomeservizio: 'Climatizzazione', prezzi: 0 },
-    { idservizio: 4, nomeservizio: 'Parcheggio', prezzi: 0 },
-    { idservizio: 5, nomeservizio: 'SPA', prezzi: 200 }
+    { idservizio: 1, nomeservizio: 'SPA', prezzi: 200 },
+    { idservizio: 2, nomeservizio: 'TV', prezzi: 0 },
+    { idservizio: 3, nomeservizio: 'WI-FI', prezzi: 0 },
+    { idservizio: 4, nomeservizio: 'PARCHEGGIO', prezzi: 25 },
+    { idservizio: 5, nomeservizio: 'SERVIZIO IN STANZA', prezzi: 75 }
   ];
 
+  getImmagine(nomeServizio: string): string {
+    if (!nomeServizio) return 'assets/servizi/placeholder.jpg';
+
+    const normalizzato = nomeServizio.toLowerCase().replace(/[\s-]/g, '');
+
+    const mappaImmagini: Record<string, string> = {
+      'spa': 'assets/servizi/spa.jpg',
+      'tv': 'assets/servizi/tv.jpg',
+      'wifi': 'assets/servizi/wifi.jpg',
+      'parcheggio': 'assets/servizi/parcheggio.jpg',
+      'servizioinstanza': 'assets/servizi/room-service.jpg'
+    };
+
+    for (const chiave in mappaImmagini) {
+      if (normalizzato.includes(chiave)) {
+        return mappaImmagini[chiave];
+      }
+    }
+    return 'assets/servizi/placeholder.jpg';
+  }
+
   ngOnInit(): void {
-    console.log('1. Inizio caricamento servizi...');
-    
     this.prenotazioniService.getServizi().pipe(
       finalize(() => {
-        console.log('3. Caricamento completato.');
         this.caricamento = false;
         this.cdr.detectChanges();
       })
     ).subscribe({
       next: (res: ServizioInfo[]) => {
-        console.log('2. Risposta dal server:', res);
         if (res && Array.isArray(res) && res.length > 0) {
           this.servizi = res;
         } else {
