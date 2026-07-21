@@ -11,8 +11,8 @@
       <article class="service-card">
         <img class="service-image" [src]="getImmagine(getServizioNome(servizio))" [alt]="getServizioNome(servizio)">
         <h2>{{ getServizioNome(servizio) }}</h2>
-        @if (servizio.descrizione) {
-          <p>{{ servizio.descrizione }}</p>
+        @if (getServizioDescrizione(servizio)) {
+          <p class="service-description">{{ getServizioDescrizione(servizio) }}</p>
         }
         <span class="service-price">
           {{ getServizioPrezzo(servizio) > 0 ? '+' + getServizioPrezzo(servizio) + ' €' : 'Incluso' }}
