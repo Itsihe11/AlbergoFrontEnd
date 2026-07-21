@@ -1,7 +1,4 @@
 @if (prenotazioneConfermata) {
-  <!-- ========================================== -->
-  <!-- 🟢 1. SCHERMATA DI RICEVUTA E CONFERMA     -->
-  <!-- ========================================== -->
   <div class="container my-4">
     <div class="alert alert-success">
       Prenotazione confermata con successo!
@@ -9,7 +6,6 @@
 
     <div class="card border-success shadow-lg">
       <div class="card-header bg-success text-white text-center py-3">
-        <!-- 🔴 QUI ERA IL PROBLEMA: mancava </h2> prima della chiusura del div -->
         <h2 class="m-0">🎉 Prenotazione Confermata!</h2>
       </div>
 
@@ -21,12 +17,11 @@
         <hr />
 
         <div class="row my-3">
-          <!-- Dettagli Prenotazione -->
           <div class="col-md-6 mb-3">
             <h5>📋 Dettagli Prenotazione</h5>
             <ul class="list-group">
               <li class="list-group-item">
-                <strong>Codice Prenotazione:</strong> 
+                <strong>Codice Prenotazione:</strong>
                 <span class="badge bg-primary fs-6 ms-2">{{ prenotazioneConfermata.codice_prenotazione || prenotazioneConfermata.codicePrenotazione }}</span>
               </li>
               <li class="list-group-item">
@@ -43,7 +38,6 @@
             </ul>
           </div>
 
-          <!-- Riepilogo Pagamento -->
           <div class="col-md-6 mb-3">
             <h5>💳 Riepilogo Pagamento</h5>
             <ul class="list-group">
@@ -62,7 +56,6 @@
           </div>
         </div>
 
-        <!-- Box Istruzioni Bonifico -->
         <div class="alert alert-info border-info mt-3">
           <h6 class="fw-bold">📌 Istruzioni per il Bonifico Bancario:</h6>
           <p class="m-0">
@@ -87,13 +80,9 @@
 
 } @else {
 
-  <!-- ========================================== -->
-  <!-- 🟢 2. MODULO DI PRENOTAZIONE STANDARD      -->
-  <!-- ========================================== -->
   <section class="booking-page container my-4">
     <h1>Prenota</h1>
 
-    <!-- MESSAGGI DI ERRORE / CONFERMA IN ALTO -->
     <div *ngIf="messaggio" class="alert alert-success fw-bold my-2">
       {{ messaggio }}
     </div>
@@ -102,7 +91,6 @@
       ⚠️ {{ errore }}
     </div>
 
-    <!-- SELEZIONE TIPO PRENOTAZIONE -->
     <div class="form-group my-3">
       <label class="fw-bold">Tipo Prenotazione:</label>
       <select [(ngModel)]="tipoPrenotazione" (change)="cambioTipoPrenotazione()" class="form-control">
@@ -111,7 +99,6 @@
       </select>
     </div>
 
-    <!-- DATE -->
     <div class="form-row">
       <div class="form-group">
         <label>Check-in / Data Prenotazione</label>
@@ -126,7 +113,6 @@
 
     <p class="nights-count" *ngIf="includeAlbergo()">Notti: {{ numeroNotti() }}</p>
 
-    <!-- CAMPI SPECIFICI PER ALBERGO -->
     <div *ngIf="includeAlbergo()">
       <div class="form-group my-2">
         <label>Tipo camera</label>
@@ -158,8 +144,16 @@
       </div>
     </div>
 
-    <!-- OSPII -->
+    <!-- OSPITI -->
     <h2 class="section-title mt-4">Ospiti</h2>
+
+    <!-- 🟢 NUOVO: avviso in tempo reale se si supera la capienza -->
+    @if (includeAlbergo() && stanzaSelezionata && superaCapienza()) {
+      <div class="alert alert-danger">
+        ⚠️ Hai selezionato {{ ospiti.length }} ospiti, ma questa stanza ha una capienza massima di {{ capienzaStanzaSelezionata() }}.
+      </div>
+    }
+
     <div *ngFor="let ospite of ospiti; let i = index" class="guest-row my-2">
       <input class="form-input" type="text" placeholder="Nome" [(ngModel)]="ospite.nome" [ngModelOptions]="{standalone: true}">
       <input class="form-input" type="text" placeholder="Cognome" [(ngModel)]="ospite.cognome" [ngModelOptions]="{standalone: true}">
@@ -168,7 +162,6 @@
     </div>
     <button class="btn-secondary my-2" type="button" (click)="aggiungiOspite()">+ Aggiungi ospite</button>
 
-    <!-- SERVIZI AGGIUNTIVI (SOLO ALBERGO) -->
     <div *ngIf="includeAlbergo()" class="servizi-container my-3">
       <label class="fw-bold d-block mb-2">Servizi Aggiuntivi:</label>
       <div *ngIf="listaServizi.length > 0; else noServizi" class="servizi-grid">
@@ -185,7 +178,6 @@
       </ng-template>
     </div>
 
-    <!-- METODO DI PAGAMENTO -->
     <div class="form-group my-3">
       <label class="fw-bold">Metodo di Pagamento:</label>
       <select [(ngModel)]="metodoPagamento" class="form-control">
@@ -193,13 +185,15 @@
       </select>
     </div>
 
-    <!-- RIEPILOGO PREZZO -->
     <div class="price-summary my-3">
       <p>Prezzo totale: <strong>{{ prezzoTotale() }} €</strong></p>
       <p>Caparra richiesta (10%): <strong>{{ caparra() }} €</strong></p>
     </div>
 
-    <button class="btn-primary" type="button" (click)="prenota()">Conferma prenotazione</button>
+    <!-- 🟢 NUOVO: bottone disabilitato se si supera la capienza -->
+    <button class="btn-primary" type="button" (click)="prenota()" [disabled]="includeAlbergo() && stanzaSelezionata && superaCapienza()">
+      Conferma prenotazione
+    </button>
   </section>
 
 }

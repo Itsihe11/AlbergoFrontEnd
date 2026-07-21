@@ -20,32 +20,32 @@ export class Servizi implements OnInit {
   errore: string = '';
 
   private serviziFallback: ServizioInfo[] = [
-    { idservizio: 1, nomeservizio: 'SPA', prezzi: 200 },
-    { idservizio: 2, nomeservizio: 'TV', prezzi: 0 },
-    { idservizio: 3, nomeservizio: 'WI-FI', prezzi: 0 },
-    { idservizio: 4, nomeservizio: 'PARCHEGGIO', prezzi: 25 },
-    { idservizio: 5, nomeservizio: 'SERVIZIO IN STANZA', prezzi: 75 }
+    { idservizio: 1, nomeservizio: 'SPA', prezzi: 200, descrizione: 'Accesso completo alla nostra area benessere con piscina, sauna e trattamenti.' },
+    { idservizio: 2, nomeservizio: 'TV', prezzi: 0, descrizione: 'Smart TV con accesso a canali internazionali e piattaforme streaming.' },
+    { idservizio: 3, nomeservizio: 'WI-FI', prezzi: 0, descrizione: 'Connessione Wi-Fi ad alta velocità disponibile in tutte le aree dell\'hotel.' },
+    { idservizio: 4, nomeservizio: 'PARCHEGGIO', prezzi: 25, descrizione: 'Posto auto riservato e sorvegliato all\'interno della struttura.' },
+    { idservizio: 5, nomeservizio: 'SERVIZIO IN STANZA', prezzi: 75, descrizione: 'Ordina cibo e bevande direttamente in camera, 24 ore su 24.' }
   ];
 
-  getImmagine(nomeServizio: string): string {
-    if (!nomeServizio) return 'assets/servizi/placeholder.jpg';
+  private immaginiPerServizio: Record<string, string> = {
+    'spa': 'assets/servizi/spa.jpg',
+    'tv': 'assets/servizi/tv.jpg',
+    'wifi': 'assets/servizi/wifi.jpg',
+    'parcheggio': 'assets/servizi/parcheggio.jpg',
+    'servizioinstanza': 'assets/servizi/room-service.jpg'
+  };
+  private immagineDefault = 'assets/servizi/placeholder.jpg';
 
+  getImmagine(nomeServizio: string): string {
+    if (!nomeServizio) return this.immagineDefault;
     const normalizzato = nomeServizio.toLowerCase().replace(/[\s-]/g, '');
 
-    const mappaImmagini: Record<string, string> = {
-      'spa': 'assets/servizi/spa.jpg',
-      'tv': 'assets/servizi/tv.jpg',
-      'wifi': 'assets/servizi/wifi.jpg',
-      'parcheggio': 'assets/servizi/parcheggio.jpg',
-      'servizioinstanza': 'assets/servizi/room-service.jpg'
-    };
-
-    for (const chiave in mappaImmagini) {
+    for (const chiave in this.immaginiPerServizio) {
       if (normalizzato.includes(chiave)) {
-        return mappaImmagini[chiave];
+        return this.immaginiPerServizio[chiave];
       }
     }
-    return 'assets/servizi/placeholder.jpg';
+    return this.immagineDefault;
   }
 
   ngOnInit(): void {
@@ -79,5 +79,9 @@ export class Servizi implements OnInit {
 
   getServizioPrezzo(s: ServizioInfo): number {
     return Number(s.prezzi ?? s.prezzo ?? 0);
+  }
+
+  getServizioDescrizione(s: ServizioInfo): string {
+    return s.descrizione || '';
   }
 }
