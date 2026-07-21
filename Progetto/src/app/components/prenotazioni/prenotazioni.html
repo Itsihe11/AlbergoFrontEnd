@@ -9,6 +9,7 @@
 
     <div class="card border-success shadow-lg">
       <div class="card-header bg-success text-white text-center py-3">
+        <!-- 🔴 QUI ERA IL PROBLEMA: mancava </h2> prima della chiusura del div -->
         <h2 class="m-0">🎉 Prenotazione Confermata!</h2>
       </div>
 
@@ -25,7 +26,8 @@
             <h5>📋 Dettagli Prenotazione</h5>
             <ul class="list-group">
               <li class="list-group-item">
-                <strong>Codice Prenotazione:</strong> {{ prenotazioneConfermata.codice_prenotazione || prenotazioneConfermata.codicePrenotazione }}
+                <strong>Codice Prenotazione:</strong> 
+                <span class="badge bg-primary fs-6 ms-2">{{ prenotazioneConfermata.codice_prenotazione || prenotazioneConfermata.codicePrenotazione }}</span>
               </li>
               <li class="list-group-item">
                 <strong>Tipo:</strong> {{ prenotazioneConfermata.tipo_prenotazione || prenotazioneConfermata.tipoPrenotazione }}
