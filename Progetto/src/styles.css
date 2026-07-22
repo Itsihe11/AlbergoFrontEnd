@@ -89,7 +89,7 @@ header {
 .navbar-user a {
   color: var(--text-dark);
   text-decoration: none;
-  font-size: 1rem;
+  font-size: 1.5rem;
   font-weight: 600;
   padding: 0.6rem 1.2rem;
   border-radius: 6px;
