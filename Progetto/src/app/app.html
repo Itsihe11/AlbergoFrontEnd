@@ -2,12 +2,21 @@
 
 <header>
   <nav class="navbar">
-    <a routerLink="/">Home</a>
-    <a routerLink="/prenotazioni">Prenotazioni</a>
-    <a routerLink="/camere">Camere</a>
-    <a routerLink="/servizi">Servizi</a>
-    <a routerLink="/contatti">Contatti</a>
-    <a routerLink="/utenti">Utenti</a>
+    <a routerLink="/" class="navbar-logo">
+      <span class="logo-icon">🏨</span>
+      <span class="logo-text">Hotel Bellocchio</span>
+    </a>
+
+    <div class="navbar-links">
+      <a routerLink="/prenotazioni">Prenotazioni</a>
+      <a routerLink="/camere">Camere</a>
+      <a routerLink="/servizi">Servizi</a>
+      <a routerLink="/contatti">Contatti</a>
+    </div>
+
+    <div class="navbar-user">
+      <a routerLink="/utenti">Area Personale</a>
+    </div>
   </nav>
 </header>
 }
@@ -24,6 +33,7 @@
       </div>
 
       <div class="footer-links">
+        <a routerLink="/prenotazioni">Prenota</a>
         <a routerLink="/camere">Camere</a>
         <a routerLink="/servizi">Servizi</a>
         <a routerLink="/contatti">Contatti</a>
