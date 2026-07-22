@@ -13,7 +13,6 @@
       @for (camera of tipiCamera(); track camera.id) {
         <article class="room-card">
           <div class="room-image-wrapper">
-            <!-- 🟢 CORRETTO: Passiamo l'oggetto camera completo, gestiamo l'errore e il referrer -->
             <img 
               class="room-image" 
               [src]="getImmagine(camera)" 
