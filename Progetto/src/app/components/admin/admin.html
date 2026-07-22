@@ -45,7 +45,6 @@
       <button class="btn-logout" (click)="logout()">Disconnetti</button>
     </nav>
 
-    <!-- 1. SEZIONE GESTIONE PRENOTAZIONI -->
     @if (sezioneAttiva === 'gestionePrenotazioni') {
     <section class="admin-section">
       <div class="d-flex justify-content-between align-items-center mb-3">
@@ -91,7 +90,7 @@
             @for (p of prenotazioniFiltrate; track (p.codice_prenotazione || p.codicePrenotazione)) {
             <tr>
               <td>
-                <span class="badge bg-dark fs-6">{{ p.codice_prenotazione || p.codicePrenotazione }}</span>
+                <span class="badge bg-warning fs-6">{{ p.codice_prenotazione || p.codicePrenotazione }}</span>
               </td>
               <td>
                 <strong>{{ getOspitePrincipale(p) }}</strong>
@@ -113,7 +112,7 @@
                 <span class="badge" [ngClass]="{
                   'bg-warning text-dark': (p.stato || 'PENDENTE') === 'PENDENTE',
                   'bg-primary': (p.stato) === 'CONFERMATA',
-                  'bg-info text-dark': (p.stato) === 'CHECK_IN',
+                  'bg-info text-white': (p.stato) === 'CHECK_IN',
                   'bg-success': (p.stato) === 'COMPLETATA',
                   'bg-danger': (p.stato) === 'ANNULLATA'
                 }">
@@ -152,13 +151,12 @@
       </div>
     </section>
 
-    <!-- MODAL DI DETTAGLIO PRENOTAZIONE -->
     @if (prenotazioneSelezionataModal) {
     <div class="modal d-block shadow" tabindex="-1" style="background: rgba(0,0,0,0.5);">
       <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
-          <div class="modal-header bg-dark text-white">
-            <h5 class="modal-title">Dettaglio Prenotazione #{{ prenotazioneSelezionataModal.codice_prenotazione || prenotazioneSelezionataModal.codicePrenotazione }}</h5>
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title">Dettaglio Prenotazione #{{ prenotazioneSelezionataModal.codice_prenotazione || prenotazioneSelezionataModal.nome  }}</h5>
             <button type="button" class="btn-close btn-close-white" (click)="chiudiDettaglioModal()"></button>
           </div>
           <div class="modal-body p-4">
@@ -184,7 +182,7 @@
                 <span class="text-muted" *ngIf="getDataNascitaOspite(o)">Data nascita: {{ getDataNascitaOspite(o) }}</span>
               </li>
               <li class="list-group-item text-muted fst-italic" *ngIf="getOspitiModal(prenotazioneSelezionataModal).length === 0">
-                Nessun dettaglio ospite presente per questa prenotazione.
+                Caricamento in corso...
               </li>
             </ul>
           </div>
@@ -197,7 +195,6 @@
     }
     }
 
-    <!-- 2. SEZIONE NUOVA PRENOTAZIONE IN SEDE -->
     @if (sezioneAttiva === 'nuovaPrenotazione') {
     <section class="admin-section">
       <h3 class="section-title">Nuova Prenotazione in Sede</h3>
@@ -401,7 +398,6 @@
     </section>
     }
 
-    <!-- 3. SEZIONE ELENCO STANZE -->
     @if (sezioneAttiva === 'stanze') {
     <section class="admin-section">
       <div class="d-flex justify-content-between align-items-center mb-3">
@@ -482,7 +478,6 @@
     </section>
     }
 
-    <!-- 4. SEZIONE ELENCO TIPOLOGIE CAMERA -->
     @if (sezioneAttiva === 'tipologie') {
     <section class="admin-section">
       <div class="d-flex justify-content-between align-items-center mb-3">
@@ -510,11 +505,11 @@
               <input class="form-input" type="number" min="1" [(ngModel)]="nuovoTipoCamera.prezzo" name="prezzo" required />
             </div>
             <div class="form-group">
-              <label>Capienza (numero ospiti):</label>
+              <label>Capienza:</label>
               <input class="form-input" type="number" min="1" [(ngModel)]="nuovoTipoCamera['capienza']" name="capienza" />
             </div>
             <div class="form-group mb-3">
-              <label for="imgTipologia">URL / Percorso Immagine (opzionale):</label>
+              <label for="imgTipologia">URL Immagine:</label>
               <input type="text" id="imgTipologia" class="form-control" [(ngModel)]="nuovoTipoCamera.immagine" name="imgTipologia" placeholder="Es. assets/camere/deluxe.jpg oppure https://...">
             </div>
           </div>
@@ -564,7 +559,6 @@
     </section>
     }
 
-    <!-- 5. SEZIONE ELENCO SERVIZI AGGIUNTIVI -->
     @if (sezioneAttiva === 'servizi') {
     <section class="admin-section">
       <div class="d-flex justify-content-between align-items-center mb-3">
