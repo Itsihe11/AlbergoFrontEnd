@@ -1,33 +1,33 @@
-<div class="container my-4">
+<div class="ac-container">
 
     <!-- HEADER -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>📋 Area Cliente - Dettagli Prenotazione</h2>
-        <button class="btn btn-outline-danger" (click)="logout()">Esci 🚪</button>
+    <div class="ac-header">
+        <h2 class="ac-title">Area Cliente - Dettagli Prenotazione</h2>
+        <button class="ac-btn ac-btn-outline-danger" (click)="logout()">Esci</button>
     </div>
 
     <!-- MESSAGGI DI ERRORE O CONFERMA -->
     @if (messaggio) {
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
+    <div class="ac-alert ac-alert-success" role="alert">
         {{ messaggio }}
     </div>
     }
     @if (errore) {
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <div class="ac-alert ac-alert-danger" role="alert">
         {{ errore }}
     </div>
     }
 
     <!-- SCHEDA DETTAGLI PRENOTAZIONE -->
     @if (prenotazione) {
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <h4 class="m-0">Prenotazione #{{ prenotazione.codice_prenotazione || prenotazione.codicePrenotazione }}</h4>
-            <span class="badge bg-light text-dark fw-bold">{{ prenotazione.stato || 'CONFERMATA' }}</span>
+    <div class="ac-card">
+        <div class="ac-card-header">
+            <h4 class="ac-card-title">Prenotazione #{{ prenotazione.codice_prenotazione || prenotazione.codicePrenotazione }}</h4>
+            <span class="ac-badge">{{ prenotazione.stato || 'CONFERMATA' }}</span>
         </div>
-        <div class="card-body">
-            <div class="row mb-3">
-                <div class="col-md-6">
+        <div class="ac-card-body">
+            <div class="ac-info-grid">
+                <div class="ac-info-col">
                     <p><strong>Tipo Prenotazione:</strong> {{ prenotazione.tipo_prenotazione ||
                         prenotazione.tipoPrenotazione }}</p>
                     <p><strong>Canale:</strong> {{ prenotazione.dove_prenotazione || prenotazione.dovePrenotazione }}
@@ -35,38 +35,38 @@
                     <p><strong>Metodo di Pagamento:</strong> {{ prenotazione.tipo_pagamento ||
                         prenotazione.tipoPagamento }}</p>
                 </div>
-                <div class="col-md-6">
+                <div class="ac-info-col">
                     <p><strong>Costo Totale:</strong> {{ prenotazione.costo_totale || prenotazione.costoTotale }} €</p>
                     <p><strong>Acconto/Deposito:</strong> {{ prenotazione.deposito }} €</p>
                     <p><strong>Stato Pagamento:</strong> {{ prenotazione.pagato ? 'Saldato' : 'In Sospeso' }}</p>
                 </div>
             </div>
 
-            <hr />
+            <hr class="ac-divider" />
 
             <!-- ELENCO OSPITI -->
-            <h5 class="fw-bold mb-3">👥 Ospiti Registrati:</h5>
-            <ul class="list-group mb-4">
+            <h5 class="ac-section-label">👥 Ospiti Registrati:</h5>
+            <ul class="ac-list">
                 @for (ospite of prenotazione.ospiti; track $index) {
-                <li class="list-group-item d-flex justify-content-between align-items-center">
+                <li class="ac-list-item">
                     <span><strong>{{ ospite.nome }} {{ ospite.cognome }}</strong></span>
                     @if (ospite.datanascita) {
-                    <small class="text-muted">
+                    <small class="ac-muted">
                         Nascita: {{ ospite.datanascita | date:'dd/MM/yyyy' }}
                     </small>
                     }
                 </li>
                 } @empty {
-                <li class="list-group-item text-muted">Nessun ospite dettagliato presente al momento.</li>
+                <li class="ac-list-item ac-muted">Nessun ospite dettagliato presente al momento.</li>
                 }
             </ul>
 
             <!-- PULSANTI AZIONE -->
-            <div class="d-flex gap-2">
-                <button class="btn btn-warning" (click)="apriModificaOspiti()">
+            <div class="ac-actions">
+                <button class="ac-btn ac-btn-warning" (click)="apriModificaOspiti()">
                     ✏️ Modifica Ospiti
                 </button>
-                <button class="btn btn-danger" (click)="annullaPrenotazione()">
+                <button class="ac-btn ac-btn-danger" (click)="annullaPrenotazione()">
                     🗑️ Annulla Prenotazione
                 </button>
             </div>
@@ -77,67 +77,59 @@
 
  <!-- MODAL MODIFICA OSPITI & CREAZIONE ACCOUNT -->
 @if (mostraModalModifica) {
-  <div class="modal d-block bg-dark bg-opacity-50" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title">✏️ Modifica Ospiti e Crea Account</h5>
-          <button type="button" class="btn-close btn-close-white" (click)="chiudiModal()"></button>
+  <div class="ac-modal-overlay">
+    <div class="ac-modal-dialog">
+      <div class="ac-modal-content">
+        <div class="ac-modal-header">
+          <h5 class="ac-modal-title">Modifica Ospiti e Crea Account</h5>
+          <button type="button" class="ac-modal-close" (click)="chiudiModal()"></button>
         </div>
-        
-        <div class="modal-body">
 
-          <!-- 🔴 1. BOX DI ERRORE (VISIBILE ALL'UTENTE DENTRO IL MODAL) -->
+        <div class="ac-modal-body">
+
+          <!-- BOX DI ERRORE (VISIBILE ALL'UTENTE DENTRO IL MODAL) -->
           @if (errore) {
-            <div class="alert alert-danger mb-3 fw-bold" role="alert">
+            <div class="ac-alert ac-alert-danger">
               ⚠️ {{ errore }}
             </div>
           }
 
-          <div class="alert alert-info">
+          <div class="ac-alert ac-alert-info">
             📌 <strong>Nota:</strong> Per salvare le modifiche agli ospiti è obbligatorio creare un account inserendo Email e PIN.
           </div>
 
           <!-- ELENCO EDITABILE OSPITI -->
-          <h6 class="fw-bold mb-3">Inserisci Ospiti:</h6>
+          <h6 class="ac-section-label">Inserisci Ospiti:</h6>
           @for (ospite of nuoviOspiti; track $index) {
-            <div class="row g-2 mb-2 align-items-center">
-              <div class="col-md-4">
-                <input type="text" class="form-control" placeholder="Nome" [(ngModel)]="ospite.nome">
-              </div>
-              <div class="col-md-4">
-                <input type="text" class="form-control" placeholder="Cognome" [(ngModel)]="ospite.cognome">
-              </div>
-              <div class="col-md-3">
-                <input type="date" class="form-control" [(ngModel)]="ospite.datanascita">
-              </div>
-              <div class="col-md-1 text-end">
-                <button class="btn btn-outline-danger btn-sm w-100" (click)="rimuoviOspite($index)">X</button>
-              </div>
+            <div class="ac-guest-row">
+              <input type="text" class="ac-input" placeholder="Nome" [(ngModel)]="ospite.nome">
+              <input type="text" class="ac-input" placeholder="Cognome" [(ngModel)]="ospite.cognome">
+              <input type="date" class="ac-input" [(ngModel)]="ospite.datanascita">
+              <button class="ac-btn ac-btn-remove" (click)="rimuoviOspite($index)">X</button>
             </div>
           }
-          <button class="btn btn-sm btn-secondary mb-3" (click)="aggiungiOspite()">+ Aggiungi Ospite</button>
+          <button class="ac-btn ac-btn-secondary ac-btn-sm" (click)="aggiungiOspite()">+ Aggiungi Ospite</button>
 
-          <hr />
+          <hr class="ac-divider" />
 
           <!-- CREAZIONE ACCOUNT -->
-          <h6 class="fw-bold text-primary mb-3">🔐 Crea Account Utente (Obbligatorio):</h6>
-          <div class="row g-2">
-            <div class="col-md-6 mb-2">
-              <label class="form-label">Email</label>
-              <input type="email" class="form-control" placeholder="nome@email.com" [(ngModel)]="nuovaEmail">
+          <h6 class="ac-section-label ac-highlight">Crea Account Utente (Obbligatorio):</h6>
+          <div class="ac-account-grid">
+            <div class="ac-field">
+              <label class="ac-label">Email</label>
+              <input type="email" class="ac-input" placeholder="nome@email.com" [(ngModel)]="nuovaEmail">
             </div>
-            <div class="col-md-6 mb-2">
-              <label class="form-label">PIN / Password</label>
-              <input type="password" class="form-control" placeholder="••••" [(ngModel)]="nuovoPin">
+            <div class="ac-field">
+              <label class="ac-label">PIN / Password</label>
+              <input type="password" class="ac-input" placeholder="••••" [(ngModel)]="nuovoPin">
             </div>
           </div>
 
         </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="chiudiModal()">Chiudi</button>
-          <button type="button" class="btn btn-primary" (click)="salvaModificaOspiti()">Salva Modifiche</button>
+        <div class="ac-modal-footer">
+          <button type="button" class="ac-btn ac-btn-secondary" (click)="chiudiModal()">Chiudi</button>
+          <button type="button" class="ac-btn ac-btn-primary" (click)="salvaModificaOspiti()">Salva Modifiche</button>
         </div>
       </div>
     </div>
