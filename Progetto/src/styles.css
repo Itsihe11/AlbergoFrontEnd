@@ -29,10 +29,11 @@
 }
 
 body {
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: 'Cormorant Garamond', serif;
   color: var(--text-dark);
   background-color: var(--off-white);
   line-height: 1.6;
+  font-size: 1.4rem;
 }
 
 /* NAVBAR */
@@ -507,10 +508,11 @@ section {
 }
 
 body {
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: 'Cormorant Garamond', serif;
   color: var(--text-dark);
   background-color: var(--off-white);
   line-height: 1.6;
+  font-size: 1.4rem;
 }
 
 section {
@@ -661,10 +663,11 @@ section {
 }
 
 body {
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: 'Cormorant Garamond', serif;
   color: var(--text-dark);
   background-color: var(--off-white);
   line-height: 1.6;
+  font-size: 1.4rem;
 }
 
 .booking-page {
@@ -1053,10 +1056,11 @@ label {
 }
 
 body {
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: 'Cormorant Garamond', serif;
   color: var(--text-dark);
   background-color: var(--off-white);
   line-height: 1.6;
+  font-size: 1.4rem;
 }
 
 section {
@@ -1232,7 +1236,7 @@ section {
 }
 
 .admin-page {
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: 'Cormorant Garamond', serif;
   color: var(--text-dark);
   background-color: var(--off-white);
   min-height: 100vh;
@@ -1858,10 +1862,11 @@ label {
 }
 
 body {
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: 'Cormorant Garamond', serif;
   color: var(--text-dark);
   background-color: var(--off-white);
   line-height: 1.6;
+  font-size: 1.4rem;
 }
 
 /*  CONTATTI  */
@@ -1964,10 +1969,11 @@ body {
 }
 
 body {
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: 'Cormorant Garamond', serif;
   color: var(--text-dark);
   background-color: var(--off-white);
   line-height: 1.6;
+  font-size: 1.4rem;
 }
 
 /*  PAGINA LOGIN  */
@@ -2093,7 +2099,7 @@ label {
   max-width: 800px;
   margin: 0 auto;
   padding: 3rem 1.5rem;
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: 'Cormorant Garamond', serif;
   color: var(--text-dark);
 }
 
@@ -2271,7 +2277,7 @@ hr {
 }
 
 .ac-container {
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: 'Cormorant Garamond', serif;
   color: var(--text-dark);
   max-width: 900px;
   margin: 0 auto;
@@ -2576,7 +2582,7 @@ hr {
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: 'Cormorant Garamond', serif;
   color: var(--text-dark);
 }
 
