@@ -242,15 +242,15 @@
     <section class="admin-section">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="section-title m-0">Elenco Stanze</h3>
-        <button class="btn-primary" (click)="mostraFormStanza = !mostraFormStanza">
+        <button class="btn-primary" (click)="mostraFormStanza ? annullaModificaStanza() : mostraFormStanza = true">
           {{ mostraFormStanza ? '❌ Chiudi Form' : '➕ Crea Stanza' }}
         </button>
       </div>
 
-      <!-- FORM DI CREAZIONE STANZA (TOGGLE) -->
+      <!-- FORM DI CREAZIONE / MODIFICA STANZA -->
       @if (mostraFormStanza) {
-      <div class="card p-3 mb-4 shadow-sm">
-        <h4 class="mb-3">Nuova Stanza</h4>
+      <div class="card p-3 mb-4 shadow-sm border-primary">
+        <h4 class="mb-3">{{ idStanzaInModifica ? '✏️ Modifica Stanza' : '➕ Nuova Stanza' }}</h4>
         <form class="admin-form" (ngSubmit)="salvaStanza()">
           <div class="form-group">
             <label>Numero Stanza:</label>
@@ -276,7 +276,12 @@
               }
             </select>
           </div>
-          <button class="btn-primary" type="submit">Salva Stanza</button>
+          <div class="d-flex gap-2">
+            <button class="btn-primary" type="submit">
+              {{ idStanzaInModifica ? 'Aggiorna Stanza' : 'Salva Stanza' }}
+            </button>
+            <button *ngIf="idStanzaInModifica" class="btn-secondary" type="button" (click)="annullaModificaStanza()">Annulla</button>
+          </div>
         </form>
       </div>
       }
@@ -288,7 +293,6 @@
               <th>Numero Stanza</th>
               <th>Tipologia</th>
               <th>Prezzo Notte</th>
-              <th>Stato</th>
               <th>Azione</th>
             </tr>
           </thead>
@@ -298,12 +302,17 @@
               <td>{{ s.numeroStanza }}</td>
               <td>{{ s.tipologia?.nome ?? 'N/D' }}</td>
               <td>{{ s.tipologia?.prezzo ? (s.tipologia.prezzo + '€') : 'N/D' }}</td>
-              <td><span class="status-badge" [class]="s.status">{{ s.status }}</span></td>
-              <td><button class="btn-delete" (click)="eliminaStanza(s.id)">Elimina</button></td>
+              <td>
+                <div class="d-flex gap-1">
+                  <!-- ✏️ PULSANTE MODIFICA STANZA -->
+                  <button class="btn-edit btn btn-sm btn-warning me-1" (click)="avviaModificaStanza(s)">✏️ Modifica</button>
+                  <button class="btn-delete" (click)="eliminaStanza(s.id)">Elimina</button>
+                </div>
+              </td>
             </tr>
             } @empty {
             <tr>
-              <td colspan="5" class="empty-row">Nessuna stanza presente a sistema.</td>
+              <td colspan="4" class="empty-row">Nessuna stanza presente a sistema.</td>
             </tr>
             }
           </tbody>
@@ -317,15 +326,15 @@
     <section class="admin-section">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="section-title m-0">Elenco Tipologie Camera</h3>
-        <button class="btn-primary" (click)="mostraFormTipologia = !mostraFormTipologia">
+        <button class="btn-primary" (click)="mostraFormTipologia ? annullaModificaTipoCamera() : mostraFormTipologia = true">
           {{ mostraFormTipologia ? '❌ Chiudi Form' : '➕ Crea Tipologia Camera' }}
         </button>
       </div>
 
-      <!-- FORM DI CREAZIONE TIPOLOGIA (TOGGLE) -->
+      <!-- FORM DI CREAZIONE / MODIFICA TIPOLOGIA -->
       @if (mostraFormTipologia) {
-      <div class="card p-3 mb-4 shadow-sm">
-        <h4 class="mb-3">Nuova Tipologia Camera</h4>
+      <div class="card p-3 mb-4 shadow-sm border-primary">
+        <h4 class="mb-3">{{ idTipoCameraInModifica ? '✏️ Modifica Tipologia Camera' : '➕ Nuova Tipologia Camera' }}</h4>
         <form class="admin-form" (ngSubmit)="salvaTipoCamera()">
           <div class="form-group">
             <label>Nome Tipologia:</label>
@@ -354,7 +363,12 @@
                 name="imgTipologia" placeholder="Es. assets/camere/deluxe.jpg oppure https://...">
             </div>
           </div>
-          <button class="btn-primary" type="submit">Salva Tipologia</button>
+          <div class="d-flex gap-2">
+            <button class="btn-primary" type="submit">
+              {{ idTipoCameraInModifica ? 'Aggiorna Tipologia' : 'Salva Tipologia' }}
+            </button>
+            <button *ngIf="idTipoCameraInModifica" class="btn-secondary" type="button" (click)="annullaModificaTipoCamera()">Annulla</button>
+          </div>
         </form>
       </div>
       }
@@ -371,7 +385,6 @@
             </tr>
           </thead>
           <tbody>
-            <!-- 🟢 TRACCIAMENTO TRAMITE ID REALE -->
             @for (t of tipiCamera; track getTipologiaId(t)) {
             <tr>
               <td><strong>{{ getValoreTipoCamera(t) }}</strong></td>
@@ -379,7 +392,11 @@
               <td>{{ t.capienza || 2 }} ospiti</td>
               <td>{{ t.prezzo }} €</td>
               <td>
-                <button class="btn-delete" (click)="eliminaTipoCamera(getTipologiaId(t))">Elimina</button>
+                <div class="d-flex gap-1">
+                  <!-- ✏️ PULSANTE MODIFICA TIPOLOGIA -->
+                  <button class="btn-edit btn btn-sm btn-warning me-1" (click)="avviaModificaTipoCamera(t)">✏️ Modifica</button>
+                  <button class="btn-delete" (click)="eliminaTipoCamera(getTipologiaId(t))">Elimina</button>
+                </div>
               </td>
             </tr>
             } @empty {
@@ -398,15 +415,15 @@
     <section class="admin-section">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="section-title m-0">Elenco Servizi Aggiuntivi</h3>
-        <button class="btn-primary" (click)="mostraFormServizio = !mostraFormServizio">
+        <button class="btn-primary" (click)="mostraFormServizio ? annullaModificaServizio() : mostraFormServizio = true">
           {{ mostraFormServizio ? '❌ Chiudi Form' : '➕ Crea Servizio' }}
         </button>
       </div>
 
-      <!-- FORM DI CREAZIONE SERVIZIO (TOGGLE) -->
+      <!-- FORM DI CREAZIONE / MODIFICA SERVIZIO -->
       @if (mostraFormServizio) {
-      <div class="card p-3 mb-4 shadow-sm">
-        <h4 class="mb-3">Nuovo Servizio Aggiuntivo</h4>
+      <div class="card p-3 mb-4 shadow-sm border-primary">
+        <h4 class="mb-3">{{ idServizioInModifica ? '✏️ Modifica Servizio' : '➕ Nuovo Servizio Aggiuntivo' }}</h4>
         <form class="admin-form" (ngSubmit)="salvaServizio()">
           <div class="form-group">
             <label>Nome Servizio:</label>
@@ -428,7 +445,12 @@
             <input type="text" id="imgServizio" class="form-control" [(ngModel)]="nuovoServizio.immagine"
               name="imgServizio" placeholder="Es. assets/servizi/piscina.jpg oppure https://...">
           </div>
-          <button class="btn-primary" type="submit">Salva Servizio</button>
+          <div class="d-flex gap-2">
+            <button class="btn-primary" type="submit">
+              {{ idServizioInModifica ? 'Aggiorna Servizio' : 'Salva Servizio' }}
+            </button>
+            <button *ngIf="idServizioInModifica" class="btn-secondary" type="button" (click)="annullaModificaServizio()">Annulla</button>
+          </div>
         </form>
       </div>
       }
@@ -444,14 +466,17 @@
             </tr>
           </thead>
           <tbody>
-            <!-- 🟢 TRACCIAMENTO TRAMITE ID REALE -->
             @for (s of listaServizi; track getServizioId(s)) {
             <tr>
               <td><strong>{{ getServizioNome(s) }}</strong></td>
               <td>{{ getServizioDescrizione(s) }}</td>
               <td>{{ getServizioPrezzo(s) }} €</td>
               <td>
-                <button class="btn-delete" (click)="eliminaServizio(getServizioId(s))">Elimina</button>
+                <div class="d-flex gap-1">
+                  <!-- ✏️ PULSANTE MODIFICA SERVIZIO -->
+                  <button class="btn-edit btn btn-sm btn-warning me-1" (click)="avviaModificaServizio(s)">✏️ Modifica</button>
+                  <button class="btn-delete" (click)="eliminaServizio(getServizioId(s))">Elimina</button>
+                </div>
               </td>
             </tr>
             } @empty {

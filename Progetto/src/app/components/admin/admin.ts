@@ -32,10 +32,15 @@ export class Admin implements OnInit {
   // Sezioni di navigazione
   sezioneAttiva: 'prenotazione' | 'stanze' | 'tipologie' | 'servizi' = 'prenotazione';
 
-  // Flag per mostrare/nascondere i form di creazione
+  // Flag per mostrare/nascondere i form di creazione/modifica
   mostraFormStanza: boolean = false;
   mostraFormTipologia: boolean = false;
   mostraFormServizio: boolean = false;
+
+  // Stato Modifica (ID degli elementi attualmente in modifica)
+  idTipoCameraInModifica: number | string | null = null;
+  idServizioInModifica: number | string | null = null;
+  idStanzaInModifica: number | string | null = null;
 
   // Stato Admin
   tipiCamera: TipoCamera[] = [];
@@ -173,7 +178,30 @@ export class Admin implements OnInit {
     this.caricaTutteLeStanze();
   }
 
-  // 🟢 SALVATAGGIO TIPOLOGIA CAMERA (CON PERSISTENZA LOCALSTORAGE)
+  // ✏️ AVVIA MODIFICA TIPOLOGIA CAMERA
+  avviaModificaTipoCamera(t: any): void {
+    this.idTipoCameraInModifica = this.getTipologiaId(t);
+    const nomeVal = this.getValoreTipoCamera(t);
+    const imgSalvata = localStorage.getItem('img_camera_' + nomeVal.toLowerCase()) || '';
+
+    this.nuovoTipoCamera = {
+      nome: nomeVal,
+      descrizione: t.descrizione || '',
+      prezzo: t.prezzo || 0,
+      capienza: t.capienza || 2,
+      immagine: imgSalvata
+    };
+    this.mostraFormTipologia = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  annullaModificaTipoCamera(): void {
+    this.idTipoCameraInModifica = null;
+    this.nuovoTipoCamera = { nome: '', descrizione: '', prezzo: 0, capienza: 2, immagine: '' };
+    this.mostraFormTipologia = false;
+  }
+
+  // 🟢 SALVATAGGIO / AGGIORNAMENTO TIPOLOGIA CAMERA
   salvaTipoCamera(): void {
     const nomeVal = (this.nuovoTipoCamera.nome || (this.nuovoTipoCamera as any).nomeTipologia || '').toString().trim();
     const prezzoVal = Number(this.nuovoTipoCamera.prezzo);
@@ -183,34 +211,62 @@ export class Admin implements OnInit {
       return;
     }
 
-    // 💾 Salviamo l'immagine in localStorage collegata al NOME della camera
     if (this.nuovoTipoCamera.immagine && this.nuovoTipoCamera.immagine.trim() !== '') {
       localStorage.setItem('img_camera_' + nomeVal.toLowerCase(), this.nuovoTipoCamera.immagine.trim());
     }
 
-    const payload = {
+    // 🟢 Conversion a number | undefined per rispettare l'interfaccia TipoCamera
+    const idVal = this.idTipoCameraInModifica ? Number(this.idTipoCameraInModifica) : undefined;
+
+    const payload: TipoCamera = {
       ...this.nuovoTipoCamera,
+      id: idVal,
       nome: nomeVal,
-      nomeTipologia: nomeVal,
       prezzo: prezzoVal,
       capienza: Number((this.nuovoTipoCamera as any).capienza || 2)
     };
 
-    this.camereService.creaTipoCamera(payload).subscribe({
+    const callApi = (this.idTipoCameraInModifica && typeof (this.camereService as any).aggiornaTipoCamera === 'function')
+      ? (this.camereService as any).aggiornaTipoCamera(this.idTipoCameraInModifica, payload)
+      : this.camereService.creaTipoCamera(payload);
+
+    callApi.subscribe({
       next: () => {
-        alert('Tipologia camera creata con successo!');
-        this.nuovoTipoCamera = { nome: '', descrizione: '', prezzo: 0, capienza: 2, immagine: '' };
-        this.mostraFormTipologia = false;
+        alert(this.idTipoCameraInModifica ? 'Tipologia aggiornata con successo!' : 'Tipologia camera creata con successo!');
+        this.annullaModificaTipoCamera();
         this.caricaDati();
       },
-      error: err => {
-        console.error('Errore creazione tipologia:', err);
-        alert('Si è verificato un errore durante il salvataggio sul server.');
+      error: (err: any) => {
+        console.error('Errore salvataggio tipologia:', err);
+        alert('Si è verificato un errore durante il salvataggio.');
       }
     });
   }
 
-  // 🟢 SALVATAGGIO SERVIZIO (CON PERSISTENZA LOCALSTORAGE)
+  // ✏️ AVVIA MODIFICA SERVIZIO
+  avviaModificaServizio(s: any): void {
+    this.idServizioInModifica = this.getServizioId(s);
+    const nomeVal = this.getServizioNome(s);
+    const chiave = 'img_servizio_' + nomeVal.toLowerCase().replace(/[\s-]/g, '');
+    const imgSalvata = localStorage.getItem(chiave) || '';
+
+    this.nuovoServizio = {
+      nomeservizio: nomeVal,
+      descrizione: this.getServizioDescrizione(s),
+      prezzi: this.getServizioPrezzo(s),
+      immagine: imgSalvata
+    };
+    this.mostraFormServizio = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  annullaModificaServizio(): void {
+    this.idServizioInModifica = null;
+    this.nuovoServizio = { nomeservizio: '', descrizione: '', prezzi: 0, immagine: '' };
+    this.mostraFormServizio = false;
+  }
+
+  // 🟢 SALVATAGGIO / AGGIORNAMENTO SERVIZIO
   salvaServizio(): void {
     const nomeVal = (this.nuovoServizio.nomeservizio || '').trim();
     const prezzoVal = Number(this.nuovoServizio.prezzi);
@@ -220,37 +276,57 @@ export class Admin implements OnInit {
       return;
     }
 
-    // 💾 Salviamo l'immagine in localStorage collegata al NOME del servizio
     if (this.nuovoServizio.immagine && this.nuovoServizio.immagine.trim() !== '') {
       const chiave = 'img_servizio_' + nomeVal.toLowerCase().replace(/[\s-]/g, '');
       localStorage.setItem(chiave, this.nuovoServizio.immagine.trim());
     }
 
+    const idVal = this.idServizioInModifica ? Number(this.idServizioInModifica) : undefined;
+
     const payload = {
+      idservizio: idVal,
+      id: idVal,
       nomeservizio: nomeVal,
       descrizione: (this.nuovoServizio.descrizione || '').trim(),
       prezzi: prezzoVal
     };
 
-    this.adminService.creaServizio(payload).subscribe({
+    const callApi = (this.idServizioInModifica && typeof (this.adminService as any).aggiornaServizio === 'function')
+      ? (this.adminService as any).aggiornaServizio(this.idServizioInModifica, payload)
+      : this.adminService.creaServizio(payload);
+
+    callApi.subscribe({
       next: () => {
-        alert('Servizio creato con successo!');
-        this.nuovoServizio = { nomeservizio: '', descrizione: '', prezzi: 0, immagine: '' };
-        this.mostraFormServizio = false;
+        alert(this.idServizioInModifica ? 'Servizio aggiornato con successo!' : 'Servizio creato con successo!');
+        this.annullaModificaServizio();
         this.caricaServizi();
       },
       error: (err: any) => {
-        console.error('Errore creazione servizio:', err);
+        console.error('Errore salvataggio servizio:', err);
         alert('Si è verificato un errore durante il salvataggio del servizio.');
       }
     });
   }
 
-  getTipologiaId(tipo: any): number | string {
-    if (!tipo) return '';
-    return tipo.id || tipo.idTipologia || tipo.id_tipologia || '';
+  // ✏️ AVVIA MODIFICA STANZA
+  avviaModificaStanza(s: any): void {
+    this.idStanzaInModifica = s.id || this.getStanzaId(s);
+    this.numeroStanza = s.numeroStanza || s.numero || '';
+    this.statusStanza = s.status || 'disponibile';
+    this.idTipoCameraSelezionato = this.getTipologiaId(s.tipologia || s.tipologiaStanza);
+    this.mostraFormStanza = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  annullaModificaStanza(): void {
+    this.idStanzaInModifica = null;
+    this.numeroStanza = '';
+    this.statusStanza = 'disponibile';
+    this.idTipoCameraSelezionato = null;
+    this.mostraFormStanza = false;
+  }
+
+  // 🟢 SALVATAGGIO / AGGIORNAMENTO STANZA
   salvaStanza(): void {
     const numStanza = (this.numeroStanza || '').toString().trim();
 
@@ -266,28 +342,36 @@ export class Admin implements OnInit {
       return;
     }
 
+    const idVal = this.idStanzaInModifica ? Number(this.idStanzaInModifica) : undefined;
+
     const nuovaStanza: any = {
+      id: idVal,
       numeroStanza: numStanza,
       status: this.statusStanza,
       tipologia: tipologiaObj,
       tipologiaStanza: tipologiaObj
     };
 
-    this.camereService.creaStanza(nuovaStanza).subscribe({
+    const callApi = (this.idStanzaInModifica && typeof (this.camereService as any).aggiornaStanza === 'function')
+      ? (this.camereService as any).aggiornaStanza(this.idStanzaInModifica, nuovaStanza)
+      : this.camereService.creaStanza(nuovaStanza);
+
+    callApi.subscribe({
       next: () => {
-        alert('Stanza creata con successo!');
-        this.numeroStanza = '';
-        this.statusStanza = 'disponibile';
-        this.tipoCameraSelezionato = null;
-        this.idTipoCameraSelezionato = null;
-        this.mostraFormStanza = false;
+        alert(this.idStanzaInModifica ? 'Stanza aggiornata con successo!' : 'Stanza creata con successo!');
+        this.annullaModificaStanza();
         this.caricaDati();
       },
-      error: err => {
+      error: (err: any) => {
         console.error('Errore salvataggio stanza:', err);
         alert('Si è verificato un errore durante il salvataggio della stanza.');
       }
     });
+  }
+
+  getTipologiaId(tipo: any): number | string {
+    if (!tipo) return '';
+    return tipo.id || tipo.idTipologia || tipo.id_tipologia || '';
   }
 
   eliminaStanza(id?: number): void {
