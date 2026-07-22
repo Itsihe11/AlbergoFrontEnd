@@ -1934,3 +1934,397 @@ hr {
     padding: 1.4rem;
   }
 }
+
+/*  AREA CLIENTI  */
+:root {
+  --gold: #c9a227;
+  --gold-light: #e8cd7a;
+  --gold-dark: #a1811e;
+  --white: #ffffff;
+  --off-white: #faf8f3;
+  --text-dark: #2b2b2b;
+  --text-light: #6b6b6b;
+  --error: #c0392b;
+  --success: #2e7d32;
+}
+
+/* ===== CONTENITORE ===== */
+.ac-container {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  color: var(--text-dark);
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+  line-height: 1.6;
+}
+
+/* ===== HEADER PAGINA ===== */
+.ac-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.ac-title {
+  color: var(--gold-dark);
+  font-size: 1.6rem;
+}
+
+/* ===== ALERT ===== */
+.ac-alert {
+  padding: 0.9rem 1.2rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.ac-alert-success {
+  background-color: rgba(46, 125, 50, 0.1);
+  color: var(--success);
+  border: 1px solid rgba(46, 125, 50, 0.25);
+}
+
+.ac-alert-danger {
+  background-color: rgba(192, 57, 43, 0.1);
+  color: var(--error);
+  border: 1px solid rgba(192, 57, 43, 0.25);
+}
+
+.ac-alert-info {
+  background-color: rgba(201, 162, 39, 0.08);
+  color: var(--text-dark);
+  border: 1px solid var(--gold-light);
+}
+
+/* ===== CARD PRENOTAZIONE ===== */
+.ac-card {
+  background-color: var(--white);
+  border: 1px solid var(--gold-light);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.ac-card-header {
+  background-color: var(--gold-dark);
+  color: var(--white);
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.ac-card-title {
+  font-size: 1.15rem;
+}
+
+.ac-card-body {
+  padding: 1.8rem;
+}
+
+.ac-card-body p {
+  margin-bottom: 0.6rem;
+  font-size: 0.98rem;
+}
+
+/* ===== BADGE ===== */
+.ac-badge {
+  display: inline-block;
+  padding: 0.35rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  background-color: var(--off-white);
+  color: var(--text-dark);
+}
+
+/* ===== GRIGLIA INFO ===== */
+.ac-info-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ac-info-col {
+  flex: 1;
+  min-width: 220px;
+}
+
+.ac-divider {
+  border: none;
+  border-top: 1px solid var(--gold-light);
+  margin: 1.5rem 0;
+}
+
+.ac-section-label {
+  font-weight: bold;
+  color: var(--gold-dark);
+  margin-bottom: 0.8rem;
+}
+
+.ac-highlight {
+  color: var(--gold-dark);
+}
+
+/* ===== LISTA OSPITI ===== */
+.ac-list {
+  list-style: none;
+  border: 1px solid var(--gold-light);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.ac-list-item {
+  padding: 0.9rem 1.2rem;
+  border-bottom: 1px solid var(--off-white);
+  background-color: var(--white);
+  font-size: 0.95rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.ac-list-item:last-child {
+  border-bottom: none;
+}
+
+.ac-muted {
+  color: var(--text-light);
+}
+
+/* ===== AZIONI ===== */
+.ac-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+/* ===== BOTTONI ===== */
+.ac-btn {
+  font-family: inherit;
+  border-radius: 30px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0.7rem 1.4rem;
+  font-size: 0.95rem;
+  border: 2px solid transparent;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.ac-btn:hover {
+  transform: translateY(-2px);
+}
+
+.ac-btn-sm {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+}
+
+.ac-btn-outline-danger {
+  background-color: transparent;
+  color: var(--error);
+  border-color: var(--error);
+}
+
+.ac-btn-outline-danger:hover {
+  background-color: var(--error);
+  color: var(--white);
+}
+
+.ac-btn-warning {
+  background-color: var(--gold-light);
+  color: var(--text-dark);
+}
+
+.ac-btn-warning:hover {
+  background-color: var(--gold);
+  color: var(--white);
+}
+
+.ac-btn-danger {
+  background-color: var(--error);
+  color: var(--white);
+}
+
+.ac-btn-danger:hover {
+  background-color: #a53326;
+}
+
+.ac-btn-primary {
+  background-color: var(--gold);
+  color: var(--white);
+}
+
+.ac-btn-primary:hover {
+  background-color: var(--gold-dark);
+}
+
+.ac-btn-secondary {
+  background-color: var(--white);
+  color: var(--gold-dark);
+  border-color: var(--gold);
+}
+
+.ac-btn-secondary:hover {
+  background-color: var(--gold-light);
+}
+
+.ac-btn-remove {
+  background-color: transparent;
+  color: var(--error);
+  border-color: var(--error);
+  padding: 0.6rem 0.9rem;
+}
+
+.ac-btn-remove:hover {
+  background-color: var(--error);
+  color: var(--white);
+}
+
+/* ===== FORM (dentro il modal) ===== */
+.ac-guest-row {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.ac-guest-row .ac-input {
+  flex: 1;
+  min-width: 120px;
+}
+
+.ac-account-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+}
+
+.ac-field {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.ac-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.ac-input {
+  font-family: inherit;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--gold-light);
+  border-radius: 6px;
+  background-color: var(--white);
+  color: var(--text-dark);
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ac-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.15);
+}
+
+/* ===== MODAL ===== */
+.ac-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background-color: rgba(30, 30, 30, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  overflow-y: auto;
+}
+
+.ac-modal-dialog {
+  width: 100%;
+  max-width: 700px;
+  margin: auto;
+}
+
+.ac-modal-content {
+  background-color: var(--white);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+  font-family: 'Georgia', 'Times New Roman', serif;
+  color: var(--text-dark);
+}
+
+.ac-modal-header {
+  background-color: var(--gold-dark);
+  color: var(--white);
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ac-modal-title {
+  font-size: 1.15rem;
+}
+
+.ac-modal-close {
+  background: transparent;
+  border: none;
+  color: var(--white);
+  font-size: 1.4rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.ac-modal-close::before {
+  content: "✕";
+}
+
+.ac-modal-body {
+  padding: 1.8rem;
+}
+
+.ac-modal-footer {
+  padding: 1.2rem 1.8rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.8rem;
+  border-top: 1px solid var(--off-white);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 700px) {
+  .ac-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .ac-info-grid {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .ac-guest-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .ac-modal-footer {
+    flex-direction: column;
+  }
+  .ac-modal-footer .ac-btn {
+    width: 100%;
+  }
+}
