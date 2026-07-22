@@ -35,15 +35,46 @@ header {
 .navbar {
   display: flex;
   align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 1rem 2rem;
-  max-width: 1200px;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 2rem;
+  max-width: 1600px;
   margin: 0 auto;
+  flex-wrap: wrap;
 }
 
-.navbar a {
+/* ===== LOGO ===== */
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  color: var(--gold-dark);
+  font-weight: bold;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.logo-icon {
+  font-size: 1.5rem;
+}
+
+.logo-text {
+  white-space: nowrap;
+}
+
+/* ===== LINK CENTRALI ===== */
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  flex: 1;
+}
+
+.navbar-links a,
+.navbar-user a {
   color: var(--text-dark);
   text-decoration: none;
   font-size: 1rem;
@@ -53,24 +84,59 @@ header {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.navbar a:hover {
+.navbar-links a:hover,
+.navbar-user a:hover {
   background-color: var(--gold-light);
   color: var(--text-dark);
 }
 
-.navbar a.active,
-.navbar a[aria-current="page"] {
+.navbar-links a.active,
+.navbar-links a[aria-current="page"],
+.navbar-user a.active,
+.navbar-user a[aria-current="page"] {
   background-color: var(--gold);
   color: var(--white);
 }
 
-@media (max-width: 600px) {
+/* ===== SEZIONE UTENTI (destra) ===== */
+.navbar-user {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  border: 1px solid var(--gold-light);
+  padding-left: 0;
+  border-radius: 7px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
   .navbar {
     flex-direction: column;
     padding: 1rem;
+    gap: 0.6rem;
+  }
+
+  .navbar-links {
+    flex-direction: column;
+    width: 100%;
     gap: 0.3rem;
   }
-  .navbar a {
+
+  .navbar-links a {
+    width: 100%;
+    text-align: center;
+  }
+
+  .navbar-user {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--gold-light);
+    padding-left: 0;
+    padding-top: 0.6rem;
+    justify-content: center;
+  }
+
+  .navbar-user a {
     width: 100%;
     text-align: center;
   }
@@ -82,6 +148,8 @@ section {
   max-width: 1000px;
   margin: 0 auto;
 }
+
+/*  HOME  */
 
 /* ===== HERO ===== */
 .hero {
@@ -181,6 +249,225 @@ section {
     text-align: center;
   }
 }
+/* ===== HERO ACTIONS (doppio bottone) ===== */
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-hero-primary {
+  display: inline-block;
+  background-color: var(--white);
+  color: var(--gold-dark);
+  text-decoration: none;
+  padding: 0.9rem 2.2rem;
+  border-radius: 30px;
+  font-weight: bold;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-hero-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.btn-hero-secondary {
+  display: inline-block;
+  background-color: transparent;
+  color: var(--white);
+  text-decoration: none;
+  padding: 0.9rem 2.2rem;
+  border-radius: 30px;
+  font-weight: bold;
+  border: 2px solid var(--white);
+  transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.btn-hero-secondary:hover {
+  background-color: var(--white);
+  color: var(--gold-dark);
+  transform: translateY(-2px);
+}
+
+/* ===== HIGHLIGHTS (punti di forza) ===== */
+.highlights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+}
+
+.highlight-card {
+  text-align: center;
+  background-color: var(--white);
+  border: 1px solid var(--gold-light);
+  border-radius: 10px;
+  padding: 2rem 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.highlight-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 6px 16px rgba(201, 162, 39, 0.15);
+  transform: translateY(-3px);
+}
+
+.highlight-icon {
+  font-size: 2.2rem;
+  display: block;
+  margin-bottom: 0.8rem;
+}
+
+.highlight-card h3 {
+  color: var(--gold-dark);
+  font-size: 1.15rem;
+  margin-bottom: 0.6rem;
+}
+
+.highlight-card p {
+  color: var(--text-light);
+  font-size: 0.92rem;
+}
+
+/* ===== DESCRIZIONE (storia + statistiche) ===== */
+.description-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.description-text {
+  text-align: center;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.description-text h2 {
+  color: var(--gold-dark);
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.description-text p {
+  color: var(--text-light);
+  font-size: 1.05rem;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  flex-wrap: wrap;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--gold-light);
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat-number {
+  display: block;
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: var(--gold-dark);
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-top: 0.3rem;
+}
+
+/* ===== TESTIMONIANZE ===== */
+.testimonials h2 {
+  text-align: center;
+  color: var(--gold-dark);
+  font-size: 1.8rem;
+  margin-bottom: 2rem;
+}
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+
+.testimonial-card {
+  background-color: var(--white);
+  border: 1px solid var(--gold-light);
+  border-left: 4px solid var(--gold);
+  border-radius: 8px;
+  padding: 1.6rem;
+}
+
+.testimonial-card p {
+  color: var(--text-dark);
+  font-style: italic;
+  margin-bottom: 0.8rem;
+  font-size: 0.98rem;
+}
+
+.testimonial-card cite {
+  color: var(--gold-dark);
+  font-weight: 600;
+  font-style: normal;
+  font-size: 0.9rem;
+}
+
+/* ===== CTA FINALE ===== */
+.final-cta {
+  text-align: center;
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  color: var(--white);
+  padding: 4rem 2rem;
+  border-radius: 12px;
+  max-width: 1000px;
+}
+
+.final-cta h2 {
+  font-size: 1.9rem;
+  margin-bottom: 0.6rem;
+}
+
+.final-cta p {
+  font-size: 1.05rem;
+  opacity: 0.9;
+  margin-bottom: 1.8rem;
+}
+
+.btn-final-cta {
+  display: inline-block;
+  background-color: var(--white);
+  color: var(--gold-dark);
+  text-decoration: none;
+  padding: 0.9rem 2.4rem;
+  border-radius: 30px;
+  font-weight: bold;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-final-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 600px) {
+  .stats-row {
+    gap: 1.8rem;
+  }
+  .stat-number {
+    font-size: 1.8rem;
+  }
+  .final-cta {
+    padding: 3rem 1.5rem;
+  }
+}
+
+
 
 /*  SERVIZI  */
 

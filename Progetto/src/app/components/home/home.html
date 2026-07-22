@@ -1,7 +1,33 @@
 <section class="hero">
   <h1>Hotel Bellocchio</h1>
   <p>Lusso e benessere in una sola stanza.</p>
-  <a routerLink="/prenotazioni">Prenota ora</a>
+  <div class="hero-actions">
+    <a routerLink="/prenotazioni" class="btn-hero-primary">Prenota ora</a>
+    <a routerLink="/camere" class="btn-hero-secondary">Scopri le camere</a>
+  </div>
+</section>
+
+<section class="highlights">
+  <div class="highlight-card">
+    <span class="highlight-icon">🛏️</span>
+    <h3>Camere Eleganti</h3>
+    <p>Ambienti curati nei dettagli, pensati per il massimo comfort.</p>
+  </div>
+  <div class="highlight-card">
+    <span class="highlight-icon">💆</span>
+    <h3>SPA & Benessere</h3>
+    <p>Un'oasi di relax con trattamenti su misura per ogni ospite.</p>
+  </div>
+  <div class="highlight-card">
+    <span class="highlight-icon">🍽️</span>
+    <h3>Ristorante Gourmet</h3>
+    <p>Sapori autentici del territorio in un'atmosfera raffinata.</p>
+  </div>
+  <div class="highlight-card">
+    <span class="highlight-icon">🅿️</span>
+    <h3>Parcheggio Privato</h3>
+    <p>Comodità e sicurezza per il tuo soggiorno, senza pensieri.</p>
+  </div>
 </section>
 
 <section class="explore">
@@ -14,7 +40,52 @@
 </section>
 
 <section class="description">
-  <p>
-    Da generazioni, offriamo un esperienza indimenticabile 
-  </p>
+  <div class="description-content">
+    <div class="description-text">
+      <h2>La nostra storia</h2>
+      <p>
+        Da generazioni, offriamo un'esperienza indimenticabile. Tra tradizione
+        e ospitalità autentica, l'Hotel Bellocchio è il luogo dove ogni
+        dettaglio è pensato per il tuo relax e il tuo benessere.
+      </p>
+    </div>
+    <div class="stats-row">
+      <div class="stat">
+        <span class="stat-number">30+</span>
+        <span class="stat-label">Anni di esperienza</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">45</span>
+        <span class="stat-label">Camere e suite</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">98%</span>
+        <span class="stat-label">Ospiti soddisfatti</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="testimonials">
+  <h2>Cosa dicono i nostri ospiti</h2>
+  <div class="testimonials-grid">
+    <blockquote class="testimonial-card">
+      <p>"Un soggiorno straordinario, dal servizio alla SPA. Torneremo sicuramente."</p>
+      — Marco R.
+    </blockquote>
+    <blockquote class="testimonial-card">
+      <p>"Camere curate nei minimi dettagli e staff sempre disponibile. Consigliatissimo."</p>
+      — Giulia F.
+    </blockquote>
+    <blockquote class="testimonial-card">
+      <p>"L'atmosfera perfetta per staccare dalla routine. Un vero rifugio di lusso."</p>
+      — Alessandro T.
+    </blockquote>
+  </div>
+</section>
+
+<section class="final-cta">
+  <h2>Pronto a vivere un'esperienza unica?</h2>
+  <p>Prenota il tuo soggiorno all'Hotel Bellocchio e lasciati sorprendere.</p>
+  <a routerLink="/prenotazioni" class="btn-final-cta">Prenota il tuo soggiorno</a>
 </section>
