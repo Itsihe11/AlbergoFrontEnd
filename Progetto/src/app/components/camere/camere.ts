@@ -5,6 +5,7 @@ import { TipoCamera } from '../../interface/tipocamera';
 
 @Component({
   selector: 'app-camere',
+  standalone: true,
   imports: [RouterLink],
   templateUrl: './camere.html'
 })
@@ -15,26 +16,59 @@ export class Camere implements OnInit {
   caricamento = signal(true);
   errore = signal<string | null>(null);
 
-  private immaginiPerTipologia: Record<string, string> = {
-    'Singola': '/camere/singola.jpg',
-    'Doppia': '/camere/doppia.webp',
-    'Suite': '/camere/suite.jpg'
-  };
-  private immagineDefault = '/camere/placeholder.jpg';
+  // 🎨 Fallback SVG se il file locale assets dovesse mancare
+  private svgFallback = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='250' viewBox='0 0 24 24' fill='%23f3f4f6' stroke='%239ca3af' stroke-width='1.5'><rect x='2' y='3' width='20' height='18' rx='2'/><circle cx='8.5' cy='8.5' r='1.5'/><path d='M21 15l-5-5L5 21'/></svg>";
+  private immagineDefault = 'assets/camere/placeholder.jpg';
 
-  getImmagine(nomeTipologia: string): string {
-    if (!nomeTipologia) return this.immagineDefault;
+  // 📷 Recupera l'immagine salvata dall'Admin in localStorage o ricade sui fallback
+  getImmagine(tipologiaOrNome: TipoCamera | string): string {
+    if (!tipologiaOrNome) return this.immagineDefault;
 
-    const nomeLower = nomeTipologia.toLowerCase();
+    // Estragga il nome della stanza in modo sicuro
+    const nome = (typeof tipologiaOrNome === 'object'
+      ? (tipologiaOrNome.nome || (tipologiaOrNome as any).nomeTipologia || '')
+      : tipologiaOrNome).toString().trim();
 
+    if (!nome) return this.immagineDefault;
+
+    const nomeLower = nome.toLowerCase();
+
+    // 1️⃣ Cerca se l'Admin ha salvato un URL personalizzato in localStorage
+    const imgLocale = localStorage.getItem('img_camera_' + nomeLower);
+    if (imgLocale && imgLocale.trim() !== '') {
+      return imgLocale.trim();
+    }
+
+    // 2️⃣ Se per caso l'oggetto arrivato dal backend contiene direttamente il campo
+    if (typeof tipologiaOrNome === 'object') {
+      const imgCustom = (tipologiaOrNome as any).immagine || 
+                        (tipologiaOrNome as any).foto || 
+                        (tipologiaOrNome as any).immagineUrl ||
+                        (tipologiaOrNome as any).urlImmagine ||
+                        (tipologiaOrNome as any).url_immagine;
+      
+      if (imgCustom && imgCustom.toString().trim() !== '') {
+        return imgCustom.toString().trim();
+      }
+    }
+
+    // 3️⃣ Cerca corrispondenze per parole chiave sulle immagini statiche
     if (nomeLower.includes('singol')) return 'assets/camere/singole.jpg';
     if (nomeLower.includes('doppi')) return 'assets/camere/doppia.webp';
-
     if (nomeLower.includes('spa')) return 'assets/camere/spa.jpg';
     if (nomeLower.includes('presidential')) return 'assets/camere/presidential.avif';
     if (nomeLower.includes('superior') || nomeLower.includes('suite')) return 'assets/camere/suite.jpg';
 
+    // 4️⃣ Immagine di riserva
     return this.immagineDefault;
+  }
+
+  // 🛡️ Se il link immagine fallisce o viene bloccato (403/404), carica l'SVG di riserva
+  onImgError(event: Event): void {
+    const target = event.target as HTMLImageElement;
+    if (target) {
+      target.src = this.svgFallback;
+    }
   }
 
   ngOnInit(): void {
@@ -44,7 +78,7 @@ export class Camere implements OnInit {
         this.caricamento.set(false);
       },
       error: err => {
-        console.log('Camere: errore ricevuto', err);
+        console.error('Camere: errore ricevuto', err);
         this.errore.set('Impossibile caricare le camere al momento.');
         this.caricamento.set(false);
       }

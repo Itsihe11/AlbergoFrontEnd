@@ -32,7 +32,8 @@
         <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'stanze'" (click)="sezioneAttiva = 'stanze'">
           Elenco Stanze
         </button>
-        <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'tipologie'" (click)="sezioneAttiva = 'tipologie'">
+        <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'tipologie'"
+          (click)="sezioneAttiva = 'tipologie'">
           Elenco Tipologie Camera
         </button>
         <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'servizi'" (click)="sezioneAttiva = 'servizi'">
@@ -62,10 +63,12 @@
               <ul class="list-group">
                 <li class="list-group-item">
                   <strong>Codice Prenotazione:</strong>
-                  <span class="badge bg-primary fs-6 ms-2">{{ prenotazioneConfermata.codice_prenotazione || prenotazioneConfermata.codicePrenotazione }}</span>
+                  <span class="badge bg-primary fs-6 ms-2">{{ prenotazioneConfermata.codice_prenotazione ||
+                    prenotazioneConfermata.codicePrenotazione }}</span>
                 </li>
                 <li class="list-group-item">
-                  <strong>Tipo:</strong> {{ prenotazioneConfermata.tipo_prenotazione || prenotazioneConfermata.tipoPrenotazione }}
+                  <strong>Tipo:</strong> {{ prenotazioneConfermata.tipo_prenotazione ||
+                  prenotazioneConfermata.tipoPrenotazione }}
                 </li>
                 <li class="list-group-item">
                   <strong>Check-in:</strong> {{ checkIn }}
@@ -80,10 +83,12 @@
               <ul class="list-group">
                 <li class="list-group-item">
                   <strong>Importo Totale:</strong>
-                  <span class="fw-bold text-success fs-5">{{ prenotazioneConfermata.costo_totale || prezzoTotale() }} €</span>
+                  <span class="fw-bold text-success fs-5">{{ prenotazioneConfermata.costo_totale || prezzoTotale() }}
+                    €</span>
                 </li>
                 <li class="list-group-item">
-                  <strong>Metodo di Pagamento:</strong> {{ metodoPagamento === 'CARTA' ? 'Carta di Credito' : 'Bonifico Bancario' }}
+                  <strong>Metodo di Pagamento:</strong> {{ metodoPagamento === 'CARTA' ? 'Carta di Credito' : 'Bonifico
+                  Bancario' }}
                 </li>
               </ul>
             </div>
@@ -91,7 +96,8 @@
 
           <div *ngIf="metodoPagamento === 'BONIFICO'" class="alert alert-info">
             <h6 class="fw-bold">📌 Coordinate per Bonifico Bancario:</h6>
-            <p class="m-0">IBAN: <strong>IT60X0542811101000000123456</strong> - Causale: <strong>Prenotazione {{ prenotazioneConfermata.codice_prenotazione || prenotazioneConfermata.codicePrenotazione }}</strong></p>
+            <p class="m-0">IBAN: <strong>IT60X0542811101000000123456</strong> - Causale: <strong>Prenotazione {{
+                prenotazioneConfermata.codice_prenotazione || prenotazioneConfermata.codicePrenotazione }}</strong></p>
           </div>
 
           <div *ngIf="metodoPagamento === 'CARTA'" class="alert alert-success">
@@ -110,13 +116,15 @@
       <!-- MODULO DI PRENOTAZIONE -->
       <div class="admin-form">
         @if (errore) {
-        <div class="alert alert-danger fw-bold my-3 shadow-sm p-3 border border-danger rounded" style="background-color: #f8d7da; color: #721c24;">
+        <div class="alert alert-danger fw-bold my-3 shadow-sm p-3 border border-danger rounded"
+          style="background-color: #f8d7da; color: #721c24;">
           ⚠️ {{ errore }}
         </div>
         }
 
         @if (messaggio) {
-        <div class="alert alert-success fw-bold my-3 shadow-sm p-3 border border-success rounded" style="background-color: #d4edda; color: #155724;">
+        <div class="alert alert-success fw-bold my-3 shadow-sm p-3 border border-success rounded"
+          style="background-color: #d4edda; color: #155724;">
           {{ messaggio }}
         </div>
         }
@@ -246,7 +254,8 @@
         <form class="admin-form" (ngSubmit)="salvaStanza()">
           <div class="form-group">
             <label>Numero Stanza:</label>
-            <input class="form-input" type="text" placeholder="es. 101" [(ngModel)]="numeroStanza" name="numeroStanza" required />
+            <input class="form-input" type="text" placeholder="es. 101" [(ngModel)]="numeroStanza" name="numeroStanza"
+              required />
           </div>
           <div class="form-group">
             <label>Stato:</label>
@@ -320,20 +329,29 @@
         <form class="admin-form" (ngSubmit)="salvaTipoCamera()">
           <div class="form-group">
             <label>Nome Tipologia:</label>
-            <input class="form-input" type="text" placeholder="es. Suite Deluxe" [(ngModel)]="nuovoTipoCamera.nome" name="nome" required />
+            <input class="form-input" type="text" placeholder="es. Suite Deluxe" [(ngModel)]="nuovoTipoCamera.nome"
+              name="nome" required />
           </div>
           <div class="form-group">
             <label>Descrizione:</label>
-            <input class="form-input" type="text" placeholder="Descrizione della stanza..." [(ngModel)]="nuovoTipoCamera.descrizione" name="descrizione" />
+            <input class="form-input" type="text" placeholder="Descrizione della stanza..."
+              [(ngModel)]="nuovoTipoCamera.descrizione" name="descrizione" />
           </div>
           <div class="form-row">
             <div class="form-group">
               <label>Prezzo a Notte (€):</label>
-              <input class="form-input" type="number" min="1" [(ngModel)]="nuovoTipoCamera.prezzo" name="prezzo" required />
+              <input class="form-input" type="number" min="1" [(ngModel)]="nuovoTipoCamera.prezzo" name="prezzo"
+                required />
             </div>
             <div class="form-group">
               <label>Capienza (numero ospiti):</label>
-              <input class="form-input" type="number" min="1" [(ngModel)]="nuovoTipoCamera['capienza']" name="capienza" />
+              <input class="form-input" type="number" min="1" [(ngModel)]="nuovoTipoCamera['capienza']"
+                name="capienza" />
+            </div>
+            <div class="form-group mb-3">
+              <label for="imgTipologia">URL / Percorso Immagine (opzionale):</label>
+              <input type="text" id="imgTipologia" class="form-control" [(ngModel)]="nuovoTipoCamera.immagine"
+                name="imgTipologia" placeholder="Es. assets/camere/deluxe.jpg oppure https://...">
             </div>
           </div>
           <button class="btn-primary" type="submit">Salva Tipologia</button>
@@ -392,18 +410,23 @@
         <form class="admin-form" (ngSubmit)="salvaServizio()">
           <div class="form-group">
             <label>Nome Servizio:</label>
-            <input class="form-input" type="text" placeholder="es. Spa Incluso, Posto Auto, Colazione in camera" 
-                   [(ngModel)]="nuovoServizio.nomeservizio" name="nomeservizio" required />
+            <input class="form-input" type="text" placeholder="es. Spa Incluso, Posto Auto, Colazione in camera"
+              [(ngModel)]="nuovoServizio.nomeservizio" name="nomeservizio" required />
           </div>
           <div class="form-group">
             <label>Descrizione:</label>
-            <input class="form-input" type="text" placeholder="Breve descrizione del servizio..." 
-                   [(ngModel)]="nuovoServizio.descrizione" name="descrizione" />
+            <input class="form-input" type="text" placeholder="Breve descrizione del servizio..."
+              [(ngModel)]="nuovoServizio.descrizione" name="descrizione" />
           </div>
           <div class="form-group">
             <label>Prezzo (€):</label>
-            <input class="form-input" type="number" step="0.01" min="0" 
-                   [(ngModel)]="nuovoServizio.prezzi" name="prezzi" required />
+            <input class="form-input" type="number" step="0.01" min="0" [(ngModel)]="nuovoServizio.prezzi" name="prezzi"
+              required />
+          </div>
+          <div class="form-group mb-3">
+            <label for="imgServizio">URL / Percorso Immagine (opzionale):</label>
+            <input type="text" id="imgServizio" class="form-control" [(ngModel)]="nuovoServizio.immagine"
+              name="imgServizio" placeholder="Es. assets/servizi/piscina.jpg oppure https://...">
           </div>
           <button class="btn-primary" type="submit">Salva Servizio</button>
         </form>

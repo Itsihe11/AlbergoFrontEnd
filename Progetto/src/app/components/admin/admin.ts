@@ -41,17 +41,21 @@ export class Admin implements OnInit {
   tipiCamera: TipoCamera[] = [];
   stanze: Stanza[] = [];
 
-  nuovoTipoCamera: TipoCamera = {
+  // 📷 Modello Tipologia Camera con opzione immagine
+  nuovoTipoCamera: TipoCamera & { immagine?: string } = {
     nome: '',
     descrizione: '',
     prezzo: 0,
-    capienza: 2
+    capienza: 2,
+    immagine: ''
   };
 
+  // 📷 Modello Servizio con opzione immagine
   nuovoServizio = {
     nomeservizio: '',
     descrizione: '',
-    prezzi: 0
+    prezzi: 0,
+    immagine: ''
   };
 
   numeroStanza = '';
@@ -169,6 +173,7 @@ export class Admin implements OnInit {
     this.caricaTutteLeStanze();
   }
 
+  // 🟢 SALVATAGGIO TIPOLOGIA CAMERA (CON PERSISTENZA LOCALSTORAGE)
   salvaTipoCamera(): void {
     const nomeVal = (this.nuovoTipoCamera.nome || (this.nuovoTipoCamera as any).nomeTipologia || '').toString().trim();
     const prezzoVal = Number(this.nuovoTipoCamera.prezzo);
@@ -176,6 +181,11 @@ export class Admin implements OnInit {
     if (!nomeVal || isNaN(prezzoVal) || prezzoVal <= 0) {
       alert('Inserisci un nome e un prezzo a notte maggiore di 0!');
       return;
+    }
+
+    // 💾 Salviamo l'immagine in localStorage collegata al NOME della camera
+    if (this.nuovoTipoCamera.immagine && this.nuovoTipoCamera.immagine.trim() !== '') {
+      localStorage.setItem('img_camera_' + nomeVal.toLowerCase(), this.nuovoTipoCamera.immagine.trim());
     }
 
     const payload = {
@@ -189,7 +199,7 @@ export class Admin implements OnInit {
     this.camereService.creaTipoCamera(payload).subscribe({
       next: () => {
         alert('Tipologia camera creata con successo!');
-        this.nuovoTipoCamera = { nome: '', descrizione: '', prezzo: 0, capienza: 2 };
+        this.nuovoTipoCamera = { nome: '', descrizione: '', prezzo: 0, capienza: 2, immagine: '' };
         this.mostraFormTipologia = false;
         this.caricaDati();
       },
@@ -200,6 +210,7 @@ export class Admin implements OnInit {
     });
   }
 
+  // 🟢 SALVATAGGIO SERVIZIO (CON PERSISTENZA LOCALSTORAGE)
   salvaServizio(): void {
     const nomeVal = (this.nuovoServizio.nomeservizio || '').trim();
     const prezzoVal = Number(this.nuovoServizio.prezzi);
@@ -207,6 +218,12 @@ export class Admin implements OnInit {
     if (!nomeVal || isNaN(prezzoVal) || prezzoVal < 0) {
       alert('Inserisci un nome valido e un prezzo maggiore o uguale a 0!');
       return;
+    }
+
+    // 💾 Salviamo l'immagine in localStorage collegata al NOME del servizio
+    if (this.nuovoServizio.immagine && this.nuovoServizio.immagine.trim() !== '') {
+      const chiave = 'img_servizio_' + nomeVal.toLowerCase().replace(/[\s-]/g, '');
+      localStorage.setItem(chiave, this.nuovoServizio.immagine.trim());
     }
 
     const payload = {
@@ -218,7 +235,7 @@ export class Admin implements OnInit {
     this.adminService.creaServizio(payload).subscribe({
       next: () => {
         alert('Servizio creato con successo!');
-        this.nuovoServizio = { nomeservizio: '', descrizione: '', prezzi: 0 };
+        this.nuovoServizio = { nomeservizio: '', descrizione: '', prezzi: 0, immagine: '' };
         this.mostraFormServizio = false;
         this.caricaServizi();
       },
@@ -296,7 +313,6 @@ export class Admin implements OnInit {
     }
   }
 
-  // 🟢 ELIMINA TIPOLOGIA CAMERA
   eliminaTipoCamera(id?: number | string): void {
     if (!id) {
       alert('ID tipologia non trovato!');
@@ -324,7 +340,6 @@ export class Admin implements OnInit {
     }
   }
 
-  // 🟢 ELIMINA SERVIZIO (CON REFRESH REATTIVO ED ELIMINAZIONE LOCALE)
   eliminaServizio(id?: number | string): void {
     const numId = Number(id);
     if (!numId || isNaN(numId)) {
@@ -335,13 +350,11 @@ export class Admin implements OnInit {
     if (confirm('Sei sicuro di voler eliminare questo servizio?')) {
       this.adminService.eliminaServizio(numId).subscribe({
         next: () => {
-          // Rimuove immediatamente il servizio dall'array
           this.listaServizi = this.listaServizi.filter(s => this.getServizioId(s) !== numId);
           this.cdr.detectChanges();
           this.caricaServizi();
         },
         error: (err: any) => {
-          // Gestione risposta Spring Boot text '200 OK'
           if (err.status === 200 || err.statusText === 'OK') {
             this.listaServizi = this.listaServizi.filter(s => this.getServizioId(s) !== numId);
             this.cdr.detectChanges();
