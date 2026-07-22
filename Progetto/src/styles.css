@@ -239,16 +239,19 @@ section {
   .hero h1 {
     font-size: 2rem;
   }
+
   .explore ul {
     flex-direction: column;
     align-items: center;
   }
+
   .explore ul li a {
     width: 100%;
     max-width: 280px;
     text-align: center;
   }
 }
+
 /* ===== HERO ACTIONS (doppio bottone) ===== */
 .hero-actions {
   display: flex;
@@ -305,6 +308,11 @@ section {
   border-radius: 10px;
   padding: 2rem 1.5rem;
   transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
 }
 
 .highlight-card:hover {
@@ -459,9 +467,11 @@ section {
   .stats-row {
     gap: 1.8rem;
   }
+
   .stat-number {
     font-size: 1.8rem;
   }
+
   .final-cta {
     padding: 3rem 1.5rem;
   }
@@ -524,7 +534,7 @@ section {
 }
 
 /* ===== STATO (loading / vuoto) ===== */
-.services-list > p {
+.services-list>p {
   text-align: center;
   color: var(--text-light);
   font-style: italic;
@@ -616,9 +626,11 @@ section {
   .services-hero h1 {
     font-size: 1.8rem;
   }
+
   .services-list {
     grid-template-columns: 1fr;
   }
+
   .service-image {
     height: 160px;
   }
@@ -888,10 +900,12 @@ label {
     flex-direction: column;
     gap: 1rem;
   }
+
   .guest-row {
     flex-direction: column;
     align-items: stretch;
   }
+
   .btn-remove {
     width: 100%;
   }
@@ -1194,9 +1208,11 @@ section {
   .rooms-hero h1 {
     font-size: 1.8rem;
   }
+
   .rooms-grid {
     grid-template-columns: 1fr;
   }
+
   .room-image-wrapper {
     height: 200px;
   }
@@ -1495,12 +1511,15 @@ label {
     flex-direction: column;
     align-items: stretch;
   }
+
   .admin-navbar-links {
     justify-content: center;
   }
+
   .btn-logout {
     align-self: center;
   }
+
   .form-row {
     flex-direction: column;
     gap: 1rem;
@@ -1606,6 +1625,7 @@ body {
   .contact-page {
     padding: 3rem 1.2rem;
   }
+
   .contact-card {
     padding: 1.5rem;
   }
@@ -1930,6 +1950,7 @@ hr {
   .row {
     flex-direction: column;
   }
+
   .card-body {
     padding: 1.4rem;
   }
@@ -2313,17 +2334,21 @@ hr {
     flex-direction: column;
     align-items: flex-start;
   }
+
   .ac-info-grid {
     flex-direction: column;
     gap: 0.5rem;
   }
+
   .ac-guest-row {
     flex-direction: column;
     align-items: stretch;
   }
+
   .ac-modal-footer {
     flex-direction: column;
   }
+
   .ac-modal-footer .ac-btn {
     width: 100%;
   }
