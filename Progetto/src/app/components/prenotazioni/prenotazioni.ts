@@ -269,13 +269,19 @@ export class Prenotazioni implements OnInit {
            stanza.tipologia?.nome || '';
   }
 
+  // 🟢 HELPER PER OTTENERE LA CAPIENZA DELLA STANZA PER I DROPDOWN
+  getStanzaCapienza(stanza: any): number | string {
+    if (!stanza) return '-';
+    return stanza.tipologiaStanza?.capienza ?? stanza.tipologia?.capienza ?? stanza.capienza ?? '-';
+  }
+
   capienzaStanzaSelezionata(): number | null {
     if (!this.stanzaSelezionata) return null;
     const stanzaObj = this.stanzeDisponibili.find(
       s => this.getStanzaId(s).toString() === this.stanzaSelezionata.toString()
     );
     if (!stanzaObj) return null;
-    const capienza = stanzaObj.tipologiaStanza?.capienza ?? stanzaObj.tipologia?.capienza;
+    const capienza = stanzaObj.tipologiaStanza?.capienza ?? stanzaObj.tipologia?.capienza ?? (stanzaObj as any).capienza;
     return capienza ?? null;
   }
 
@@ -353,7 +359,15 @@ export class Prenotazioni implements OnInit {
     return Math.round(this.prezzoTotale() * 0.1);
   }
 
+  // 🟢 AGGIUNTA OSPITI LIMITATA ALLA CAPIENZA MASSIMA
   aggiungiOspite(): void {
+    if (this.includeAlbergo() && this.stanzaSelezionata) {
+      const capienzaMax = this.capienzaStanzaSelezionata();
+      if (capienzaMax !== null && this.ospiti.length >= capienzaMax) {
+        alert(`⚠️ Questa stanza consente un massimo di ${capienzaMax} ospit${capienzaMax === 1 ? 'e' : 'i'}.`);
+        return;
+      }
+    }
     this.ospiti.push({ nome: '', cognome: '', dataNascita: '' });
   }
 
@@ -363,7 +377,7 @@ export class Prenotazioni implements OnInit {
     }
   }
 
- prenota(): void {
+  prenota(): void {
     this.messaggio = '';
     this.errore = '';
 
@@ -431,11 +445,9 @@ export class Prenotazioni implements OnInit {
       next: (res: any) => {
         console.log('Risposta ricevuta dal backend:', res);
 
-        // 🟢 FIX FONDAMENTALE: Garantisce che prenotazioneConfermata sia SEMPRE un oggetto valido
         if (res && typeof res === 'object') {
           this.prenotazioneConfermata = res;
         } else {
-          // Se il backend risponde 200 OK ma res è void/null/stringa, creiamo un oggetto di fallback
           this.prenotazioneConfermata = {
             codicePrenotazione: typeof res === 'string' && res ? res : 'PREN-' + Math.floor(1000 + Math.random() * 9000),
             tipoPrenotazione: this.tipoPrenotazione,
@@ -446,8 +458,6 @@ export class Prenotazioni implements OnInit {
 
         this.messaggio = 'Prenotazione confermata con successo!';
         this.scrollToTop();
-        
-        // 🟢 FORZA IL RE-RENDER DELLA VISTA ANGULAR
         this.cdr.detectChanges();
       },
       error: (err: any) => {

@@ -129,9 +129,14 @@
         <select class="form-select" [(ngModel)]="stanzaSelezionata" [ngModelOptions]="{standalone: true}">
           <option value="" disabled selected>Seleziona una stanza...</option>
           <option *ngFor="let stanza of stanzeFiltrate" [value]="getStanzaId(stanza)">
-            Stanza {{ getStanzaNumero(stanza) }}
+            Stanza {{ getStanzaNumero(stanza) }} (Max {{ getStanzaCapienza(stanza) }} ospit{{ getStanzaCapienza(stanza) == 1 ? 'e' : 'i' }})
           </option>
         </select>
+
+        <!-- 🟢 BADGE CAPIENZA DOPO LA SELEZIONE -->
+        <div *ngIf="stanzaSelezionata && capienzaStanzaSelezionata()" class="text-muted small mt-1">
+          ℹ️ Capienza massima stanza selezionata: <strong>{{ capienzaStanzaSelezionata() }} persone</strong>
+        </div>
       </div>
 
       <div class="form-group my-2">
@@ -147,7 +152,7 @@
     <!-- OSPITI -->
     <h2 class="section-title mt-4">Ospiti</h2>
 
-    <!-- 🟢 NUOVO: avviso in tempo reale se si supera la capienza -->
+    <!-- Avviso dinamico in caso di superamento capienza -->
     @if (includeAlbergo() && stanzaSelezionata && superaCapienza()) {
       <div class="alert alert-danger">
         ⚠️ Hai selezionato {{ ospiti.length }} ospiti, ma questa stanza ha una capienza massima di {{ capienzaStanzaSelezionata() }}.
@@ -160,7 +165,15 @@
       <input class="form-input" type="date" [(ngModel)]="ospite.dataNascita" [ngModelOptions]="{standalone: true}">
       <button class="btn-remove" type="button" (click)="rimuoviOspite(i)">Rimuovi</button>
     </div>
-    <button class="btn-secondary my-2" type="button" (click)="aggiungiOspite()">+ Aggiungi ospite</button>
+
+    <!-- 🟢 BOTTONE AGGIUNGI OSPITE DISABILITATO SE SI COPRE LA CAPIENZA MAX -->
+    <button 
+      class="btn-secondary my-2" 
+      type="button" 
+      (click)="aggiungiOspite()"
+      [disabled]="includeAlbergo() && stanzaSelezionata && capienzaStanzaSelezionata() !== null && ospiti.length >= capienzaStanzaSelezionata()!">
+      + Aggiungi ospite
+    </button>
 
     <div *ngIf="includeAlbergo()" class="servizi-container my-3">
       <label class="fw-bold d-block mb-2">Servizi Aggiuntivi:</label>
@@ -190,7 +203,6 @@
       <p>Caparra richiesta (10%): <strong>{{ caparra() }} €</strong></p>
     </div>
 
-    <!-- 🟢 NUOVO: bottone disabilitato se si supera la capienza -->
     <button class="btn-primary" type="button" (click)="prenota()" [disabled]="includeAlbergo() && stanzaSelezionata && superaCapienza()">
       Conferma prenotazione
     </button>
