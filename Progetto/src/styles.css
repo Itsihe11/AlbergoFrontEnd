@@ -502,7 +502,8 @@ label {
   color: var(--white);
   padding: 1rem;
   font-size: 1.05rem;
-  margin-top: 2rem;
+  margin-top: 5px;
+  margin-bottom: 10px;
 }
 
 .btn-primary:hover {
@@ -1577,6 +1578,7 @@ hr {
   color: var(--gold-dark);
   border: 2px solid var(--gold);
   padding: 0.8rem 1.8rem;
+  margin-bottom: 5px;
 }
 
 .btn-outline-primary:hover {
