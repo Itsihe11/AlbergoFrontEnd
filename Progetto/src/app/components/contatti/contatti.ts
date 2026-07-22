@@ -10,5 +10,5 @@ import { Component } from '@angular/core';
 export class Contatti {
   indirizzo = 'Via del Mare 12, 00100 Roma';
   telefono = '+39 06 1234567';
-  email = 'info@hotelsfigati.it';
+  email = 'info@hotelbellocchio.it';
 }
