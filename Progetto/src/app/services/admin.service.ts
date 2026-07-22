@@ -36,5 +36,8 @@ export class AdminService {
   eliminaServizio(id: number | string): Observable<string> {
     return this.http.delete(`/api/dipendenti/servizi/cancellaServizi/${id}`, { responseType: 'text' });
   }
+  getOspitiByCodicePrenotazione(codice: string): Observable<any[]> {
+  return this.http.get<any[]>(`/api/prenotazione/${codice}/ospiti`);
+}
 
 }

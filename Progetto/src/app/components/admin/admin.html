@@ -45,6 +45,7 @@
       <button class="btn-logout" (click)="logout()">Disconnetti</button>
     </nav>
 
+    <!-- 1. SEZIONE GESTIONE PRENOTAZIONI -->
     @if (sezioneAttiva === 'gestionePrenotazioni') {
     <section class="admin-section">
       <div class="d-flex justify-content-between align-items-center mb-3">
@@ -55,8 +56,8 @@
       <div class="card p-3 mb-3 shadow-sm bg-light">
         <div class="row g-2 align-items-center">
           <div class="col-md-6">
-            <label class="fw-bold me-2">Cerca Codice / Tipo:</label>
-            <input type="text" class="form-control" placeholder="Inserisci codice o tipo..." [(ngModel)]="filtroRicerca" />
+            <label class="fw-bold me-2">Cerca Codice / Ospite / Tipo:</label>
+            <input type="text" class="form-control" placeholder="Inserisci codice, ospite o tipo..." [(ngModel)]="filtroRicerca" />
           </div>
           <div class="col-md-6">
             <label class="fw-bold me-2">Filtra Stato:</label>
@@ -77,6 +78,7 @@
           <thead>
             <tr>
               <th>Codice Prenotazione</th>
+              <th>Ospite Principale</th>
               <th>Tipo</th>
               <th>Canale</th>
               <th>Costo Totale</th>
@@ -90,6 +92,9 @@
             <tr>
               <td>
                 <span class="badge bg-dark fs-6">{{ p.codice_prenotazione || p.codicePrenotazione }}</span>
+              </td>
+              <td>
+                <strong>{{ getOspitePrincipale(p) }}</strong>
               </td>
               <td><strong>{{ p.tipo_prenotazione || p.tipoPrenotazione }}</strong></td>
               <td>
@@ -139,7 +144,7 @@
             </tr>
             } @empty {
             <tr>
-              <td colspan="7" class="empty-row text-center text-muted p-4">Nessuna prenotazione trovata con i filtri selezionati.</td>
+              <td colspan="8" class="empty-row text-center text-muted p-4">Nessuna prenotazione trovata con i filtri selezionati.</td>
             </tr>
             }
           </tbody>
@@ -147,6 +152,7 @@
       </div>
     </section>
 
+    <!-- MODAL DI DETTAGLIO PRENOTAZIONE -->
     @if (prenotazioneSelezionataModal) {
     <div class="modal d-block shadow" tabindex="-1" style="background: rgba(0,0,0,0.5);">
       <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -163,8 +169,8 @@
                 <p><strong>Stato Attuale:</strong> {{ prenotazioneSelezionataModal.stato || 'PENDENTE' }}</p>
               </div>
               <div class="col-md-6">
-                <p><strong>Costo Totale:</strong> {{ prenotazioneSelezionataModal.costo_totale || prenotazioneSelezionataModal.costoTotale }} €</p>
-                <p><strong>Caparra Deposito:</strong> {{ prenotazioneSelezionataModal.deposito }} €</p>
+                <p><strong>Costo Totale:</strong> {{ prenotazioneSelezionataModal.costo_totale || prenotazioneSelezionataModal.costoTotale || 0 }} €</p>
+                <p><strong>Caparra Deposito:</strong> {{ prenotazioneSelezionataModal.deposito || 0 }} €</p>
                 <p><strong>Pagamento:</strong> {{ prenotazioneSelezionataModal.tipo_pagamento || prenotazioneSelezionataModal.tipoPagamento }} ({{ prenotazioneSelezionataModal.pagato ? 'Saldato' : 'In sospeso' }})</p>
               </div>
             </div>
@@ -173,12 +179,12 @@
 
             <h6 class="fw-bold">Ospiti Registrati:</h6>
             <ul class="list-group mb-3">
-              <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let o of prenotazioneSelezionataModal.ospiti">
-                <span><strong>{{ o.nome }} {{ o.cognome }}</strong></span>
-                <span class="text-muted" *ngIf="o.dataNascita || o.datanascita">Data nascita: {{ o.dataNascita || o.datanascita }}</span>
+              <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let o of getOspitiModal(prenotazioneSelezionataModal)">
+                <span><strong>{{ getNomeOspite(o) }} {{ getCognomeOspite(o) }}</strong></span>
+                <span class="text-muted" *ngIf="getDataNascitaOspite(o)">Data nascita: {{ getDataNascitaOspite(o) }}</span>
               </li>
-              <li class="list-group-item text-muted fst-italic" *ngIf="!prenotazioneSelezionataModal.ospiti || prenotazioneSelezionataModal.ospiti.length === 0">
-                Nessun dettaglio ospite.
+              <li class="list-group-item text-muted fst-italic" *ngIf="getOspitiModal(prenotazioneSelezionataModal).length === 0">
+                Nessun dettaglio ospite presente per questa prenotazione.
               </li>
             </ul>
           </div>
@@ -191,6 +197,7 @@
     }
     }
 
+    <!-- 2. SEZIONE NUOVA PRENOTAZIONE IN SEDE -->
     @if (sezioneAttiva === 'nuovaPrenotazione') {
     <section class="admin-section">
       <h3 class="section-title">Nuova Prenotazione in Sede</h3>
@@ -394,6 +401,7 @@
     </section>
     }
 
+    <!-- 3. SEZIONE ELENCO STANZE -->
     @if (sezioneAttiva === 'stanze') {
     <section class="admin-section">
       <div class="d-flex justify-content-between align-items-center mb-3">
@@ -453,9 +461,9 @@
           <tbody>
             @for (s of stanze; track getStanzaId(s)) {
             <tr>
-              <td>{{ s.numeroStanza }}</td>
-              <td>{{ s.tipologia?.nome ?? 'N/D' }}</td>
-              <td>{{ s.tipologia?.prezzo ? (s.tipologia.prezzo + '€') : 'N/D' }}</td>
+              <td>{{ s.numeroStanza || s.numero }}</td>
+              <td>{{ s.tipologia?.nome || s.tipologiaStanza?.nomeTipologia || 'N/D' }}</td>
+              <td>{{ (s.tipologia?.prezzo || s.tipologiaStanza?.prezzo) ? ((s.tipologia?.prezzo || s.tipologiaStanza?.prezzo) + ' €') : 'N/D' }}</td>
               <td>
                 <div class="d-flex gap-1">
                   <button class="btn-edit btn btn-sm btn-warning me-1" (click)="avviaModificaStanza(s)">Modifica</button>
@@ -474,6 +482,7 @@
     </section>
     }
 
+    <!-- 4. SEZIONE ELENCO TIPOLOGIE CAMERA -->
     @if (sezioneAttiva === 'tipologie') {
     <section class="admin-section">
       <div class="d-flex justify-content-between align-items-center mb-3">
@@ -555,6 +564,7 @@
     </section>
     }
 
+    <!-- 5. SEZIONE ELENCO SERVIZI AGGIUNTIVI -->
     @if (sezioneAttiva === 'servizi') {
     <section class="admin-section">
       <div class="d-flex justify-content-between align-items-center mb-3">

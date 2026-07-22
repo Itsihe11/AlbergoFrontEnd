@@ -200,14 +200,51 @@ export class Admin implements OnInit {
     return this.listaPrenotazioni.filter(p => {
       const codice = (p.codice_prenotazione || p.codicePrenotazione || '').toLowerCase();
       const tipo = (p.tipo_prenotazione || p.tipoPrenotazione || '').toLowerCase();
+      const ospite = this.getOspitePrincipale(p).toLowerCase();
       const ricerca = this.filtroRicerca.toLowerCase().trim();
 
-      const coincideRicerca = !ricerca || codice.includes(ricerca) || tipo.includes(ricerca);
+      const coincideRicerca = !ricerca || codice.includes(ricerca) || tipo.includes(ricerca) || ospite.includes(ricerca);
       const coincideStato = this.filtroStato === 'TUTTI' || (p.stato || 'PENDENTE').toUpperCase() === this.filtroStato.toUpperCase();
 
       return coincideRicerca && coincideStato;
     });
   }
+
+  // --- HELPER PER LA GESTIONE DEGLI OSPITI ---
+  getOspitiModal(p: any): any[] {
+    if (!p) return [];
+    if (Array.isArray(p.ospiti) && p.ospiti.length > 0) return p.ospiti;
+    if (Array.isArray(p.listaOspiti) && p.listaOspiti.length > 0) return p.listaOspiti;
+    if (p.ospite) return Array.isArray(p.ospite) ? p.ospite : [p.ospite];
+    return [];
+  }
+
+  getNomeOspite(o: any): string {
+    if (!o) return '';
+    if (typeof o === 'string') return o;
+    return o.nome || o.nomeOspite || o.nome_ospite || '';
+  }
+
+  getCognomeOspite(o: any): string {
+    if (!o) return '';
+    if (typeof o === 'string') return '';
+    return o.cognome || o.cognomeOspite || o.cognome_ospite || '';
+  }
+
+  getDataNascitaOspite(o: any): string {
+    if (!o) return '';
+    return o.dataNascita || o.data_nascita || o.datanascita || '';
+  }
+
+  getOspitePrincipale(p: any): string {
+    const lista = this.getOspitiModal(p);
+    if (lista.length === 0) return 'Non specificato';
+    const primo = lista[0];
+    const nome = this.getNomeOspite(primo);
+    const cognome = this.getCognomeOspite(primo);
+    return `${nome} ${cognome}`.trim() || 'Ospite sconosciuto';
+  }
+  // ------------------------------------------
 
   effettuaCheckIn(codice: string): void {
     if (confirm(`Confermi l'esecuzione del Check-in per la prenotazione #${codice}?`)) {
@@ -237,10 +274,24 @@ export class Admin implements OnInit {
     }
   }
 
-  apriDettaglioModal(p: any): void {
-    this.prenotazioneSelezionataModal = p;
-  }
+apriDettaglioModal(p: any): void {
+  this.prenotazioneSelezionataModal = { ...p, ospiti: [] };
+  const codice = p.codice_prenotazione || p.codicePrenotazione;
 
+  if (codice) {
+    this.prenotazioniService.getOspitiByCodicePrenotazione(codice).subscribe({
+      next: (ospitiDalDb: any[]) => {
+        this.prenotazioneSelezionataModal.ospiti = ospitiDalDb || [];
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Errore durante il caricamento degli ospiti:', err);
+        this.prenotazioneSelezionataModal.ospiti = [];
+        this.cdr.detectChanges();
+      }
+    });
+  }
+}
   chiudiDettaglioModal(): void {
     this.prenotazioneSelezionataModal = null;
   }

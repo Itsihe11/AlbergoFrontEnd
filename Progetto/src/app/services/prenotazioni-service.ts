@@ -66,4 +66,7 @@ export class PrenotazioniService {
   annullaPrenotazione(codice: string): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}/annulla/${codice}/false`, {});
   }
+getOspitiByCodicePrenotazione(codice: string): Observable<any[]> {
+  return this.http.get<any[]>(`/api/prenotazione/${codice}/ospiti`);
+}
 }
