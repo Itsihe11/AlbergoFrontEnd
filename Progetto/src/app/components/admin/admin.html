@@ -29,15 +29,14 @@
           (click)="sezioneAttiva = 'prenotazione'">
           Nuova Prenotazione
         </button>
-        <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'tipologie'"
-          (click)="sezioneAttiva = 'tipologie'">
-          Crea Tipologie Camera
-        </button>
         <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'stanze'" (click)="sezioneAttiva = 'stanze'">
-          Crea Stanza
-        </button>
-        <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'elenco'" (click)="sezioneAttiva = 'elenco'">
           Elenco Stanze
+        </button>
+        <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'tipologie'" (click)="sezioneAttiva = 'tipologie'">
+          Elenco Tipologie Camera
+        </button>
+        <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'servizi'" (click)="sezioneAttiva = 'servizi'">
+          Elenco Servizi
         </button>
       </div>
       <button class="btn-logout" (click)="logout()">Disconnetti</button>
@@ -90,13 +89,11 @@
             </div>
           </div>
 
-          <!-- Istruzioni Bonifico se selezionato -->
           <div *ngIf="metodoPagamento === 'BONIFICO'" class="alert alert-info">
             <h6 class="fw-bold">📌 Coordinate per Bonifico Bancario:</h6>
             <p class="m-0">IBAN: <strong>IT60X0542811101000000123456</strong> - Causale: <strong>Prenotazione {{ prenotazioneConfermata.codice_prenotazione || prenotazioneConfermata.codicePrenotazione }}</strong></p>
           </div>
 
-          <!-- Messaggio Carta di Credito se selezionata -->
           <div *ngIf="metodoPagamento === 'CARTA'" class="alert alert-success">
             <h6 class="fw-bold">💳 Pagamento con Carta:</h6>
             <p class="m-0">Il pagamento tramite Carta di Credito è stato registrato ed autorizzato correttamente.</p>
@@ -112,15 +109,12 @@
       } @else {
       <!-- MODULO DI PRENOTAZIONE -->
       <div class="admin-form">
-
-        <!-- BANNER DI ERRORE BEN VISIBILE -->
         @if (errore) {
         <div class="alert alert-danger fw-bold my-3 shadow-sm p-3 border border-danger rounded" style="background-color: #f8d7da; color: #721c24;">
           ⚠️ {{ errore }}
         </div>
         }
 
-        <!-- BANNER DI SUCCESSO -->
         @if (messaggio) {
         <div class="alert alert-success fw-bold my-3 shadow-sm p-3 border border-success rounded" style="background-color: #d4edda; color: #155724;">
           {{ messaggio }}
@@ -155,7 +149,7 @@
           <label>Tipo Camera</label>
           <select class="form-select" [(ngModel)]="tipoCamera" (ngModelChange)="onTipoCameraChange($event)">
             <option value="" disabled selected>Seleziona un tipo di camera</option>
-            @for (tipo of tipiCamera; track $index) {
+            @for (tipo of tipiCamera; track getTipologiaId(tipo)) {
             <option [value]="getValoreTipoCamera(tipo)">
               {{ getValoreTipoCamera(tipo) }}
             </option>
@@ -167,7 +161,7 @@
           <label>Numero Stanza</label>
           <select class="form-select" [(ngModel)]="stanzaSelezionata">
             <option value="" disabled selected>Seleziona una stanza...</option>
-            @for (stanza of stanzeFiltrate; track $index) {
+            @for (stanza of stanzeFiltrate; track getStanzaId(stanza)) {
             <option [value]="getStanzaId(stanza)">
               Stanza {{ getStanzaNumero(stanza) }}
             </option>
@@ -178,7 +172,7 @@
         <div class="form-group">
           <label>Pensione</label>
           <select class="form-select" [(ngModel)]="pensione">
-            @for (p of listaPensioni; track $index) {
+            @for (p of listaPensioni; track p.tipo) {
             <option [value]="p.tipo">
               {{ p.nome || p.tipo }} (+{{ p.prezzo }} €/giorno)
             </option>
@@ -186,7 +180,7 @@
           </select>
         </div>
 
-        <!-- SERVIZI AGGIUNTIVI (SOLO ALBERGO) -->
+        <!-- SERVIZI AGGIUNTIVI -->
         <div class="servizi-container my-3">
           <label class="fw-bold d-block mb-2">Servizi Aggiuntivi:</label>
           <div *ngIf="listaServizi.length > 0; else noServizi" class="servizi-grid">
@@ -217,7 +211,6 @@
         }
         <button class="btn-secondary my-2" type="button" (click)="aggiungiOspite()">+ Aggiungi ospite</button>
 
-        <!-- METODO DI PAGAMENTO CON CARTA E BONIFICO -->
         <div class="form-group my-3">
           <label class="fw-bold">Metodo di Pagamento:</label>
           <select [(ngModel)]="metodoPagamento" class="form-select">
@@ -226,7 +219,6 @@
           </select>
         </div>
 
-        <!-- RIEPILOGO PREZZO -->
         <div class="price-summary my-3">
           <p class="fs-5">Prezzo totale: <strong>{{ prezzoTotale() }} €</strong></p>
         </div>
@@ -237,71 +229,49 @@
     </section>
     }
 
-    <!-- SEZIONE 2: TIPOLOGIA CAMERA -->
-    @if (sezioneAttiva === 'tipologie') {
-    <section class="admin-section">
-      <h3 class="section-title">Creazione Tipologia Camera</h3>
-      <form class="admin-form" (ngSubmit)="salvaTipoCamera()">
-        <div class="form-group">
-          <label>Nome Tipologia:</label>
-          <input class="form-input" type="text" placeholder="es. Suite Deluxe" [(ngModel)]="nuovoTipoCamera.nome" name="nome" required />
-        </div>
-        <div class="form-group">
-          <label>Descrizione:</label>
-          <input class="form-input" type="text" placeholder="Descrizione della stanza..." [(ngModel)]="nuovoTipoCamera.descrizione" name="descrizione" />
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Prezzo a Notte (€):</label>
-            <input class="form-input" type="number" min="1" [(ngModel)]="nuovoTipoCamera.prezzo" name="prezzo" required />
-          </div>
-          <div class="form-group">
-            <label>Capienza (numero ospiti):</label>
-            <input class="form-input" type="number" min="1" [(ngModel)]="nuovoTipoCamera['capienza']" name="capienza" />
-          </div>
-        </div>
-        <button class="btn-primary" type="submit">Salva Tipologia</button>
-      </form>
-    </section>
-    }
-
-    <!-- SEZIONE 3: CREA STANZA -->
+    <!-- SEZIONE 2: ELENCO STANZE -->
     @if (sezioneAttiva === 'stanze') {
     <section class="admin-section">
-      <h3 class="section-title">Crea una Stanza fisica</h3>
-      <form class="admin-form" (ngSubmit)="salvaStanza()">
-        <div class="form-group">
-          <label>Numero Stanza:</label>
-          <input class="form-input" type="text" placeholder="es. 101" [(ngModel)]="numeroStanza" name="numeroStanza" required />
-        </div>
-        <div class="form-group">
-          <label>Stato:</label>
-          <select class="form-select" [(ngModel)]="statusStanza" name="statusStanza">
-            <option value="disponibile">disponibile</option>
-            <option value="OCCUPATA">Occupata</option>
-            <option value="MANUTENZIONE">In manutenzione</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Tipologia:</label>
-          <select class="form-select" [(ngModel)]="idTipoCameraSelezionato" name="tipoCamera" required>
-            <option [ngValue]="null" disabled selected>-- Seleziona Tipologia --</option>
-            @for (t of tipiCamera; track $index) {
-            <option [value]="getTipologiaId(t)">
-              {{ getValoreTipoCamera(t) }} ({{ t.prezzo }}€/notte)
-            </option>
-            }
-          </select>
-        </div>
-        <button class="btn-primary" type="submit">Crea Stanza</button>
-      </form>
-    </section>
-    }
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="section-title m-0">Elenco Stanze</h3>
+        <button class="btn-primary" (click)="mostraFormStanza = !mostraFormStanza">
+          {{ mostraFormStanza ? '❌ Chiudi Form' : '➕ Crea Stanza' }}
+        </button>
+      </div>
 
-    <!-- SEZIONE 4: ELENCO STANZE -->
-    @if (sezioneAttiva === 'elenco') {
-    <section class="admin-section">
-      <h3 class="section-title">Elenco Stanze</h3>
+      <!-- FORM DI CREAZIONE STANZA (TOGGLE) -->
+      @if (mostraFormStanza) {
+      <div class="card p-3 mb-4 shadow-sm">
+        <h4 class="mb-3">Nuova Stanza</h4>
+        <form class="admin-form" (ngSubmit)="salvaStanza()">
+          <div class="form-group">
+            <label>Numero Stanza:</label>
+            <input class="form-input" type="text" placeholder="es. 101" [(ngModel)]="numeroStanza" name="numeroStanza" required />
+          </div>
+          <div class="form-group">
+            <label>Stato:</label>
+            <select class="form-select" [(ngModel)]="statusStanza" name="statusStanza">
+              <option value="disponibile">disponibile</option>
+              <option value="OCCUPATA">Occupata</option>
+              <option value="MANUTENZIONE">In manutenzione</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tipologia:</label>
+            <select class="form-select" [(ngModel)]="idTipoCameraSelezionato" name="tipoCamera" required>
+              <option [ngValue]="null" disabled selected>-- Seleziona Tipologia --</option>
+              @for (t of tipiCamera; track getTipologiaId(t)) {
+              <option [value]="getTipologiaId(t)">
+                {{ getValoreTipoCamera(t) }} ({{ t.prezzo }}€/notte)
+              </option>
+              }
+            </select>
+          </div>
+          <button class="btn-primary" type="submit">Salva Stanza</button>
+        </form>
+      </div>
+      }
+
       <div class="table-wrapper">
         <table class="admin-table">
           <thead>
@@ -314,7 +284,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (s of stanze; track s.id) {
+            @for (s of stanze; track getStanzaId(s)) {
             <tr>
               <td>{{ s.numeroStanza }}</td>
               <td>{{ s.tipologia?.nome ?? 'N/D' }}</td>
@@ -325,6 +295,145 @@
             } @empty {
             <tr>
               <td colspan="5" class="empty-row">Nessuna stanza presente a sistema.</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+    }
+
+    <!-- SEZIONE 3: ELENCO TIPOLOGIE CAMERA -->
+    @if (sezioneAttiva === 'tipologie') {
+    <section class="admin-section">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="section-title m-0">Elenco Tipologie Camera</h3>
+        <button class="btn-primary" (click)="mostraFormTipologia = !mostraFormTipologia">
+          {{ mostraFormTipologia ? '❌ Chiudi Form' : '➕ Crea Tipologia Camera' }}
+        </button>
+      </div>
+
+      <!-- FORM DI CREAZIONE TIPOLOGIA (TOGGLE) -->
+      @if (mostraFormTipologia) {
+      <div class="card p-3 mb-4 shadow-sm">
+        <h4 class="mb-3">Nuova Tipologia Camera</h4>
+        <form class="admin-form" (ngSubmit)="salvaTipoCamera()">
+          <div class="form-group">
+            <label>Nome Tipologia:</label>
+            <input class="form-input" type="text" placeholder="es. Suite Deluxe" [(ngModel)]="nuovoTipoCamera.nome" name="nome" required />
+          </div>
+          <div class="form-group">
+            <label>Descrizione:</label>
+            <input class="form-input" type="text" placeholder="Descrizione della stanza..." [(ngModel)]="nuovoTipoCamera.descrizione" name="descrizione" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Prezzo a Notte (€):</label>
+              <input class="form-input" type="number" min="1" [(ngModel)]="nuovoTipoCamera.prezzo" name="prezzo" required />
+            </div>
+            <div class="form-group">
+              <label>Capienza (numero ospiti):</label>
+              <input class="form-input" type="number" min="1" [(ngModel)]="nuovoTipoCamera['capienza']" name="capienza" />
+            </div>
+          </div>
+          <button class="btn-primary" type="submit">Salva Tipologia</button>
+        </form>
+      </div>
+      }
+
+      <div class="table-wrapper">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Nome Tipologia</th>
+              <th>Descrizione</th>
+              <th>Capienza</th>
+              <th>Prezzo Notte</th>
+              <th>Azione</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 🟢 TRACCIAMENTO TRAMITE ID REALE -->
+            @for (t of tipiCamera; track getTipologiaId(t)) {
+            <tr>
+              <td><strong>{{ getValoreTipoCamera(t) }}</strong></td>
+              <td>{{ t.descrizione || '-' }}</td>
+              <td>{{ t.capienza || 2 }} ospiti</td>
+              <td>{{ t.prezzo }} €</td>
+              <td>
+                <button class="btn-delete" (click)="eliminaTipoCamera(getTipologiaId(t))">Elimina</button>
+              </td>
+            </tr>
+            } @empty {
+            <tr>
+              <td colspan="5" class="empty-row">Nessuna tipologia camera registrata.</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+    }
+
+    <!-- SEZIONE 4: ELENCO SERVIZI -->
+    @if (sezioneAttiva === 'servizi') {
+    <section class="admin-section">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="section-title m-0">Elenco Servizi Aggiuntivi</h3>
+        <button class="btn-primary" (click)="mostraFormServizio = !mostraFormServizio">
+          {{ mostraFormServizio ? '❌ Chiudi Form' : '➕ Crea Servizio' }}
+        </button>
+      </div>
+
+      <!-- FORM DI CREAZIONE SERVIZIO (TOGGLE) -->
+      @if (mostraFormServizio) {
+      <div class="card p-3 mb-4 shadow-sm">
+        <h4 class="mb-3">Nuovo Servizio Aggiuntivo</h4>
+        <form class="admin-form" (ngSubmit)="salvaServizio()">
+          <div class="form-group">
+            <label>Nome Servizio:</label>
+            <input class="form-input" type="text" placeholder="es. Spa Incluso, Posto Auto, Colazione in camera" 
+                   [(ngModel)]="nuovoServizio.nomeservizio" name="nomeservizio" required />
+          </div>
+          <div class="form-group">
+            <label>Descrizione:</label>
+            <input class="form-input" type="text" placeholder="Breve descrizione del servizio..." 
+                   [(ngModel)]="nuovoServizio.descrizione" name="descrizione" />
+          </div>
+          <div class="form-group">
+            <label>Prezzo (€):</label>
+            <input class="form-input" type="number" step="0.01" min="0" 
+                   [(ngModel)]="nuovoServizio.prezzi" name="prezzi" required />
+          </div>
+          <button class="btn-primary" type="submit">Salva Servizio</button>
+        </form>
+      </div>
+      }
+
+      <div class="table-wrapper">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Nome Servizio</th>
+              <th>Descrizione</th>
+              <th>Prezzo</th>
+              <th>Azione</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 🟢 TRACCIAMENTO TRAMITE ID REALE -->
+            @for (s of listaServizi; track getServizioId(s)) {
+            <tr>
+              <td><strong>{{ getServizioNome(s) }}</strong></td>
+              <td>{{ getServizioDescrizione(s) }}</td>
+              <td>{{ getServizioPrezzo(s) }} €</td>
+              <td>
+                <button class="btn-delete" (click)="eliminaServizio(getServizioId(s))">Elimina</button>
+              </td>
+            </tr>
+            } @empty {
+            <tr>
+              <td colspan="4" class="empty-row">Nessun servizio disponibile a sistema.</td>
             </tr>
             }
           </tbody>

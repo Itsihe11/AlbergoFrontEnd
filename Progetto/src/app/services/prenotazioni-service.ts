@@ -27,6 +27,7 @@ export class PrenotazioniService {
   private http = inject(HttpClient);
   private readonly urlPrenotazione = '/api/prenotazione';
 
+
   // 🟢 Aggiungi questo metodo dentro PrenotazioniService
 loginUtente(email: string, pin: string): Observable<any> {
   return this.http.post<any>(`${this.urlPrenotazione}/login-utente`, { email, pin });
@@ -81,4 +82,6 @@ modificaOspitiECreaAccount(payload: any): Observable<any> {
   cedePrenotazione(id: string | number, nuovoIntestatario: Ospite): Observable<Prenotazione> {
     return this.http.put<Prenotazione>(`${this.urlPrenotazione}/${id}/cedi`, nuovoIntestatario);
   }
+
+
 }

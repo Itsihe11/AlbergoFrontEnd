@@ -28,7 +28,14 @@ export class Admin implements OnInit {
   password = '';
   errorMessage = '';
   isLogged = false;
-  sezioneAttiva: 'prenotazione' | 'tipologie' | 'stanze' | 'elenco' = 'prenotazione';
+  
+  // Sezioni di navigazione
+  sezioneAttiva: 'prenotazione' | 'stanze' | 'tipologie' | 'servizi' = 'prenotazione';
+
+  // Flag per mostrare/nascondere i form di creazione
+  mostraFormStanza: boolean = false;
+  mostraFormTipologia: boolean = false;
+  mostraFormServizio: boolean = false;
 
   // Stato Admin
   tipiCamera: TipoCamera[] = [];
@@ -41,10 +48,16 @@ export class Admin implements OnInit {
     capienza: 2
   };
 
+  nuovoServizio = {
+    nomeservizio: '',
+    descrizione: '',
+    prezzi: 0
+  };
+
   numeroStanza = '';
   statusStanza = 'disponibile';
   tipoCameraSelezionato: TipoCamera | null = null;
-  idTipoCameraSelezionato: number | string | null = null; // 🟢 Aggiunto per il binding sicuro da <select>
+  idTipoCameraSelezionato: number | string | null = null;
 
   // Stato Prenotazione
   tipoPrenotazione: string = 'SPA';
@@ -100,7 +113,7 @@ export class Admin implements OnInit {
     const datiLogin: RichiestaAdmin = { username: this.username, password: this.password };
 
     this.adminService.login(datiLogin).subscribe({
-      next: (res) => {
+      next: () => {
         this.adminService.setLoggedIn(true);
         localStorage.setItem('utente_logged', JSON.stringify({ ruolo: 'ADMIN', username: this.username }));
         this.isLogged = true;
@@ -122,17 +135,28 @@ export class Admin implements OnInit {
 
   caricaDati(): void {
     this.camereService.getTipiCamera().subscribe({
-      next: dati => this.tipiCamera = dati,
+      next: dati => {
+        this.tipiCamera = [...dati];
+        this.cdr.detectChanges();
+      },
       error: err => console.error('Errore caricamento tipologie:', err)
     });
 
     this.camereService.getStanze().subscribe({
-      next: dati => this.stanze = dati,
+      next: dati => {
+        this.stanze = [...dati];
+        this.cdr.detectChanges();
+      },
       error: err => console.error('Errore caricamento stanze:', err)
     });
 
     this.prenotazioniService.getPensioni().subscribe({
-      next: data => { if (data && data.length > 0) this.listaPensioni = data; },
+      next: data => {
+        if (data && data.length > 0) {
+          this.listaPensioni = [...data];
+          this.cdr.detectChanges();
+        }
+      },
       error: err => console.warn('Pensione API offline:', err)
     });
 
@@ -165,14 +189,9 @@ export class Admin implements OnInit {
     this.camereService.creaTipoCamera(payload).subscribe({
       next: () => {
         alert('Tipologia camera creata con successo!');
-        this.nuovoTipoCamera = {
-          nome: '',
-          descrizione: '',
-          prezzo: 0,
-          capienza: 2
-        };
+        this.nuovoTipoCamera = { nome: '', descrizione: '', prezzo: 0, capienza: 2 };
+        this.mostraFormTipologia = false;
         this.caricaDati();
-        this.cdr.detectChanges();
       },
       error: err => {
         console.error('Errore creazione tipologia:', err);
@@ -181,17 +200,43 @@ export class Admin implements OnInit {
     });
   }
 
-  // 🟢 HELPER PER ESTRARRE L'ID DELLA TIPOLOGIA
+  salvaServizio(): void {
+    const nomeVal = (this.nuovoServizio.nomeservizio || '').trim();
+    const prezzoVal = Number(this.nuovoServizio.prezzi);
+
+    if (!nomeVal || isNaN(prezzoVal) || prezzoVal < 0) {
+      alert('Inserisci un nome valido e un prezzo maggiore o uguale a 0!');
+      return;
+    }
+
+    const payload = {
+      nomeservizio: nomeVal,
+      descrizione: (this.nuovoServizio.descrizione || '').trim(),
+      prezzi: prezzoVal
+    };
+
+    this.adminService.creaServizio(payload).subscribe({
+      next: () => {
+        alert('Servizio creato con successo!');
+        this.nuovoServizio = { nomeservizio: '', descrizione: '', prezzi: 0 };
+        this.mostraFormServizio = false;
+        this.caricaServizi();
+      },
+      error: (err: any) => {
+        console.error('Errore creazione servizio:', err);
+        alert('Si è verificato un errore durante il salvataggio del servizio.');
+      }
+    });
+  }
+
   getTipologiaId(tipo: any): number | string {
     if (!tipo) return '';
     return tipo.id || tipo.idTipologia || tipo.id_tipologia || '';
   }
 
-  // 🟢 CREAZIONE STANZA AGGIORNATA
   salvaStanza(): void {
     const numStanza = (this.numeroStanza || '').toString().trim();
 
-    // Recupera l'oggetto tipologia sia se presente direttamente, sia cercando tramite ID
     let tipologiaObj = this.tipoCameraSelezionato;
     if (!tipologiaObj && this.idTipoCameraSelezionato) {
       tipologiaObj = this.tipiCamera.find(
@@ -211,8 +256,6 @@ export class Admin implements OnInit {
       tipologiaStanza: tipologiaObj
     };
 
-    console.log('Salvataggio stanza:', nuovaStanza);
-
     this.camereService.creaStanza(nuovaStanza).subscribe({
       next: () => {
         alert('Stanza creata con successo!');
@@ -220,9 +263,8 @@ export class Admin implements OnInit {
         this.statusStanza = 'disponibile';
         this.tipoCameraSelezionato = null;
         this.idTipoCameraSelezionato = null;
-        
+        this.mostraFormStanza = false;
         this.caricaDati();
-        this.cdr.detectChanges();
       },
       error: err => {
         console.error('Errore salvataggio stanza:', err);
@@ -233,16 +275,95 @@ export class Admin implements OnInit {
 
   eliminaStanza(id?: number): void {
     if (!id) return;
-    this.camereService.eliminaStanza(id).subscribe({
-      next: () => this.caricaDati(),
-      error: err => console.error('Errore eliminazione stanza:', err)
-    });
+    if (confirm('Sei sicuro di voler eliminare questa stanza?')) {
+      this.camereService.eliminaStanza(id).subscribe({
+        next: () => {
+          this.stanze = this.stanze.filter(s => s.id !== id);
+          this.cdr.detectChanges();
+          this.caricaDati();
+        },
+        error: err => {
+          if (err.status === 200 || err.statusText === 'OK') {
+            this.stanze = this.stanze.filter(s => s.id !== id);
+            this.cdr.detectChanges();
+            this.caricaDati();
+            return;
+          }
+          console.error('Errore eliminazione stanza:', err);
+          alert('Impossibile eliminare la stanza.');
+        }
+      });
+    }
+  }
+
+  // 🟢 ELIMINA TIPOLOGIA CAMERA
+  eliminaTipoCamera(id?: number | string): void {
+    if (!id) {
+      alert('ID tipologia non trovato!');
+      return;
+    }
+
+    if (confirm('Sei sicuro di voler eliminare questa tipologia camera?')) {
+      this.camereService.eliminaTipoCamera(id).subscribe({
+        next: () => {
+          this.tipiCamera = this.tipiCamera.filter(t => this.getTipologiaId(t).toString() !== id.toString());
+          this.cdr.detectChanges();
+          this.caricaDati();
+        },
+        error: (err: any) => {
+          if (err.status === 200 || err.statusText === 'OK') {
+            this.tipiCamera = this.tipiCamera.filter(t => this.getTipologiaId(t).toString() !== id.toString());
+            this.cdr.detectChanges();
+            this.caricaDati();
+            return;
+          }
+          console.error('Errore eliminazione tipologia:', err);
+          alert('Impossibile eliminare: la tipologia potrebbe essere usata da una stanza o prenotazione.');
+        }
+      });
+    }
+  }
+
+  // 🟢 ELIMINA SERVIZIO (CON REFRESH REATTIVO ED ELIMINAZIONE LOCALE)
+  eliminaServizio(id?: number | string): void {
+    const numId = Number(id);
+    if (!numId || isNaN(numId)) {
+      alert('ID servizio non valido!');
+      return;
+    }
+
+    if (confirm('Sei sicuro di voler eliminare questo servizio?')) {
+      this.adminService.eliminaServizio(numId).subscribe({
+        next: () => {
+          // Rimuove immediatamente il servizio dall'array
+          this.listaServizi = this.listaServizi.filter(s => this.getServizioId(s) !== numId);
+          this.cdr.detectChanges();
+          this.caricaServizi();
+        },
+        error: (err: any) => {
+          // Gestione risposta Spring Boot text '200 OK'
+          if (err.status === 200 || err.statusText === 'OK') {
+            this.listaServizi = this.listaServizi.filter(s => this.getServizioId(s) !== numId);
+            this.cdr.detectChanges();
+            this.caricaServizi();
+            return;
+          }
+          console.error('Errore eliminazione servizio:', err);
+          alert('Impossibile eliminare il servizio: verificare che non sia legato a prenotazioni esistenti.');
+        }
+      });
+    }
   }
 
   caricaServizi(): void {
     if (typeof this.prenotazioniService.getServizi === 'function') {
       this.prenotazioniService.getServizi().subscribe({
-        next: res => { if (res) this.listaServizi = res; },
+        next: res => {
+          if (res) {
+            this.listaServizi = [...res];
+            this.cdr.detectChanges();
+          }
+        },
         error: err => console.warn('Servizi API offline.', err)
       });
     }
@@ -252,7 +373,10 @@ export class Admin implements OnInit {
     this.caricamentoStanze = true;
     this.prenotazioniService.getTutteLeStanze().subscribe({
       next: res => {
-        if (res && res.length > 0) this.stanzeDisponibili = res;
+        if (res && res.length > 0) {
+          this.stanzeDisponibili = [...res];
+          this.cdr.detectChanges();
+        }
         this.caricamentoStanze = false;
       },
       error: err => {
@@ -269,7 +393,10 @@ export class Admin implements OnInit {
 
     this.prenotazioniService.getStanzeDisponibili(this.checkIn, this.checkOut).subscribe({
       next: res => {
-        if (res && res.length > 0) this.stanzeDisponibili = res;
+        if (res && res.length > 0) {
+          this.stanzeDisponibili = [...res];
+          this.cdr.detectChanges();
+        }
         this.caricamentoStanze = false;
       },
       error: err => {
@@ -303,6 +430,10 @@ export class Admin implements OnInit {
 
   getServizioPrezzo(servizio: any): number {
     return Number(servizio?.prezzi || servizio?.prezzo || 0);
+  }
+
+  getServizioDescrizione(servizio: any): string {
+    return servizio?.descrizione || '-';
   }
 
   onTipoCameraChange(tipo: string): void {
@@ -495,12 +626,8 @@ export class Admin implements OnInit {
       serviziAggiuntivi: this.includeAlbergo() ? this.serviziSelezionatiIds.map(id => Number(id)) : []
     };
 
-    console.log('Payload inviato da Admin:', payload);
-
     this.prenotazioniService.creaPrenotazione(payload).subscribe({
       next: (res: any) => {
-        console.log('Risposta backend ricevuta:', res);
-
         if (typeof res === 'string') {
           this.prenotazioneConfermata = {
             codicePrenotazione: res,
@@ -519,8 +646,6 @@ export class Admin implements OnInit {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       },
       error: (err: any) => {
-        console.error('Errore risposta Spring Boot:', err);
-
         if (err.status === 200 || err.statusText === 'OK') {
           const codice = err.error?.text || err.error || 'CONFERMATA';
           this.prenotazioneConfermata = {
@@ -534,15 +659,7 @@ export class Admin implements OnInit {
           return;
         }
 
-        let msgExt = '';
-        if (typeof err.error === 'string') {
-          msgExt = err.error;
-        } else if (err.error && typeof err.error.message === 'string') {
-          msgExt = err.error.message;
-        } else if (err.message) {
-          msgExt = err.message;
-        }
-
+        let msgExt = err.error?.message || err.error || err.message || '';
         if (msgExt.includes('capienza') || msgExt.includes('Numero ospiti')) {
           this.errore = '⚠️ Impossibile completare la prenotazione: Numero di ospiti superiore alla capienza massima della stanza!';
         } else if (msgExt) {

@@ -42,4 +42,7 @@ export class CamereService {
   eliminaStanza(id: number): Observable<string> {
     return this.http.delete(`${this.apiStanze}/cancellaStanza/${id}`, { responseType: 'text' });
   }
+  eliminaTipoCamera(id: number | string): Observable<any> {
+  return this.http.delete(`${this.apiTipologiaStanze}/cancellaTipologia/${id}`); // verifica il tuo endpoint backend per le tipologie
+}
 }

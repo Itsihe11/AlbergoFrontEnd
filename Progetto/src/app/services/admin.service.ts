@@ -27,4 +27,14 @@ export class AdminService {
   isLoggedIn(): boolean {
     return this.loggedIn;
   }
+
+
+creaServizio(servizio: { nomeservizio: string; descrizione: string; prezzi: number }): Observable<string> {
+  return this.http.post('/api/dipendenti/servizi/datiServizi', servizio, { responseType: 'text' });
+}
+
+eliminaServizio(id: number | string): Observable<string> {
+  return this.http.delete(`/api/dipendenti/servizi/cancellaServizi/${id}`, { responseType: 'text' });
+}
+
 }
