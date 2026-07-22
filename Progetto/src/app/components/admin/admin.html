@@ -23,8 +23,12 @@
   <div class="admin-panel">
     <nav class="admin-navbar">
       <div class="admin-navbar-links">
-        <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'prenotazione'"
-          (click)="sezioneAttiva = 'prenotazione'">
+        <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'gestionePrenotazioni'"
+          (click)="sezioneAttiva = 'gestionePrenotazioni'; caricaPrenotazioni()">
+          Gestione Prenotazioni
+        </button>
+        <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'nuovaPrenotazione'"
+          (click)="sezioneAttiva = 'nuovaPrenotazione'">
           Nuova Prenotazione
         </button>
         <button class="admin-nav-btn" [class.active]="sezioneAttiva === 'stanze'" (click)="sezioneAttiva = 'stanze'">
@@ -40,9 +44,156 @@
       </div>
       <button class="btn-logout" (click)="logout()">Disconnetti</button>
     </nav>
-    @if (sezioneAttiva === 'prenotazione') {
+
+    @if (sezioneAttiva === 'gestionePrenotazioni') {
     <section class="admin-section">
-      <h3 class="section-title">Nuova Prenotazione</h3>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="section-title m-0">Gestione Prenotazioni</h3>
+        <button class="btn-secondary" (click)="caricaPrenotazioni()">Aggiorna Elenco</button>
+      </div>
+
+      <div class="card p-3 mb-3 shadow-sm bg-light">
+        <div class="row g-2 align-items-center">
+          <div class="col-md-6">
+            <label class="fw-bold me-2">Cerca Codice / Tipo:</label>
+            <input type="text" class="form-control" placeholder="Inserisci codice o tipo..." [(ngModel)]="filtroRicerca" />
+          </div>
+          <div class="col-md-6">
+            <label class="fw-bold me-2">Filtra Stato:</label>
+            <select class="form-select" [(ngModel)]="filtroStato">
+              <option value="TUTTI">Tutti gli stati</option>
+              <option value="PENDENTE">PENDENTE</option>
+              <option value="CONFERMATA">CONFERMATA</option>
+              <option value="CHECK_IN">CHECK_IN</option>
+              <option value="COMPLETATA">COMPLETATA</option>
+              <option value="ANNULLATA">ANNULLATA</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Codice Prenotazione</th>
+              <th>Tipo</th>
+              <th>Canale</th>
+              <th>Costo Totale</th>
+              <th>Pagamento</th>
+              <th>Stato</th>
+              <th>Azioni</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of prenotazioniFiltrate; track (p.codice_prenotazione || p.codicePrenotazione)) {
+            <tr>
+              <td>
+                <span class="badge bg-dark fs-6">{{ p.codice_prenotazione || p.codicePrenotazione }}</span>
+              </td>
+              <td><strong>{{ p.tipo_prenotazione || p.tipoPrenotazione }}</strong></td>
+              <td>
+                <span class="badge" [ngClass]="(p.dove_prenotazione || p.dovePrenotazione) === 'SEDE' ? 'bg-primary' : 'bg-info'">
+                  {{ p.dove_prenotazione || p.dovePrenotazione }}
+                </span>
+              </td>
+              <td><strong>{{ p.costo_totale || p.costoTotale || 0 }} €</strong></td>
+              <td>
+                <div>{{ p.tipo_pagamento || p.tipoPagamento }}</div>
+                <small class="fw-bold" [ngClass]="p.pagato ? 'text-success' : 'text-danger'">
+                  {{ p.pagato ? 'Saldato' : 'Da Saldare' }}
+                </small>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-warning text-dark': (p.stato || 'PENDENTE') === 'PENDENTE',
+                  'bg-primary': (p.stato) === 'CONFERMATA',
+                  'bg-info text-dark': (p.stato) === 'CHECK_IN',
+                  'bg-success': (p.stato) === 'COMPLETATA',
+                  'bg-danger': (p.stato) === 'ANNULLATA'
+                }">
+                  {{ p.stato || 'PENDENTE' }}
+                </span>
+              </td>
+              <td>
+                <div class="d-flex gap-1">
+                  <button 
+                    *ngIf="(p.stato || 'PENDENTE') === 'PENDENTE' || p.stato === 'CONFERMATA'"
+                    class="btn btn-sm btn-success fw-bold me-1" 
+                    (click)="effettuaCheckIn(p.codice_prenotazione || p.codicePrenotazione)">
+                    Check-in
+                  </button>
+
+                  <button 
+                    *ngIf="p.stato === 'CHECK_IN'"
+                    class="btn btn-sm btn-warning fw-bold text-dark me-1" 
+                    (click)="effettuaCheckOut(p.codice_prenotazione || p.codicePrenotazione)">
+                    Check-out
+                  </button>
+
+                  <button class="btn btn-sm btn-outline-primary" (click)="apriDettaglioModal(p)">
+                    Dettagli
+                  </button>
+                </div>
+              </td>
+            </tr>
+            } @empty {
+            <tr>
+              <td colspan="7" class="empty-row text-center text-muted p-4">Nessuna prenotazione trovata con i filtri selezionati.</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    @if (prenotazioneSelezionataModal) {
+    <div class="modal d-block shadow" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-dark text-white">
+            <h5 class="modal-title">Dettaglio Prenotazione #{{ prenotazioneSelezionataModal.codice_prenotazione || prenotazioneSelezionataModal.codicePrenotazione }}</h5>
+            <button type="button" class="btn-close btn-close-white" (click)="chiudiDettaglioModal()"></button>
+          </div>
+          <div class="modal-body p-4">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <p><strong>Tipo Prenotazione:</strong> {{ prenotazioneSelezionataModal.tipo_prenotazione || prenotazioneSelezionataModal.tipoPrenotazione }}</p>
+                <p><strong>Canale:</strong> {{ prenotazioneSelezionataModal.dove_prenotazione || prenotazioneSelezionataModal.dovePrenotazione }}</p>
+                <p><strong>Stato Attuale:</strong> {{ prenotazioneSelezionataModal.stato || 'PENDENTE' }}</p>
+              </div>
+              <div class="col-md-6">
+                <p><strong>Costo Totale:</strong> {{ prenotazioneSelezionataModal.costo_totale || prenotazioneSelezionataModal.costoTotale }} €</p>
+                <p><strong>Caparra Deposito:</strong> {{ prenotazioneSelezionataModal.deposito }} €</p>
+                <p><strong>Pagamento:</strong> {{ prenotazioneSelezionataModal.tipo_pagamento || prenotazioneSelezionataModal.tipoPagamento }} ({{ prenotazioneSelezionataModal.pagato ? 'Saldato' : 'In sospeso' }})</p>
+              </div>
+            </div>
+
+            <hr />
+
+            <h6 class="fw-bold">Ospiti Registrati:</h6>
+            <ul class="list-group mb-3">
+              <li class="list-group-item d-flex justify-content-between align-items-center" *ngFor="let o of prenotazioneSelezionataModal.ospiti">
+                <span><strong>{{ o.nome }} {{ o.cognome }}</strong></span>
+                <span class="text-muted" *ngIf="o.dataNascita || o.datanascita">Data nascita: {{ o.dataNascita || o.datanascita }}</span>
+              </li>
+              <li class="list-group-item text-muted fst-italic" *ngIf="!prenotazioneSelezionataModal.ospiti || prenotazioneSelezionataModal.ospiti.length === 0">
+                Nessun dettaglio ospite.
+              </li>
+            </ul>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="chiudiDettaglioModal()">Chiudi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+    }
+
+    @if (sezioneAttiva === 'nuovaPrenotazione') {
+    <section class="admin-section">
+      <h3 class="section-title">Nuova Prenotazione in Sede</h3>
       @if (prenotazioneConfermata) {
       <div class="card border-success shadow-lg my-3">
         <div class="card-header bg-success text-white text-center py-3">
@@ -65,7 +216,7 @@
                   prenotazioneConfermata.tipoPrenotazione }}
                 </li>
                 <li class="list-group-item">
-                  <strong>Check-in:</strong> {{ checkIn }}
+                  <strong>{{ includeAlbergo() ? 'Check-in:' : 'Data Prenotazione:' }}</strong> {{ checkIn }}
                 </li>
                 <li class="list-group-item" *ngIf="includeAlbergo()">
                   <strong>Check-out:</strong> {{ checkOut }}
@@ -73,7 +224,7 @@
               </ul>
             </div>
             <div class="col-md-6 mb-3">
-              <h5>💳 Riepilogo Pagamento</h5>
+              <h5>Riepilogo Pagamento</h5>
               <ul class="list-group">
                 <li class="list-group-item">
                   <strong>Importo Totale:</strong>
@@ -81,22 +232,20 @@
                     €</span>
                 </li>
                 <li class="list-group-item">
-                  <strong>Metodo di Pagamento:</strong> {{ metodoPagamento === 'CARTA' ? 'Carta di Credito' : 'Bonifico
-                  Bancario' }}
+                  <strong>Metodo di Pagamento:</strong> {{ metodoPagamento === 'CARTA' ? 'Carta di Credito' : 'Contanti' }}
                 </li>
               </ul>
             </div>
           </div>
 
-          <div *ngIf="metodoPagamento === 'BONIFICO'" class="alert alert-info">
-            <h6 class="fw-bold">📌 Coordinate per Bonifico Bancario:</h6>
-            <p class="m-0">IBAN: <strong>IT60X0542811101000000123456</strong> - Causale: <strong>Prenotazione {{
-                prenotazioneConfermata.codice_prenotazione || prenotazioneConfermata.codicePrenotazione }}</strong></p>
+          <div *ngIf="metodoPagamento === 'CONTANTI'" class="alert alert-info">
+            <h6 class="fw-bold">Pagamento in Contanti:</h6>
+            <p class="m-0">Il pagamento in contanti e' stato registrato per l'incasso in sede.</p>
           </div>
 
           <div *ngIf="metodoPagamento === 'CARTA'" class="alert alert-success">
-            <h6 class="fw-bold">💳 Pagamento con Carta:</h6>
-            <p class="m-0">Il pagamento tramite Carta di Credito è stato registrato ed autorizzato correttamente.</p>
+            <h6 class="fw-bold">Pagamento con Carta:</h6>
+            <p class="m-0">Il pagamento tramite Carta di Credito e' stato registrato ed autorizzato correttamente.</p>
           </div>
 
           <div class="text-center mt-4">
@@ -132,13 +281,13 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label>Check-in / Data Prenotazione</label>
-            <input class="form-input" type="date" [(ngModel)]="checkIn" (change)="onDateChange()">
+            <label>{{ includeAlbergo() ? 'Check-in' : 'Data Prenotazione SPA' }}</label>
+            <input class="form-input" type="date" [(ngModel)]="checkIn" [min]="todayDate" (change)="onDateChange()">
           </div>
           @if (includeAlbergo()) {
           <div class="form-group">
             <label>Check-out</label>
-            <input class="form-input" type="date" [(ngModel)]="checkOut" (change)="onDateChange()">
+            <input class="form-input" type="date" [(ngModel)]="checkOut" [min]="checkIn || todayDate" (change)="onDateChange()">
           </div>
           }
         </div>
@@ -164,10 +313,14 @@
             <option value="" disabled selected>Seleziona una stanza...</option>
             @for (stanza of stanzeFiltrate; track getStanzaId(stanza)) {
             <option [value]="getStanzaId(stanza)">
-              Stanza {{ getStanzaNumero(stanza) }}
+              Stanza {{ getStanzaNumero(stanza) }} (Max {{ getStanzaCapienza(stanza) }} ospit{{ getStanzaCapienza(stanza) == 1 ? 'e' : 'i' }})
             </option>
             }
           </select>
+
+          <div *ngIf="stanzaSelezionata && capienzaStanzaSelezionata()" class="text-muted small mt-1">
+            Capienza massima stanza selezionata: <strong>{{ capienzaStanzaSelezionata() }} persone</strong>
+          </div>
         </div>
 
         <div class="form-group">
@@ -200,6 +353,13 @@
         }
 
         <h4 class="section-title mt-4">Ospiti</h4>
+
+        @if (includeAlbergo() && stanzaSelezionata && superaCapienza()) {
+        <div class="alert alert-danger">
+          Hai selezionato {{ ospiti.length }} ospiti, ma questa stanza ha una capienza massima di {{ capienzaStanzaSelezionata() }}.
+        </div>
+        }
+
         @for (ospite of ospiti; track $index) {
         <div class="guest-row my-2">
           <input class="form-input" type="text" placeholder="Nome" [(ngModel)]="ospite.nome">
@@ -208,13 +368,19 @@
           <button class="btn-remove" type="button" (click)="rimuoviOspite($index)">Rimuovi</button>
         </div>
         }
-        <button class="btn-secondary my-2" type="button" (click)="aggiungiOspite()">+ Aggiungi ospite</button>
+        <button 
+          class="btn-secondary my-2" 
+          type="button" 
+          (click)="aggiungiOspite()"
+          [disabled]="includeAlbergo() && stanzaSelezionata && capienzaStanzaSelezionata() !== null && ospiti.length >= capienzaStanzaSelezionata()!">
+          + Aggiungi ospite
+        </button>
 
         <div class="form-group my-3">
           <label class="fw-bold">Metodo di Pagamento:</label>
           <select [(ngModel)]="metodoPagamento" class="form-select">
+            <option value="CONTANTI">Contanti</option>
             <option value="CARTA">Carta di Credito</option>
-            <option value="BONIFICO">Bonifico Bancario</option>
           </select>
         </div>
 
@@ -222,7 +388,7 @@
           <p class="fs-5">Prezzo totale: <strong>{{ prezzoTotale() }} €</strong></p>
         </div>
 
-        <button class="btn-primary" type="button" (click)="prenota()">Conferma prenotazione</button>
+        <button class="btn-primary" type="button" (click)="prenota()" [disabled]="includeAlbergo() && stanzaSelezionata && superaCapienza()">Conferma prenotazione</button>
       </div>
       }
     </section>
@@ -243,8 +409,7 @@
         <form class="admin-form" (ngSubmit)="salvaStanza()">
           <div class="form-group">
             <label>Numero Stanza:</label>
-            <input class="form-input" type="text" placeholder="es. 101" [(ngModel)]="numeroStanza" name="numeroStanza"
-              required />
+            <input class="form-input" type="text" placeholder="es. 101" [(ngModel)]="numeroStanza" name="numeroStanza" required />
           </div>
           <div class="form-group">
             <label>Stato:</label>
@@ -269,8 +434,7 @@
             <button class="btn-primary" type="submit">
               {{ idStanzaInModifica ? 'Aggiorna Stanza' : 'Salva Stanza' }}
             </button>
-            <button *ngIf="idStanzaInModifica" class="btn-secondary" type="button"
-              (click)="annullaModificaStanza()">Annulla</button>
+            <button *ngIf="idStanzaInModifica" class="btn-secondary" type="button" (click)="annullaModificaStanza()">Annulla</button>
           </div>
         </form>
       </div>
@@ -294,8 +458,7 @@
               <td>{{ s.tipologia?.prezzo ? (s.tipologia.prezzo + '€') : 'N/D' }}</td>
               <td>
                 <div class="d-flex gap-1">
-                  <button class="btn-edit btn btn-sm btn-warning me-1" (click)="avviaModificaStanza(s)">✏️
-                    Modifica</button>
+                  <button class="btn-edit btn btn-sm btn-warning me-1" (click)="avviaModificaStanza(s)">Modifica</button>
                   <button class="btn-delete" (click)="eliminaStanza(s.id)">Elimina</button>
                 </div>
               </td>
@@ -315,8 +478,7 @@
     <section class="admin-section">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="section-title m-0">Elenco Tipologie Camera</h3>
-        <button class="btn-primary"
-          (click)="mostraFormTipologia ? annullaModificaTipoCamera() : mostraFormTipologia = true">
+        <button class="btn-primary" (click)="mostraFormTipologia ? annullaModificaTipoCamera() : mostraFormTipologia = true">
           {{ mostraFormTipologia ? 'Chiudi Form' : 'Crea Tipologia Camera' }}
         </button>
       </div>
@@ -327,37 +489,31 @@
         <form class="admin-form" (ngSubmit)="salvaTipoCamera()">
           <div class="form-group">
             <label>Nome Tipologia:</label>
-            <input class="form-input" type="text" placeholder="es. Suite Deluxe" [(ngModel)]="nuovoTipoCamera.nome"
-              name="nome" required />
+            <input class="form-input" type="text" placeholder="es. Suite Deluxe" [(ngModel)]="nuovoTipoCamera.nome" name="nome" required />
           </div>
           <div class="form-group">
             <label>Descrizione:</label>
-            <input class="form-input" type="text" placeholder="Descrizione della stanza..."
-              [(ngModel)]="nuovoTipoCamera.descrizione" name="descrizione" />
+            <input class="form-input" type="text" placeholder="Descrizione della stanza..." [(ngModel)]="nuovoTipoCamera.descrizione" name="descrizione" />
           </div>
           <div class="form-row">
             <div class="form-group">
               <label>Prezzo a Notte (€):</label>
-              <input class="form-input" type="number" min="1" [(ngModel)]="nuovoTipoCamera.prezzo" name="prezzo"
-                required />
+              <input class="form-input" type="number" min="1" [(ngModel)]="nuovoTipoCamera.prezzo" name="prezzo" required />
             </div>
             <div class="form-group">
               <label>Capienza (numero ospiti):</label>
-              <input class="form-input" type="number" min="1" [(ngModel)]="nuovoTipoCamera['capienza']"
-                name="capienza" />
+              <input class="form-input" type="number" min="1" [(ngModel)]="nuovoTipoCamera['capienza']" name="capienza" />
             </div>
             <div class="form-group mb-3">
               <label for="imgTipologia">URL / Percorso Immagine (opzionale):</label>
-              <input type="text" id="imgTipologia" class="form-control" [(ngModel)]="nuovoTipoCamera.immagine"
-                name="imgTipologia" placeholder="Es. assets/camere/deluxe.jpg oppure https://...">
+              <input type="text" id="imgTipologia" class="form-control" [(ngModel)]="nuovoTipoCamera.immagine" name="imgTipologia" placeholder="Es. assets/camere/deluxe.jpg oppure https://...">
             </div>
           </div>
           <div class="d-flex gap-2">
             <button class="btn-primary" type="submit">
               {{ idTipoCameraInModifica ? 'Aggiorna Tipologia' : 'Salva Tipologia' }}
             </button>
-            <button *ngIf="idTipoCameraInModifica" class="btn-secondary" type="button"
-              (click)="annullaModificaTipoCamera()">Annulla</button>
+            <button *ngIf="idTipoCameraInModifica" class="btn-secondary" type="button" (click)="annullaModificaTipoCamera()">Annulla</button>
           </div>
         </form>
       </div>
@@ -383,8 +539,7 @@
               <td>{{ t.prezzo }} €</td>
               <td>
                 <div class="d-flex gap-1">
-                  <button class="btn-edit btn btn-sm btn-warning me-1" (click)="avviaModificaTipoCamera(t)">✏️
-                    Modifica</button>
+                  <button class="btn-edit btn btn-sm btn-warning me-1" (click)="avviaModificaTipoCamera(t)">Modifica</button>
                   <button class="btn-delete" (click)="eliminaTipoCamera(getTipologiaId(t))">Elimina</button>
                 </div>
               </td>
@@ -404,8 +559,7 @@
     <section class="admin-section">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="section-title m-0">Elenco Servizi Aggiuntivi</h3>
-        <button class="btn-primary"
-          (click)="mostraFormServizio ? annullaModificaServizio() : mostraFormServizio = true">
+        <button class="btn-primary" (click)="mostraFormServizio ? annullaModificaServizio() : mostraFormServizio = true">
           {{ mostraFormServizio ? 'Chiudi Form' : 'Crea Servizio' }}
         </button>
       </div>
@@ -416,30 +570,25 @@
         <form class="admin-form" (ngSubmit)="salvaServizio()">
           <div class="form-group">
             <label>Nome Servizio:</label>
-            <input class="form-input" type="text" placeholder="es. Spa Incluso, Posto Auto, Colazione in camera"
-              [(ngModel)]="nuovoServizio.nomeservizio" name="nomeservizio" required />
+            <input class="form-input" type="text" placeholder="es. Spa Incluso, Posto Auto" [(ngModel)]="nuovoServizio.nomeservizio" name="nomeservizio" required />
           </div>
           <div class="form-group">
             <label>Descrizione:</label>
-            <input class="form-input" type="text" placeholder="Breve descrizione del servizio..."
-              [(ngModel)]="nuovoServizio.descrizione" name="descrizione" />
+            <input class="form-input" type="text" placeholder="Breve descrizione..." [(ngModel)]="nuovoServizio.descrizione" name="descrizione" />
           </div>
           <div class="form-group">
             <label>Prezzo (€):</label>
-            <input class="form-input" type="number" step="0.01" min="0" [(ngModel)]="nuovoServizio.prezzi" name="prezzi"
-              required />
+            <input class="form-input" type="number" step="0.01" min="0" [(ngModel)]="nuovoServizio.prezzi" name="prezzi" required />
           </div>
           <div class="form-group mb-3">
             <label for="imgServizio">URL / Percorso Immagine (opzionale):</label>
-            <input type="text" id="imgServizio" class="form-control" [(ngModel)]="nuovoServizio.immagine"
-              name="imgServizio" placeholder="Es. assets/servizi/piscina.jpg oppure https://...">
+            <input type="text" id="imgServizio" class="form-control" [(ngModel)]="nuovoServizio.immagine" name="imgServizio" placeholder="Es. assets/servizi/piscina.jpg oppure https://...">
           </div>
           <div class="d-flex gap-2">
             <button class="btn-primary" type="submit">
               {{ idServizioInModifica ? 'Aggiorna Servizio' : 'Salva Servizio' }}
             </button>
-            <button *ngIf="idServizioInModifica" class="btn-secondary" type="button"
-              (click)="annullaModificaServizio()">Annulla</button>
+            <button *ngIf="idServizioInModifica" class="btn-secondary" type="button" (click)="annullaModificaServizio()">Annulla</button>
           </div>
         </form>
       </div>
@@ -463,8 +612,7 @@
               <td>{{ getServizioPrezzo(s) }} €</td>
               <td>
                 <div class="d-flex gap-1">
-                  <button class="btn-edit btn btn-sm btn-warning me-1" (click)="avviaModificaServizio(s)">
-                    Modifica</button>
+                  <button class="btn-edit btn btn-sm btn-warning me-1" (click)="avviaModificaServizio(s)">Modifica</button>
                   <button class="btn-delete" (click)="eliminaServizio(getServizioId(s))">Elimina</button>
                 </div>
               </td>

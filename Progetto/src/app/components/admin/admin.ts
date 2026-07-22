@@ -23,12 +23,14 @@ export class Admin implements OnInit {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
+  todayDate: string = new Date().toISOString().split('T')[0];
+
   username = '';
   password = '';
   errorMessage = '';
   isLogged = false;
 
-  sezioneAttiva: 'prenotazione' | 'stanze' | 'tipologie' | 'servizi' = 'prenotazione';
+  sezioneAttiva: 'gestionePrenotazioni' | 'nuovaPrenotazione' | 'stanze' | 'tipologie' | 'servizi' = 'gestionePrenotazioni';
 
   mostraFormStanza: boolean = false;
   mostraFormTipologia: boolean = false;
@@ -40,6 +42,12 @@ export class Admin implements OnInit {
 
   tipiCamera: TipoCamera[] = [];
   stanze: Stanza[] = [];
+
+  listaPrenotazioni: any[] = [];
+  caricamentoPrenotazioni: boolean = false;
+  filtroStato: string = 'TUTTI';
+  filtroRicerca: string = '';
+  prenotazioneSelezionataModal: any = null;
 
   nuovoTipoCamera: TipoCamera & { immagine?: string } = {
     nome: '',
@@ -67,7 +75,7 @@ export class Admin implements OnInit {
   pensione: string = 'MEZZA';
   checkIn: string = '';
   checkOut: string = '';
-  metodoPagamento: string = 'CARTA';
+  metodoPagamento: string = 'CONTANTI';
   ospiti: Ospite[] = [{ nome: '', cognome: '', dataNascita: '' }];
 
   listaPensioni: PensioneInfo[] = [];
@@ -135,6 +143,8 @@ export class Admin implements OnInit {
   }
 
   caricaDati(): void {
+    this.caricaPrenotazioni();
+
     this.camereService.getTipiCamera().subscribe({
       next: dati => {
         this.tipiCamera = [...dati];
@@ -168,6 +178,71 @@ export class Admin implements OnInit {
 
     this.caricaServizi();
     this.caricaTutteLeStanze();
+  }
+
+  caricaPrenotazioni(): void {
+    this.caricamentoPrenotazioni = true;
+    this.prenotazioniService.getAllPrenotazioni().subscribe({
+      next: (res: any[]) => {
+        this.listaPrenotazioni = res || [];
+        this.caricamentoPrenotazioni = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Errore durante il caricamento delle prenotazioni:', err);
+        this.caricamentoPrenotazioni = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  get prenotazioniFiltrate(): any[] {
+    return this.listaPrenotazioni.filter(p => {
+      const codice = (p.codice_prenotazione || p.codicePrenotazione || '').toLowerCase();
+      const tipo = (p.tipo_prenotazione || p.tipoPrenotazione || '').toLowerCase();
+      const ricerca = this.filtroRicerca.toLowerCase().trim();
+
+      const coincideRicerca = !ricerca || codice.includes(ricerca) || tipo.includes(ricerca);
+      const coincideStato = this.filtroStato === 'TUTTI' || (p.stato || 'PENDENTE').toUpperCase() === this.filtroStato.toUpperCase();
+
+      return coincideRicerca && coincideStato;
+    });
+  }
+
+  effettuaCheckIn(codice: string): void {
+    if (confirm(`Confermi l'esecuzione del Check-in per la prenotazione #${codice}?`)) {
+      this.prenotazioniService.checkIn(codice).subscribe({
+        next: (msg) => {
+          alert(msg || 'Check-in effettuato con successo!');
+          this.caricaPrenotazioni();
+        },
+        error: (err) => {
+          alert('Errore durante il Check-in: ' + (err.error?.message || err.error || err.message));
+        }
+      });
+    }
+  }
+
+  effettuaCheckOut(codice: string): void {
+    if (confirm(`Confermi il Check-out ed il saldo del soggiorno per la prenotazione #${codice}?`)) {
+      this.prenotazioniService.checkOut(codice).subscribe({
+        next: (msg) => {
+          alert(msg || 'Checkout completato e pagamento registrato!');
+          this.caricaPrenotazioni();
+        },
+        error: (err) => {
+          alert('Errore durante il Check-out: ' + (err.error?.message || err.error || err.message));
+        }
+      });
+    }
+  }
+
+  apriDettaglioModal(p: any): void {
+    this.prenotazioneSelezionataModal = p;
+  }
+
+  chiudiDettaglioModal(): void {
+    this.prenotazioneSelezionataModal = null;
   }
 
   avviaModificaTipoCamera(t: any): void {
@@ -227,7 +302,7 @@ export class Admin implements OnInit {
       },
       error: (err: any) => {
         console.error('Errore salvataggio tipologia:', err);
-        alert('Si è verificato un errore durante il salvataggio.');
+        alert('Si e\' verificato un errore durante il salvataggio.');
       }
     });
   }
@@ -290,7 +365,7 @@ export class Admin implements OnInit {
       },
       error: (err: any) => {
         console.error('Errore salvataggio servizio:', err);
-        alert('Si è verificato un errore durante il salvataggio del servizio.');
+        alert('Si e\' verificato un errore durante il salvataggio del servizio.');
       }
     });
   }
@@ -349,7 +424,7 @@ export class Admin implements OnInit {
       },
       error: (err: any) => {
         console.error('Errore salvataggio stanza:', err);
-        alert('Si è verificato un errore durante il salvataggio della stanza.');
+        alert('Si e\' verificato un errore durante il salvataggio della stanza.');
       }
     });
   }
@@ -524,7 +599,9 @@ export class Admin implements OnInit {
   }
 
   onDateChange(): void {
-    this.cercaStanzeDisponibili();
+    if (this.includeAlbergo()) {
+      this.cercaStanzeDisponibili();
+    }
   }
 
   get stanzeFiltrate(): any[] {
@@ -561,6 +638,28 @@ export class Admin implements OnInit {
     return stanza.tipologiaStanza?.['nomeTipologia'] || stanza.tipologia?.['nomeTipologia'] || stanza.tipologia?.['nome'] || '';
   }
 
+  getStanzaCapienza(stanza: any): number | string {
+    if (!stanza) return '-';
+    return stanza.tipologiaStanza?.capienza ?? stanza.tipologia?.capienza ?? stanza.capienza ?? '-';
+  }
+
+  capienzaStanzaSelezionata(): number | null {
+    if (!this.includeAlbergo() || !this.stanzaSelezionata) return null;
+    const stanzaObj = this.stanzeDisponibili.find(
+      s => this.getStanzaId(s).toString() === this.stanzaSelezionata.toString()
+    );
+    if (!stanzaObj) return null;
+    const capienza = stanzaObj.tipologiaStanza?.capienza ?? stanzaObj.tipologia?.capienza ?? stanzaObj.capienza;
+    return capienza ? Number(capienza) : null;
+  }
+
+  superaCapienza(): boolean {
+    if (!this.includeAlbergo()) return false;
+    const cap = this.capienzaStanzaSelezionata();
+    if (cap === null || cap <= 0) return false;
+    return this.ospiti.length > cap;
+  }
+
   includeAlbergo(): boolean {
     return this.tipoPrenotazione === 'ALBERGO';
   }
@@ -576,11 +675,12 @@ export class Admin implements OnInit {
       this.stanzaSelezionata = '';
       this.tipoCamera = '';
       this.serviziSelezionatiIds = [];
+      this.checkOut = '';
     }
   }
 
   numeroNotti(): number {
-    if (!this.checkIn || !this.checkOut) return 0;
+    if (!this.includeAlbergo() || !this.checkIn || !this.checkOut) return 0;
     const start = new Date(this.checkIn);
     const end = new Date(this.checkOut);
     const diff = end.getTime() - start.getTime();
@@ -615,13 +715,20 @@ export class Admin implements OnInit {
     }
 
     if (this.includeSpa()) {
-      totale += this.prezzoSpa;
+      totale += (this.prezzoSpa * Math.max(1, this.ospiti.length));
     }
 
     return totale;
   }
 
   aggiungiOspite(): void {
+    if (this.includeAlbergo() && this.stanzaSelezionata) {
+      const cap = this.capienzaStanzaSelezionata();
+      if (cap !== null && cap > 0 && this.ospiti.length >= cap) {
+        alert(`Impossibile aggiungere altri ospiti! La capienza massima di questa stanza e' di ${cap} persone.`);
+        return;
+      }
+    }
     this.ospiti.push({ nome: '', cognome: '', dataNascita: '' });
   }
 
@@ -648,7 +755,13 @@ export class Admin implements OnInit {
     this.errore = '';
 
     if (!this.checkIn) {
-      this.errore = 'Seleziona prima la data di Check-in / Prenotazione!';
+      this.errore = 'Seleziona la data per la prenotazione!';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    if (this.checkIn < this.todayDate) {
+      this.errore = 'Non e\' possibile selezionare una data antecedente ad oggi!';
       this.cdr.detectChanges();
       return;
     }
@@ -659,35 +772,27 @@ export class Admin implements OnInit {
       return;
     }
 
+    if (this.includeAlbergo() && this.checkOut <= this.checkIn) {
+      this.errore = 'La data di Check-out deve essere successiva a quella di Check-in!';
+      this.cdr.detectChanges();
+      return;
+    }
+
     if (this.includeAlbergo() && !this.stanzaSelezionata) {
       this.errore = 'Seleziona una stanza disponibile!';
       this.cdr.detectChanges();
       return;
     }
 
-    if (this.includeAlbergo() && this.stanzaSelezionata) {
-      const stanzaObj = this.stanzeDisponibili.find(
-        s => this.getStanzaId(s).toString() === this.stanzaSelezionata.toString()
-      );
-
-      if (stanzaObj) {
-        const capienzaStanza = Number(
-          stanzaObj.tipologiaStanza?.capienza ||
-          stanzaObj.tipologia?.capienza ||
-          stanzaObj.capienza ||
-          0
-        );
-
-        if (capienzaStanza > 0 && this.ospiti.length > capienzaStanza) {
-          this.errore = `Numero di ospiti (${this.ospiti.length}) superiore alla capienza massima della stanza selezionata (${capienzaStanza})!`;
-          this.cdr.detectChanges();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          return;
-        }
-      }
+    if (this.includeAlbergo() && this.superaCapienza()) {
+      const cap = this.capienzaStanzaSelezionata();
+      this.errore = `Numero di ospiti (${this.ospiti.length}) superiore alla capienza massima della stanza selezionata (${cap})!`;
+      this.cdr.detectChanges();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
     }
 
-    let idPensioneVal: number = 3;
+    let idPensioneVal: number | null = null;
     if (this.includeAlbergo()) {
       if (this.pensione === 'COMPLETA') idPensioneVal = 1;
       else if (this.pensione === 'MEZZA') idPensioneVal = 2;
@@ -697,9 +802,9 @@ export class Admin implements OnInit {
     const payload = {
       idStanza: this.includeAlbergo() && this.stanzaSelezionata ? Number(this.stanzaSelezionata) : null,
       checkin: this.checkIn,
-      checkout: this.checkOut ? this.checkOut : this.checkIn,
+      checkout: this.includeAlbergo() ? (this.checkOut ? this.checkOut : this.checkIn) : this.checkIn,
       checkIn: this.checkIn,
-      checkOut: this.checkOut ? this.checkOut : this.checkIn,
+      checkOut: this.includeAlbergo() ? (this.checkOut ? this.checkOut : this.checkIn) : this.checkIn,
       idPensione: idPensioneVal,
       tipoPrenotazione: this.tipoPrenotazione,
       dovePrenotazione: 'SEDE',
@@ -724,6 +829,7 @@ export class Admin implements OnInit {
         }
 
         this.messaggio = 'Prenotazione in sede registrata con successo!';
+        this.caricaPrenotazioni();
         this.cdr.detectChanges();
         window.scrollTo({ top: 0, behavior: 'smooth' });
       },
@@ -736,6 +842,7 @@ export class Admin implements OnInit {
             costo_totale: this.prezzoTotale()
           };
           this.messaggio = 'Prenotazione in sede registrata con successo!';
+          this.caricaPrenotazioni();
           this.cdr.detectChanges();
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return;

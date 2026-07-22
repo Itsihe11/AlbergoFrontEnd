@@ -37,19 +37,22 @@
           <p><strong>Costo Totale:</strong> {{ prenotazione.costo_totale || prenotazione.costoTotale }} €</p>
           <p><strong>Acconto/Deposito:</strong> {{ prenotazione.deposito }} €</p>
           <p><strong>Stato Pagamento:</strong> {{ prenotazione.pagato ? 'Saldato' : 'In Sospeso' }}</p>
+          @if (capienzaStanza() !== null) {
+          <p><strong>Capienza Stanza:</strong> {{ capienzaStanza() }} persone</p>
+          }
         </div>
       </div>
 
       <hr class="ac-divider" />
 
-      <h5 class="ac-section-label">👥 Ospiti Registrati:</h5>
+      <h5 class="ac-section-label">Ospiti Registrati:</h5>
       <ul class="ac-list">
         @for (ospite of prenotazione.ospiti; track $index) {
         <li class="ac-list-item">
           <span><strong>{{ ospite.nome }} {{ ospite.cognome }}</strong></span>
-          @if (ospite.datanascita) {
+          @if (ospite.datanascita || ospite.dataNascita) {
           <small class="ac-muted">
-            Nascita: {{ ospite.datanascita | date:'dd/MM/yyyy' }}
+            Nascita: {{ (ospite.datanascita || ospite.dataNascita) | date:'dd/MM/yyyy' }}
           </small>
           }
         </li>
@@ -89,9 +92,20 @@
           }
 
           <div class="ac-alert ac-alert-info">
-            📌 <strong>Nota:</strong> Per salvare le modifiche agli ospiti è obbligatorio creare un account inserendo
-            Email e PIN.
+            <strong>Nota:</strong> Per salvare le modifiche agli ospiti e' obbligatorio creare un account inserendo Email e PIN.
           </div>
+
+          @if (capienzaStanza() !== null) {
+          <div class="ac-alert ac-alert-info">
+            Capienza massima stanza: <strong>{{ capienzaStanza() }} persone</strong> (Inseriti: {{ nuoviOspiti.length }}).
+          </div>
+          }
+
+          @if (superaCapienza()) {
+          <div class="ac-alert ac-alert-danger">
+            Hai inserito {{ nuoviOspiti.length }} ospiti, ma la stanza consente al massimo {{ capienzaStanza() }} persone.
+          </div>
+          }
 
           <h6 class="ac-section-label">Inserisci Ospiti:</h6>
           @for (ospite of nuoviOspiti; track $index) {
@@ -102,7 +116,13 @@
             <button class="ac-btn ac-btn-remove" (click)="rimuoviOspite($index)">X</button>
           </div>
           }
-          <button class="ac-btn ac-btn-secondary ac-btn-sm" (click)="aggiungiOspite()">+ Aggiungi Ospite</button>
+
+          <button 
+            class="ac-btn ac-btn-secondary ac-btn-sm" 
+            (click)="aggiungiOspite()"
+            [disabled]="capienzaStanza() !== null && nuoviOspiti.length >= capienzaStanza()!">
+            + Aggiungi Ospite
+          </button>
 
           <hr class="ac-divider" />
 
@@ -122,7 +142,13 @@
 
         <div class="ac-modal-footer">
           <button type="button" class="ac-btn ac-btn-secondary" (click)="chiudiModal()">Chiudi</button>
-          <button type="button" class="ac-btn ac-btn-primary" (click)="salvaModificaOspiti()">Salva Modifiche</button>
+          <button 
+            type="button" 
+            class="ac-btn ac-btn-primary" 
+            (click)="salvaModificaOspiti()"
+            [disabled]="superaCapienza()">
+            Salva Modifiche
+          </button>
         </div>
       </div>
     </div>

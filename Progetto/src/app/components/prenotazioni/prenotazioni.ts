@@ -19,16 +19,17 @@ export class Prenotazioni implements OnInit {
   private prenotazioniService = inject(PrenotazioniService);
   private cdr = inject(ChangeDetectorRef);
 
+  todayDate: string = new Date().toISOString().split('T')[0];
+
   formBlock: boolean = false;
 
-  // Form State
   tipoPrenotazione: string = 'ALBERGO';
   tipoCamera: string = '';
   stanzaSelezionata: string = '';
   pensione: string = 'MEZZA';
   checkIn: string = '';
   checkOut: string = '';
-  metodoPagamento: string = 'BONIFICO';
+  metodoPagamento: string = 'CARTA';
 
   ospiti: Ospite[] = [{ nome: '', cognome: '', dataNascita: '' }];
   listaPensioni: PensioneInfo[] = [];
@@ -45,12 +46,10 @@ export class Prenotazioni implements OnInit {
   errore: string = '';
   prenotazioneConfermata: any = null;
 
-  // Helper privato per scrollare la pagina in cima in modo fluido
   private scrollToTop(): void {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Helper per mostrare un messaggio di errore e fare lo scroll in cima
   private mostraErrore(messaggioErrore: string): void {
     this.errore = messaggioErrore;
     this.scrollToTop();
@@ -99,8 +98,12 @@ export class Prenotazioni implements OnInit {
 
   ngOnInit(): void {
     this.prenotazioniService.getPensioni().subscribe({
-      next: (data: PensioneInfo[]) => {
-        if (data && data.length > 0) this.listaPensioni = data;
+      next: (data: any) => {
+        const list = Array.isArray(data) ? data : (data?.content || data?.data || []);
+        if (list.length > 0) {
+          this.listaPensioni = list;
+          this.pensione = list[0].tipo || 'MEZZA';
+        }
         this.cdr.detectChanges();
       },
       error: (err: any) => console.warn('Pensione API offline: usati dati di fallback.', err)
@@ -121,14 +124,11 @@ export class Prenotazioni implements OnInit {
 
   caricaServizi(): void {
     this.prenotazioniService.getServizi().pipe(
-      finalize(() => {
-        this.cdr.detectChanges();
-      })
+      finalize(() => this.cdr.detectChanges())
     ).subscribe({
-      next: (res: ServizioInfo[]) => {
-        if (res) {
-          this.listaServizi = res;
-        }
+      next: (res: any) => {
+        const list = Array.isArray(res) ? res : (res?.content || res?.data || []);
+        if (list.length > 0) this.listaServizi = list;
       },
       error: (err: any) => console.warn('Servizi API offline.', err)
     });
@@ -137,45 +137,51 @@ export class Prenotazioni implements OnInit {
   caricaTipiCamera(): void {
     this.caricamentoCamere = true;
     this.prenotazioniService.getTipiCamera().subscribe({
-      next: (res: TipoCamera[]) => {
-        if (res && res.length > 0) {
-          this.tipiCamera = res;
+      next: (res: any) => {
+        const list = Array.isArray(res) ? res : (res?.content || res?.data || []);
+        if (list.length > 0) {
+          this.tipiCamera = list;
         } else {
           this.useDefaultTipiCamera();
         }
         this.caricamentoCamere = false;
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
         console.warn('Tipologie Camera API offline: usati dati di fallback.', err);
         this.useDefaultTipiCamera();
         this.caricamentoCamere = false;
+        this.cdr.detectChanges();
       }
     });
   }
 
   private useDefaultTipiCamera(): void {
     this.tipiCamera = [
-      { id: 1, nomeTipologia: 'Singola Standard' },
-      { id: 2, nomeTipologia: 'Doppia Deluxe' },
-      { id: 3, nomeTipologia: 'Suite' }
+      { id: 1, nomeTipologia: 'Singola Standard', prezzo: 50, capienza: 1 },
+      { id: 2, nomeTipologia: 'Doppia Deluxe', prezzo: 90, capienza: 2 },
+      { id: 3, nomeTipologia: 'Suite', prezzo: 150, capienza: 4 }
     ];
   }
 
   caricaTutteLeStanze(): void {
     this.caricamentoStanze = true;
     this.prenotazioniService.getTutteLeStanze().subscribe({
-      next: (res: Stanza[]) => {
-        if (res && res.length > 0) {
-          this.stanzeDisponibili = res;
+      next: (res: any) => {
+        const list = Array.isArray(res) ? res : (res?.content || res?.data || []);
+        if (list.length > 0) {
+          this.stanzeDisponibili = list;
         } else {
           this.useDefaultStanze();
         }
         this.caricamentoStanze = false;
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
         console.warn('Tutte le Stanze API offline: usate stanze di fallback.', err);
         this.useDefaultStanze();
         this.caricamentoStanze = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -188,31 +194,37 @@ export class Prenotazioni implements OnInit {
       return;
     }
 
-    this.stanzaSelezionata = '';
     this.caricamentoStanze = true;
     this.prenotazioniService.getStanzeDisponibili(this.checkIn, this.checkOut).subscribe({
-      next: (res: Stanza[]) => {
-        if (res && res.length > 0) {
-          this.stanzeDisponibili = res;
+      next: (res: any) => {
+        const list = Array.isArray(res) ? res : (res?.content || res?.data || []);
+        if (list.length > 0) {
+          this.stanzeDisponibili = list;
         } else {
           this.useDefaultStanze();
         }
+        const esisteStanza = this.stanzeDisponibili.some(s => this.getStanzaId(s).toString() === this.stanzaSelezionata.toString());
+        if (!esisteStanza) {
+          this.stanzaSelezionata = '';
+        }
         this.caricamentoStanze = false;
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
         console.warn('Stanze Disponibili API offline: usate stanze di fallback.', err);
         this.useDefaultStanze();
         this.caricamentoStanze = false;
+        this.cdr.detectChanges();
       }
     });
   }
 
   private useDefaultStanze(): void {
     this.stanzeDisponibili = [
-      { id: 1, numeroStanza: '101', tipologiaStanza: { nomeTipologia: 'Singola Standard', prezzo: 50, capienza: 1 } },
-      { id: 2, numeroStanza: '102', tipologiaStanza: { nomeTipologia: 'Singola Standard', prezzo: 50, capienza: 1 } },
-      { id: 3, numeroStanza: '201', tipologiaStanza: { nomeTipologia: 'Doppia Deluxe', prezzo: 90, capienza: 2 } },
-      { id: 4, numeroStanza: '301', tipologiaStanza: { nomeTipologia: 'Suite', prezzo: 150, capienza: 4 } }
+      { id: 1, numeroStanza: '101', tipologiaStanza: { id: 1, nomeTipologia: 'Singola Standard', prezzo: 50, capienza: 1 } },
+      { id: 2, numeroStanza: '102', tipologiaStanza: { id: 1, nomeTipologia: 'Singola Standard', prezzo: 50, capienza: 1 } },
+      { id: 3, numeroStanza: '201', tipologiaStanza: { id: 2, nomeTipologia: 'Doppia Deluxe', prezzo: 90, capienza: 2 } },
+      { id: 4, numeroStanza: '301', tipologiaStanza: { id: 3, nomeTipologia: 'Suite', prezzo: 150, capienza: 4 } }
     ];
   }
 
@@ -222,72 +234,97 @@ export class Prenotazioni implements OnInit {
   }
 
   onDateChange(): void {
-    this.cercaStanzeDisponibili();
+    if (this.includeAlbergo()) {
+      this.cercaStanzeDisponibili();
+    }
+  }
+
+  getTipologiaId(tipo: any): string {
+    if (!tipo) return '';
+    if (typeof tipo === 'number' || typeof tipo === 'string') return tipo.toString();
+    return (tipo.id || tipo.idTipologia || tipo.idTipoCamera || tipo.id_tipologia || '').toString();
+  }
+
+  getValoreTipoCamera(tipo: any): string {
+    if (!tipo) return '';
+    if (typeof tipo === 'string') return tipo;
+    return tipo.nomeTipologia || tipo.nome || tipo.descrizione || tipo.denominazione || tipo.tipo || tipo.tipoCamera || '';
+  }
+
+  // Estrae il prezzo passando dalla TipologiaStanza associata
+  getPrezzoStanza(stanza: Stanza | null | undefined): number {
+    if (!stanza) return 0;
+    return stanza.tipologiaStanza?.prezzo ?? stanza.tipologia?.prezzo ?? 0;
   }
 
   get stanzeFiltrate(): Stanza[] {
     if (!this.tipoCamera) {
       return this.stanzeDisponibili;
     }
-    const tipoSel = this.tipoCamera.toString().toLowerCase().trim();
-    return this.stanzeDisponibili.filter((stanza: Stanza) => {
-      const nomeTipo = this.getTipologiaStanzaNome(stanza).toLowerCase().trim();
-      const idTipo = stanza.tipologiaStanza?.id?.toString() || stanza.tipologia?.id?.toString() || '';
-      if (!nomeTipo && !idTipo) return true;
-      return (nomeTipo !== '' && nomeTipo === tipoSel) ||
-             (idTipo !== '' && idTipo === tipoSel) ||
-             nomeTipo.includes(tipoSel) ||
-             tipoSel.includes(nomeTipo);
+
+    const target = this.tipoCamera.toString().toLowerCase().trim();
+
+    return this.stanzeDisponibili.filter((stanza: any) => {
+      if (!stanza) return false;
+
+      const idStanzaTipo = (
+        stanza.tipologia?.id ||
+        stanza.tipologiaStanza?.id ||
+        stanza.idTipologia ||
+        stanza.idTipo ||
+        ''
+      ).toString().toLowerCase().trim();
+
+      const nomeStanzaTipo = (
+        stanza.tipologia?.nomeTipologia ||
+        stanza.tipologia?.nome ||
+        stanza.tipologiaStanza?.nomeTipologia ||
+        stanza.tipologiaStanza?.nome ||
+        (typeof stanza.tipologia === 'string' ? stanza.tipologia : '') ||
+        ''
+      ).toString().toLowerCase().trim();
+
+      if (!idStanzaTipo && !nomeStanzaTipo) return true;
+
+      return (
+        idStanzaTipo === target ||
+        nomeStanzaTipo === target ||
+        (nomeStanzaTipo !== '' && target !== '' && (nomeStanzaTipo.includes(target) || target.includes(nomeStanzaTipo)))
+      );
     });
   }
 
-  getValoreTipoCamera(tipo: TipoCamera | string): string {
-    if (!tipo) return '';
-    if (typeof tipo === 'string') return tipo;
-    return tipo.nomeTipologia || tipo.nome || '';
-  }
-
-  getStanzaId(stanza: Stanza | string | number): string | number {
+  getStanzaId(stanza: any): string | number {
     if (!stanza) return '';
-    if (typeof stanza === 'string' || typeof stanza === 'number') return stanza;
-    return stanza.id || stanza.idStanza || stanza.numeroStanza || stanza.numero || '';
+    if (typeof stanza === 'number' || typeof stanza === 'string') return stanza;
+    return stanza.id ?? stanza.idStanza ?? stanza.id_stanza ?? stanza.numeroStanza ?? stanza.numero ?? '';
   }
 
-  getStanzaNumero(stanza: Stanza | string | number): string | number {
+  getStanzaNumero(stanza: any): string | number {
     if (!stanza) return '';
-    if (typeof stanza === 'string' || typeof stanza === 'number') return stanza;
-    return stanza.numeroStanza || stanza.numero || stanza.id || stanza.idStanza || '';
+    if (typeof stanza === 'number' || typeof stanza === 'string') return stanza;
+    return stanza.numeroStanza ?? stanza.numero ?? stanza.numero_stanza ?? stanza.id ?? stanza.idStanza ?? '';
   }
 
-  getTipologiaStanzaNome(stanza: Stanza): string {
-    if (!stanza) return '';
-    if (typeof stanza.tipologiaStanza === 'string') return stanza.tipologiaStanza;
-    if (typeof stanza.tipologia === 'string') return stanza.tipologia;
-    return stanza.tipologiaStanza?.nomeTipologia ||
-           stanza.tipologiaStanza?.nome ||
-           stanza.tipologia?.nomeTipologia ||
-           stanza.tipologia?.nome || '';
-  }
-
-  // 🟢 HELPER PER OTTENERE LA CAPIENZA DELLA STANZA PER I DROPDOWN
   getStanzaCapienza(stanza: any): number | string {
     if (!stanza) return '-';
-    return stanza.tipologiaStanza?.capienza ?? stanza.tipologia?.capienza ?? stanza.capienza ?? '-';
+    return stanza.tipologiaStanza?.capienza ?? stanza.tipologia?.capienza ?? stanza.capienza ?? stanza.maxOspiti ?? '-';
   }
 
   capienzaStanzaSelezionata(): number | null {
-    if (!this.stanzaSelezionata) return null;
+    if (!this.includeAlbergo() || !this.stanzaSelezionata) return null;
     const stanzaObj = this.stanzeDisponibili.find(
       s => this.getStanzaId(s).toString() === this.stanzaSelezionata.toString()
     );
     if (!stanzaObj) return null;
-    const capienza = stanzaObj.tipologiaStanza?.capienza ?? stanzaObj.tipologia?.capienza ?? (stanzaObj as any).capienza;
-    return capienza ?? null;
+    const cap = this.getStanzaCapienza(stanzaObj);
+    return (cap !== '-' && !isNaN(Number(cap))) ? Number(cap) : null;
   }
 
   superaCapienza(): boolean {
+    if (!this.includeAlbergo()) return false;
     const capienza = this.capienzaStanzaSelezionata();
-    if (capienza === null) return false;
+    if (capienza === null || capienza <= 0) return false;
     return this.ospiti.length > capienza;
   }
 
@@ -306,13 +343,15 @@ export class Prenotazioni implements OnInit {
       this.stanzaSelezionata = '';
       this.tipoCamera = '';
       this.serviziSelezionatiIds = [];
+      this.checkOut = '';
     }
   }
 
   numeroNotti(): number {
-    if (!this.checkIn || !this.checkOut) return 0;
+    if (!this.includeAlbergo() || !this.checkIn || !this.checkOut) return 0;
     const start = new Date(this.checkIn);
     const end = new Date(this.checkOut);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return 0;
     const diff = end.getTime() - start.getTime();
     const notti = Math.ceil(diff / (1000 * 3600 * 24));
     return notti > 0 ? notti : 0;
@@ -328,12 +367,13 @@ export class Prenotazioni implements OnInit {
           s => this.getStanzaId(s).toString() === this.stanzaSelezionata.toString()
         );
         if (stanzaObj) {
-          const prezzoStanza = stanzaObj.tipologiaStanza?.prezzo || stanzaObj.tipologia?.prezzo || 0;
+          // Utilizziamo il metodo helper per estrarre il prezzo dalla tipologia
+          const prezzoStanza = this.getPrezzoStanza(stanzaObj);
           totale += (prezzoStanza * notti);
         }
       }
 
-      const pSel = this.listaPensioni.find((p: PensioneInfo) => p.tipo === this.pensione);
+      const pSel = this.listaPensioni.find((p: any) => p.tipo === this.pensione || p.id === this.pensione);
       if (pSel) {
         totale += (pSel.prezzo * notti * this.ospiti.length);
       }
@@ -349,7 +389,7 @@ export class Prenotazioni implements OnInit {
     }
 
     if (this.includeSpa()) {
-      totale += this.prezzoSpa;
+      totale += (this.prezzoSpa * Math.max(1, this.ospiti.length));
     }
 
     return totale;
@@ -359,12 +399,11 @@ export class Prenotazioni implements OnInit {
     return Math.round(this.prezzoTotale() * 0.1);
   }
 
-  // 🟢 AGGIUNTA OSPITI LIMITATA ALLA CAPIENZA MASSIMA
   aggiungiOspite(): void {
     if (this.includeAlbergo() && this.stanzaSelezionata) {
       const capienzaMax = this.capienzaStanzaSelezionata();
-      if (capienzaMax !== null && this.ospiti.length >= capienzaMax) {
-        alert(`⚠️ Questa stanza consente un massimo di ${capienzaMax} ospit${capienzaMax === 1 ? 'e' : 'i'}.`);
+      if (capienzaMax !== null && capienzaMax > 0 && this.ospiti.length >= capienzaMax) {
+        alert(`Impossibile aggiungere altri ospiti! La capienza massima di questa stanza è di ${capienzaMax} persone.`);
         return;
       }
     }
@@ -381,37 +420,57 @@ export class Prenotazioni implements OnInit {
     this.messaggio = '';
     this.errore = '';
 
-    // Controlli client-side
     if (!this.checkIn) {
-      this.mostraErrore('Seleziona prima la data di Check-in / Prenotazione!');
+      this.mostraErrore('Seleziona la data per la prenotazione!');
+      return;
+    }
+
+    if (this.checkIn < this.todayDate) {
+      this.mostraErrore("Non è possibile selezionare una data antecedente ad oggi!");
       return;
     }
 
     const checkInFinale = this.checkIn;
-    const checkOutFinale = this.checkOut ? this.checkOut : this.checkIn;
+    const checkOutFinale = this.includeAlbergo() ? (this.checkOut ? this.checkOut : this.checkIn) : this.checkIn;
 
-    if (this.includeAlbergo() && !this.checkOut) {
-      this.mostraErrore('Seleziona la data di Check-out!');
-      return;
-    }
-
-    if (this.includeAlbergo() && !this.stanzaSelezionata) {
-      this.mostraErrore('Seleziona una stanza disponibile!');
-      return;
-    }
-
-    // Controllo capienza
-    if (this.includeAlbergo() && this.superaCapienza()) {
-      const capienza = this.capienzaStanzaSelezionata();
-      this.mostraErrore(`Numero ospiti (${this.ospiti.length}) superiore alla capienza massima della stanza (max ${capienza}).`);
-      return;
-    }
-
-    let idPensioneVal: number = 3;
     if (this.includeAlbergo()) {
-      if (this.pensione === 'COMPLETA') {
+      if (!this.checkOut) {
+        this.mostraErrore('Seleziona la data di Check-out!');
+        return;
+      }
+
+      if (this.checkOut <= this.checkIn) {
+        this.mostraErrore('La data di Check-out deve essere successiva a quella di Check-in!');
+        return;
+      }
+
+      if (!this.stanzaSelezionata) {
+        this.mostraErrore('Seleziona una stanza disponibile!');
+        return;
+      }
+
+      if (this.superaCapienza()) {
+        const capienza = this.capienzaStanzaSelezionata();
+        this.mostraErrore(`Numero ospiti (${this.ospiti.length}) superiore alla capienza massima della stanza (max ${capienza}).`);
+        return;
+      }
+    }
+
+    for (let i = 0; i < this.ospiti.length; i++) {
+      if (!this.ospiti[i].nome?.trim() || !this.ospiti[i].cognome?.trim()) {
+        this.mostraErrore(`Inserisci nome e cognome per l'ospite #${i + 1}`);
+        return;
+      }
+    }
+
+    let idPensioneVal: number = 2;
+    if (this.includeAlbergo()) {
+      const pSel = this.listaPensioni.find((p: any) => p.tipo === this.pensione);
+      if (pSel && (pSel as any).id) {
+        idPensioneVal = Number((pSel as any).id);
+      } else if (this.pensione.includes('COMPLETA')) {
         idPensioneVal = 1;
-      } else if (this.pensione === 'MEZZA') {
+      } else if (this.pensione.includes('MEZZA')) {
         idPensioneVal = 2;
       } else {
         idPensioneVal = 3;
@@ -423,7 +482,7 @@ export class Prenotazioni implements OnInit {
       idStanzaVal = Number(this.stanzaSelezionata);
     }
 
-    const serviziIds = this.serviziSelezionatiIds.map(id => Number(id));
+    const serviziIds = this.includeAlbergo() ? this.serviziSelezionatiIds.map(id => Number(id)) : [];
 
     const payload: PayloadPrenotazione = {
       idStanza: idStanzaVal,
@@ -434,17 +493,13 @@ export class Prenotazioni implements OnInit {
       idPensione: idPensioneVal,
       tipoPrenotazione: this.tipoPrenotazione,
       dovePrenotazione: 'WEB',
-      tipoPagamento: 'BONIFICO',
+      tipoPagamento: this.metodoPagamento,
       ospiti: this.ospiti,
       serviziAggiuntivi: serviziIds
     };
 
-    console.log('Payload inviato a Spring Boot:', payload);
-
     this.prenotazioniService.creaPrenotazione(payload).subscribe({
       next: (res: any) => {
-        console.log('Risposta ricevuta dal backend:', res);
-
         if (res && typeof res === 'object') {
           this.prenotazioneConfermata = res;
         } else {
@@ -461,8 +516,7 @@ export class Prenotazioni implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err: any) => {
-        console.error('Errore risposta Spring Boot:', err);
-        let msgErrore = 'Si è verificato un errore durante la registrazione della prenotazione.';
+        let msgErrore = "Si è verificato un errore durante la registrazione della prenotazione.";
 
         if (err.error && typeof err.error === 'string') {
           msgErrore = err.error;
