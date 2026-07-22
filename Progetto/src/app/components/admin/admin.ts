@@ -23,30 +23,24 @@ export class Admin implements OnInit {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
-  // Auth & Navigation
   username = '';
   password = '';
   errorMessage = '';
   isLogged = false;
   
-  // Sezioni di navigazione
   sezioneAttiva: 'prenotazione' | 'stanze' | 'tipologie' | 'servizi' = 'prenotazione';
 
-  // Flag per mostrare/nascondere i form di creazione/modifica
   mostraFormStanza: boolean = false;
   mostraFormTipologia: boolean = false;
   mostraFormServizio: boolean = false;
 
-  // Stato Modifica (ID degli elementi attualmente in modifica)
   idTipoCameraInModifica: number | string | null = null;
   idServizioInModifica: number | string | null = null;
   idStanzaInModifica: number | string | null = null;
 
-  // Stato Admin
   tipiCamera: TipoCamera[] = [];
   stanze: Stanza[] = [];
 
-  // 📷 Modello Tipologia Camera con opzione immagine
   nuovoTipoCamera: TipoCamera & { immagine?: string } = {
     nome: '',
     descrizione: '',
@@ -55,7 +49,6 @@ export class Admin implements OnInit {
     immagine: ''
   };
 
-  // 📷 Modello Servizio con opzione immagine
   nuovoServizio = {
     nomeservizio: '',
     descrizione: '',
@@ -68,7 +61,6 @@ export class Admin implements OnInit {
   tipoCameraSelezionato: TipoCamera | null = null;
   idTipoCameraSelezionato: number | string | null = null;
 
-  // Stato Prenotazione
   tipoPrenotazione: string = 'SPA';
   tipoCamera: string = '';
   stanzaSelezionata: string = '';
@@ -178,7 +170,6 @@ export class Admin implements OnInit {
     this.caricaTutteLeStanze();
   }
 
-  // ✏️ AVVIA MODIFICA TIPOLOGIA CAMERA
   avviaModificaTipoCamera(t: any): void {
     this.idTipoCameraInModifica = this.getTipologiaId(t);
     const nomeVal = this.getValoreTipoCamera(t);
@@ -201,7 +192,6 @@ export class Admin implements OnInit {
     this.mostraFormTipologia = false;
   }
 
-  // 🟢 SALVATAGGIO / AGGIORNAMENTO TIPOLOGIA CAMERA
   salvaTipoCamera(): void {
     const nomeVal = (this.nuovoTipoCamera.nome || (this.nuovoTipoCamera as any).nomeTipologia || '').toString().trim();
     const prezzoVal = Number(this.nuovoTipoCamera.prezzo);
@@ -215,7 +205,6 @@ export class Admin implements OnInit {
       localStorage.setItem('img_camera_' + nomeVal.toLowerCase(), this.nuovoTipoCamera.immagine.trim());
     }
 
-    // 🟢 Conversion a number | undefined per rispettare l'interfaccia TipoCamera
     const idVal = this.idTipoCameraInModifica ? Number(this.idTipoCameraInModifica) : undefined;
 
     const payload: TipoCamera = {
@@ -243,7 +232,6 @@ export class Admin implements OnInit {
     });
   }
 
-  // ✏️ AVVIA MODIFICA SERVIZIO
   avviaModificaServizio(s: any): void {
     this.idServizioInModifica = this.getServizioId(s);
     const nomeVal = this.getServizioNome(s);
@@ -266,7 +254,6 @@ export class Admin implements OnInit {
     this.mostraFormServizio = false;
   }
 
-  // 🟢 SALVATAGGIO / AGGIORNAMENTO SERVIZIO
   salvaServizio(): void {
     const nomeVal = (this.nuovoServizio.nomeservizio || '').trim();
     const prezzoVal = Number(this.nuovoServizio.prezzi);
@@ -308,7 +295,6 @@ export class Admin implements OnInit {
     });
   }
 
-  // ✏️ AVVIA MODIFICA STANZA
   avviaModificaStanza(s: any): void {
     this.idStanzaInModifica = s.id || this.getStanzaId(s);
     this.numeroStanza = s.numeroStanza || s.numero || '';
@@ -326,7 +312,6 @@ export class Admin implements OnInit {
     this.mostraFormStanza = false;
   }
 
-  // 🟢 SALVATAGGIO / AGGIORNAMENTO STANZA
   salvaStanza(): void {
     const numStanza = (this.numeroStanza || '').toString().trim();
 
@@ -694,7 +679,7 @@ export class Admin implements OnInit {
         );
 
         if (capienzaStanza > 0 && this.ospiti.length > capienzaStanza) {
-          this.errore = `⚠️ Numero di ospiti (${this.ospiti.length}) superiore alla capienza massima della stanza selezionata (${capienzaStanza})!`;
+          this.errore = `Numero di ospiti (${this.ospiti.length}) superiore alla capienza massima della stanza selezionata (${capienzaStanza})!`;
           this.cdr.detectChanges();
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return;
@@ -758,11 +743,11 @@ export class Admin implements OnInit {
 
         let msgExt = err.error?.message || err.error || err.message || '';
         if (msgExt.includes('capienza') || msgExt.includes('Numero ospiti')) {
-          this.errore = '⚠️ Impossibile completare la prenotazione: Numero di ospiti superiore alla capienza massima della stanza!';
+          this.errore = 'Impossibile completare la prenotazione: Numero di ospiti superiore alla capienza massima della stanza!';
         } else if (msgExt) {
-          this.errore = `⚠️ Errore dal server: ${msgExt}`;
+          this.errore = `Errore dal server: ${msgExt}`;
         } else {
-          this.errore = '⚠️ Errore durante la registrazione. Verificare i dati inseriti.';
+          this.errore = 'Errore durante la registrazione. Verificare i dati inseriti.';
         }
 
         this.cdr.detectChanges();
