@@ -1,9 +1,7 @@
-
-
 export interface TipoCamera {
   id?: number;
   nome?: string;
-  nomeTipologia?: string; // 🟢 AGGIUNGI QUESTA RIGA
+  nomeTipologia?: string;
   descrizione?: string;
   prezzo?: number;
   capienza?: number;

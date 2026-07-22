@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http'; // 🟢 1. Importato HttpClient
+import { HttpClient } from '@angular/common/http';
 import { PrenotazioniService } from '../../services/prenotazioni-service';
 
 @Component({
@@ -14,7 +14,7 @@ import { PrenotazioniService } from '../../services/prenotazioni-service';
 })
 export class Utenti {
   private router = inject(Router);
-  private http = inject(HttpClient); // 🟢 2. Iniettato HttpClient
+  private http = inject(HttpClient);
   private prenotazioniService = inject(PrenotazioniService);
 
   modalitaAccesso: 'codice' | 'account' = 'codice';
@@ -38,7 +38,7 @@ export class Utenti {
         next: (prenotazione) => {
           localStorage.setItem('prenotazione_corrente', JSON.stringify(prenotazione));
           localStorage.removeItem('utente_logged');
-          
+
           this.router.navigate(['/clienti']);
         },
         error: (err) => {
@@ -53,7 +53,6 @@ export class Utenti {
         return;
       }
 
-      // 🟢 3. Chiamata al nuovo endpoint che controlla sia ADMIN che UTENTE
       const payload = {
         email: this.email.trim(),
         pin: this.pin.trim()
@@ -64,7 +63,6 @@ export class Utenti {
           console.log('Login effettuato:', res);
           localStorage.setItem('utente_logged', JSON.stringify(res));
 
-          // 🟢 4. SMISTAMENTO IN BASE AL RUOLO
           if (res.ruolo === 'ADMIN') {
             console.log('Redirect verso Area Admin');
             this.router.navigate(['/admin']);

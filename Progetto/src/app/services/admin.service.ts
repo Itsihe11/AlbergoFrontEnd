@@ -8,9 +8,9 @@ import { RichiestaAdmin } from '../interface/richiestaadmin';
 })
 export class AdminService {
   private apiUrl = '/api/admin';
-  private loggedIn: boolean = false; 
+  private loggedIn: boolean = false;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   login(credentials: RichiestaAdmin): Observable<string> {
     return this.http.post(`${this.apiUrl}/login`, credentials, { responseType: 'text' });
@@ -29,12 +29,12 @@ export class AdminService {
   }
 
 
-creaServizio(servizio: { nomeservizio: string; descrizione: string; prezzi: number }): Observable<string> {
-  return this.http.post('/api/dipendenti/servizi/datiServizi', servizio, { responseType: 'text' });
-}
+  creaServizio(servizio: { nomeservizio: string; descrizione: string; prezzi: number }): Observable<string> {
+    return this.http.post('/api/dipendenti/servizi/datiServizi', servizio, { responseType: 'text' });
+  }
 
-eliminaServizio(id: number | string): Observable<string> {
-  return this.http.delete(`/api/dipendenti/servizi/cancellaServizi/${id}`, { responseType: 'text' });
-}
+  eliminaServizio(id: number | string): Observable<string> {
+    return this.http.delete(`/api/dipendenti/servizi/cancellaServizi/${id}`, { responseType: 'text' });
+  }
 
 }

@@ -5,29 +5,23 @@
 
 <section class="services-list">
   @if (caricamento) {
-    <p>Caricamento servizi in corso...</p>
+  <p>Caricamento servizi in corso...</p>
   } @else {
-    @for (servizio of servizi; track getServizioId(servizio)) {
-      <article class="service-card">
-        <!-- 🟢 CORRETTO: Passiamo l'intero oggetto 'servizio', gestiamo l'errore e il referrer -->
-        <img 
-          class="service-image" 
-          [src]="getImmagine(servizio)" 
-          (error)="onImgError($event)"
-          referrerpolicy="no-referrer"
-          [alt]="getServizioNome(servizio)"
-        >
-        <h2>{{ getServizioNome(servizio) }}</h2>
-        @if (getServizioDescrizione(servizio)) {
-          <p class="service-description">{{ getServizioDescrizione(servizio) }}</p>
-        }
-        <span class="service-price">
-          {{ getServizioPrezzo(servizio) > 0 ? '+' + getServizioPrezzo(servizio) + ' €' : 'Incluso' }}
-        </span>
-      </article>
-    } @empty {
-      <p>Nessun servizio disponibile al momento.</p>
+  @for (servizio of servizi; track getServizioId(servizio)) {
+  <article class="service-card">
+    <img class="service-image" [src]="getImmagine(servizio)" (error)="onImgError($event)" referrerpolicy="no-referrer"
+      [alt]="getServizioNome(servizio)">
+    <h2>{{ getServizioNome(servizio) }}</h2>
+    @if (getServizioDescrizione(servizio)) {
+    <p class="service-description">{{ getServizioDescrizione(servizio) }}</p>
     }
+    <span class="service-price">
+      {{ getServizioPrezzo(servizio) > 0 ? '+' + getServizioPrezzo(servizio) + ' €' : 'Incluso' }}
+    </span>
+  </article>
+  } @empty {
+  <p>Nessun servizio disponibile al momento.</p>
+  }
   }
 </section>
 
