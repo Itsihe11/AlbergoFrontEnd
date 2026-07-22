@@ -22,7 +22,7 @@ body {
   line-height: 1.6;
 }
 
-/* ===== NAVBAR ===== */
+/* NAVBAR */
 header {
   background-color: var(--white);
   border-bottom: 2px solid var(--gold);
@@ -43,7 +43,6 @@ header {
   flex-wrap: wrap;
 }
 
-/* ===== LOGO ===== */
 .navbar-logo {
   display: flex;
   align-items: center;
@@ -63,7 +62,6 @@ header {
   white-space: nowrap;
 }
 
-/* ===== LINK CENTRALI ===== */
 .navbar-links {
   display: flex;
   align-items: center;
@@ -98,7 +96,6 @@ header {
   color: var(--white);
 }
 
-/* ===== SEZIONE UTENTI (destra) ===== */
 .navbar-user {
   display: flex;
   align-items: center;
@@ -108,7 +105,6 @@ header {
   border-radius: 7px;
 }
 
-/* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .navbar {
     flex-direction: column;
@@ -142,7 +138,6 @@ header {
   }
 }
 
-/* ===== SEZIONI GENERALI ===== */
 section {
   padding: 4rem 2rem;
   max-width: 1000px;
@@ -151,7 +146,6 @@ section {
 
 /*  HOME  */
 
-/* ===== HERO ===== */
 .hero {
   text-align: center;
   background: linear-gradient(135deg, var(--gold-dark), var(--gold));
@@ -190,7 +184,6 @@ section {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
 
-/* ===== ESPLORA ===== */
 .explore h2 {
   font-size: 1.8rem;
   color: var(--gold-dark);
@@ -225,7 +218,6 @@ section {
   transform: translateY(-3px);
 }
 
-/* ===== DESCRIZIONE ===== */
 .description p {
   max-width: 700px;
   margin: 0 auto;
@@ -234,7 +226,6 @@ section {
   font-size: 1.05rem;
 }
 
-/* ===== RESPONSIVE ===== */
 @media (max-width: 600px) {
   .hero h1 {
     font-size: 2rem;
@@ -252,7 +243,6 @@ section {
   }
 }
 
-/* ===== HERO ACTIONS (doppio bottone) ===== */
 .hero-actions {
   display: flex;
   gap: 1rem;
@@ -294,7 +284,6 @@ section {
   transform: translateY(-2px);
 }
 
-/* ===== HIGHLIGHTS (punti di forza) ===== */
 .highlights {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -338,7 +327,6 @@ section {
   font-size: 0.92rem;
 }
 
-/* ===== DESCRIZIONE (storia + statistiche) ===== */
 .description-content {
   display: flex;
   flex-direction: column;
@@ -389,7 +377,6 @@ section {
   margin-top: 0.3rem;
 }
 
-/* ===== TESTIMONIANZE ===== */
 .testimonials h2 {
   text-align: center;
   color: var(--gold-dark);
@@ -425,7 +412,6 @@ section {
   font-size: 0.9rem;
 }
 
-/* ===== CTA FINALE ===== */
 .final-cta {
   text-align: center;
   background: linear-gradient(135deg, var(--gold-dark), var(--gold));
@@ -462,7 +448,6 @@ section {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
-/* ===== RESPONSIVE ===== */
 @media (max-width: 600px) {
   .stats-row {
     gap: 1.8rem;
@@ -510,7 +495,6 @@ section {
   margin: 0 auto;
 }
 
-/* ===== HERO SERVIZI ===== */
 .services-hero {
   text-align: center;
   background: linear-gradient(135deg, var(--gold-dark), var(--gold));
@@ -533,7 +517,6 @@ section {
   margin: 0 auto;
 }
 
-/* ===== STATO (loading / vuoto) ===== */
 .services-list>p {
   text-align: center;
   color: var(--text-light);
@@ -541,7 +524,6 @@ section {
   padding: 2rem 0;
 }
 
-/* ===== LISTA SERVIZI ===== */
 .services-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -599,7 +581,6 @@ section {
   margin: 0 1.8rem 1.8rem;
 }
 
-/* ===== CTA ===== */
 .services-cta {
   text-align: center;
 }
@@ -621,7 +602,6 @@ section {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
-/* ===== RESPONSIVE ===== */
 @media (max-width: 600px) {
   .services-hero h1 {
     font-size: 1.8rem;
@@ -663,7 +643,6 @@ body {
   line-height: 1.6;
 }
 
-/* ===== CONTENITORE ===== */
 .booking-page {
   max-width: 700px;
   margin: 0 auto;
@@ -685,7 +664,6 @@ body {
   padding-bottom: 0.5rem;
 }
 
-/* ===== ALERT (messaggi/errori in alto) ===== */
 .alert {
   padding: 0.9rem 1.2rem;
   border-radius: 6px;
@@ -705,7 +683,6 @@ body {
   border: 1px solid rgba(192, 57, 43, 0.25);
 }
 
-/* ===== FORM GROUPS ===== */
 .form-group {
   margin-bottom: 1.4rem;
   display: flex;
@@ -758,7 +735,7 @@ label {
   margin-bottom: 1rem;
 }
 
-/* ===== OSPITI ===== */
+
 .guest-row {
   display: flex;
   gap: 0.8rem;
@@ -776,7 +753,7 @@ label {
   min-width: 120px;
 }
 
-/* ===== SERVIZI AGGIUNTIVI ===== */
+ 
 .servizi-container {
   margin: 1.5rem 0;
 }
@@ -829,7 +806,6 @@ label {
   font-style: italic;
 }
 
-/* ===== BOTTONI ===== */
 .btn-primary,
 .btn-secondary,
 .btn-remove {
@@ -881,7 +857,6 @@ label {
   color: var(--white);
 }
 
-/* ===== RIEPILOGO PREZZO ===== */
 .price-summary {
   background-color: var(--white);
   border: 1px solid var(--gold-light);
@@ -894,7 +869,7 @@ label {
   margin-bottom: 0.4rem;
 }
 
-/* ===== RESPONSIVE ===== */
+ 
 @media (max-width: 600px) {
   .form-row {
     flex-direction: column;
@@ -911,7 +886,6 @@ label {
   }
 }
 
-/* ===== SERVIZI AGGIUNTIVI ===== */
 .servizi-container {
   margin: 1.5rem 0;
 }
@@ -963,14 +937,12 @@ label {
   font-size: 0.9rem;
 }
 
-/* ===== RESPONSIVE ===== */
 @media (max-width: 600px) {
   .servizi-grid {
     grid-template-columns: 1fr;
   }
 }
 
-/* ===== FOOTER ===== */
 .site-footer {
   background-color: var(--gold-dark);
   color: var(--white);
@@ -1030,7 +1002,6 @@ label {
   opacity: 0.8;
 }
 
-/* ===== RESPONSIVE ===== */
 @media (max-width: 600px) {
   .footer-content {
     grid-template-columns: 1fr;
@@ -1070,7 +1041,6 @@ section {
   margin: 0 auto;
 }
 
-/* ===== HERO CAMERE ===== */
 .rooms-hero {
   text-align: center;
   background: linear-gradient(135deg, var(--gold-dark), var(--gold));
@@ -1091,7 +1061,6 @@ section {
   opacity: 0.9;
 }
 
-/* ===== STATO (loading / errore / vuoto) ===== */
 .status-msg {
   text-align: center;
   color: var(--text-light);
@@ -1103,7 +1072,6 @@ section {
   color: var(--error);
 }
 
-/* ===== GRIGLIA CAMERE ===== */
 .rooms-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -1126,7 +1094,7 @@ section {
   border-color: var(--gold);
 }
 
-/* Immagini tutte della stessa dimensione, indipendentemente dal formato originale */
+/* Immagini tutte della stessa dimensione */
 .room-image-wrapper {
   width: 100%;
   height: 220px;
@@ -1146,7 +1114,8 @@ section {
   transform: scale(1.05);
 }
 
-/* ===== CONTENUTO CARD ===== */
+/*  CARD  */
+
 .room-content {
   padding: 1.4rem 1.5rem 1.6rem;
   display: flex;
@@ -1203,7 +1172,6 @@ section {
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
 }
 
-/* ===== RESPONSIVE ===== */
 @media (max-width: 600px) {
   .rooms-hero h1 {
     font-size: 1.8rem;
@@ -1245,7 +1213,7 @@ section {
   min-height: 100vh;
 }
 
-/* ===== LOGIN ===== */
+/*  LOGIN  */
 .login-box {
   max-width: 420px;
   margin: 4rem auto;
@@ -1281,7 +1249,6 @@ section {
   text-align: center;
 }
 
-/* ===== NAVBAR ADMIN ===== */
 .admin-navbar {
   display: flex;
   align-items: center;
@@ -1337,7 +1304,6 @@ section {
   color: var(--admin-dark);
 }
 
-/* ===== SEZIONI ===== */
 .admin-panel {
   max-width: 1000px;
   margin: 0 auto;
@@ -1425,12 +1391,12 @@ label {
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
 }
 
-/* ===== TABELLA ===== */
 .table-wrapper {
   overflow-x: auto;
   background-color: var(--white);
   border: 1px solid var(--gold-light);
   border-radius: 10px;
+  margin-top: 10px;
 }
 
 .admin-table {
@@ -1463,7 +1429,6 @@ label {
   padding: 1.5rem;
 }
 
-/* ===== BADGE STATO ===== */
 .status-badge {
   display: inline-block;
   padding: 0.3rem 0.8rem;
@@ -1487,7 +1452,6 @@ label {
   color: var(--gold-dark);
 }
 
-/* ===== BOTTONE ELIMINA ===== */
 .btn-delete {
   font-family: inherit;
   background-color: transparent;
@@ -1505,7 +1469,6 @@ label {
   color: var(--white);
 }
 
-/* ===== RESPONSIVE ===== */
 @media (max-width: 700px) {
   .admin-navbar {
     flex-direction: column;
@@ -1550,7 +1513,7 @@ body {
   line-height: 1.6;
 }
 
-/* ===== PAGINA CONTATTI ===== */
+/*  CONTATTI  */
 .contact-page {
   max-width: 600px;
   margin: 0 auto;
@@ -1570,7 +1533,6 @@ body {
   margin-bottom: 2.5rem;
 }
 
-/* ===== CARD CONTATTI ===== */
 .contact-card {
   background-color: var(--white);
   border: 1px solid var(--gold-light);
@@ -1620,7 +1582,6 @@ body {
   text-decoration: underline;
 }
 
-/* ===== RESPONSIVE ===== */
 @media (max-width: 500px) {
   .contact-page {
     padding: 3rem 1.2rem;
@@ -1657,7 +1618,7 @@ body {
   line-height: 1.6;
 }
 
-/* ===== PAGINA LOGIN ===== */
+/*  PAGINA LOGIN  */
 .login-page {
   min-height: 70vh;
   display: flex;
@@ -1690,7 +1651,6 @@ body {
   margin-bottom: 2rem;
 }
 
-/* ===== FORM ===== */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -1721,7 +1681,6 @@ label {
   box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.15);
 }
 
-/* ===== BOTTONE ===== */
 .btn-primary {
   display: block;
   width: 100%;
@@ -1743,7 +1702,6 @@ label {
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
-/* ===== ERRORE ===== */
 .error-msg {
   margin-top: 1rem;
   padding: 0.7rem 1rem;
@@ -1754,7 +1712,6 @@ label {
   text-align: center;
 }
 
-/* ===== RESPONSIVE ===== */
 @media (max-width: 480px) {
   .login-box {
     padding: 1.8rem;
@@ -1780,7 +1737,6 @@ label {
   box-sizing: border-box;
 }
 
-/* ===== CONTENITORE ===== */
 .container {
   max-width: 800px;
   margin: 0 auto;
@@ -1789,7 +1745,6 @@ label {
   color: var(--text-dark);
 }
 
-/* ===== CARD RICEVUTA ===== */
 .card {
   background-color: var(--white);
   border: 1px solid var(--gold-light);
@@ -1826,7 +1781,6 @@ hr {
   margin: 1.5rem 0;
 }
 
-/* ===== GRIGLIA RIEPILOGO ===== */
 .row {
   display: flex;
   flex-wrap: wrap;
@@ -1844,7 +1798,6 @@ hr {
   margin-bottom: 0.8rem;
 }
 
-/* ===== LISTA DETTAGLI ===== */
 .list-group {
   list-style: none;
   border: 1px solid var(--gold-light);
@@ -1863,7 +1816,6 @@ hr {
   border-bottom: none;
 }
 
-/* ===== BADGE E TESTI EVIDENZIATI ===== */
 .badge {
   display: inline-block;
   padding: 0.3rem 0.7rem;
@@ -1885,7 +1837,6 @@ hr {
   color: var(--error);
 }
 
-/* ===== BOX ISTRUZIONI BONIFICO ===== */
 .alert {
   border-radius: 8px;
   padding: 1.2rem 1.4rem;
@@ -1914,7 +1865,6 @@ hr {
   margin-bottom: 0.3rem;
 }
 
-/* ===== BOTTONE NUOVA PRENOTAZIONE ===== */
 .text-center {
   text-align: center;
 }
@@ -1945,7 +1895,6 @@ hr {
   font-size: 1.05rem;
 }
 
-/* ===== RESPONSIVE ===== */
 @media (max-width: 600px) {
   .row {
     flex-direction: column;
@@ -1969,7 +1918,6 @@ hr {
   --success: #2e7d32;
 }
 
-/* ===== CONTENITORE ===== */
 .ac-container {
   font-family: 'Georgia', 'Times New Roman', serif;
   color: var(--text-dark);
@@ -1979,7 +1927,6 @@ hr {
   line-height: 1.6;
 }
 
-/* ===== HEADER PAGINA ===== */
 .ac-header {
   display: flex;
   justify-content: space-between;
@@ -1994,7 +1941,6 @@ hr {
   font-size: 1.6rem;
 }
 
-/* ===== ALERT ===== */
 .ac-alert {
   padding: 0.9rem 1.2rem;
   border-radius: 6px;
@@ -2020,7 +1966,6 @@ hr {
   border: 1px solid var(--gold-light);
 }
 
-/* ===== CARD PRENOTAZIONE ===== */
 .ac-card {
   background-color: var(--white);
   border: 1px solid var(--gold-light);
@@ -2054,7 +1999,6 @@ hr {
   font-size: 0.98rem;
 }
 
-/* ===== BADGE ===== */
 .ac-badge {
   display: inline-block;
   padding: 0.35rem 0.8rem;
@@ -2065,7 +2009,6 @@ hr {
   color: var(--text-dark);
 }
 
-/* ===== GRIGLIA INFO ===== */
 .ac-info-grid {
   display: flex;
   flex-wrap: wrap;
@@ -2094,7 +2037,6 @@ hr {
   color: var(--gold-dark);
 }
 
-/* ===== LISTA OSPITI ===== */
 .ac-list {
   list-style: none;
   border: 1px solid var(--gold-light);
@@ -2123,14 +2065,12 @@ hr {
   color: var(--text-light);
 }
 
-/* ===== AZIONI ===== */
 .ac-actions {
   display: flex;
   gap: 0.6rem;
   flex-wrap: wrap;
 }
 
-/* ===== BOTTONI ===== */
 .ac-btn {
   font-family: inherit;
   border-radius: 30px;
@@ -2212,7 +2152,6 @@ hr {
   color: var(--white);
 }
 
-/* ===== FORM (dentro il modal) ===== */
 .ac-guest-row {
   display: flex;
   gap: 0.6rem;
@@ -2262,7 +2201,6 @@ hr {
   box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.15);
 }
 
-/* ===== MODAL ===== */
 .ac-modal-overlay {
   position: fixed;
   inset: 0;
@@ -2328,7 +2266,6 @@ hr {
   border-top: 1px solid var(--off-white);
 }
 
-/* ===== RESPONSIVE ===== */
 @media (max-width: 700px) {
   .ac-card-header {
     flex-direction: column;
