@@ -27,7 +27,7 @@ export class Admin implements OnInit {
   password = '';
   errorMessage = '';
   isLogged = false;
-  
+
   sezioneAttiva: 'prenotazione' | 'stanze' | 'tipologie' | 'servizi' = 'prenotazione';
 
   mostraFormStanza: boolean = false;
@@ -672,9 +672,9 @@ export class Admin implements OnInit {
 
       if (stanzaObj) {
         const capienzaStanza = Number(
-          stanzaObj.tipologiaStanza?.capienza || 
-          stanzaObj.tipologia?.capienza || 
-          stanzaObj.capienza || 
+          stanzaObj.tipologiaStanza?.capienza ||
+          stanzaObj.tipologia?.capienza ||
+          stanzaObj.capienza ||
           0
         );
 

@@ -22,7 +22,7 @@ export class Clienti implements OnInit {
   // Gestione Modal / Modifica Ospiti
   mostraModalModifica: boolean = false;
   nuoviOspiti: any[] = [];
-  
+
   nuovaEmail: string = '';
   nuovoPin: string = '';
 
@@ -52,9 +52,8 @@ export class Clienti implements OnInit {
   }
 
   apriModificaOspiti(): void {
-    this.errore = ''; // Reset errore precedente
+    this.errore = '';
     this.messaggio = '';
-    // clona la lista attuale
     this.nuoviOspiti = JSON.parse(JSON.stringify(this.prenotazione.ospiti || []));
     this.nuovaEmail = this.prenotazione.email || '';
     this.nuovoPin = this.prenotazione.pin || '';
@@ -93,17 +92,14 @@ export class Clienti implements OnInit {
       ospiti: ospitiFormattati
     };
 
-    // 🟢 UNICA CHIAMATA AL SERVICE
-this.prenotazioniService.modificaOspitiECreaAccount(payload).subscribe({
-next: () => {
-        // 🟢 Aggiorna ospiti, email e pin nell'oggetto locale
+    this.prenotazioniService.modificaOspitiECreaAccount(payload).subscribe({
+      next: () => {
         this.prenotazione.ospiti = [...ospitiFormattati];
         this.prenotazione.email = this.nuovaEmail.trim();
         this.prenotazione.pin = this.nuovoPin.trim();
 
-        // 🟢 Aggiorna lo stato in LocalStorage
         localStorage.setItem('prenotazione_corrente', JSON.stringify(this.prenotazione));
-        
+
         this.mostraModalModifica = false;
         this.messaggio = 'Ospiti aggiornati e account creato con successo!';
       },

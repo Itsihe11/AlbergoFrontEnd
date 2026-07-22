@@ -5,34 +5,28 @@
 
 <section class="rooms-list">
   @if (caricamento()) {
-    <p class="status-msg">Caricamento camere...</p>
+  <p class="status-msg">Caricamento camere...</p>
   } @else if (errore()) {
-    <p class="status-msg error">{{ errore() }}</p>
+  <p class="status-msg error">{{ errore() }}</p>
   } @else {
-    <div class="rooms-grid">
-      @for (camera of tipiCamera(); track camera.id) {
-        <article class="room-card">
-          <div class="room-image-wrapper">
-            <!-- 🟢 CORRETTO: Passiamo l'oggetto camera completo, gestiamo l'errore e il referrer -->
-            <img 
-              class="room-image" 
-              [src]="getImmagine(camera)" 
-              (error)="onImgError($event)"
-              referrerpolicy="no-referrer"
-              [alt]="camera.nome || 'Camera'"
-            >
-          </div>
-          <div class="room-content">
-            <h2>{{ camera.nome }}</h2>
-            <p class="room-description">{{ camera.descrizione }}</p>
-            <p class="room-capacity">Capienza: {{ camera.capienza }} ospiti</p>
-            <p class="room-price">{{ camera.prezzo }} € <span>a notte</span></p>
-            <a class="room-cta" routerLink="/prenotazioni">Verifica disponibilità</a>
-          </div>
-        </article>
-      } @empty {
-        <p class="status-msg">Nessuna tipologia di camera disponibile al momento.</p>
-      }
-    </div>
+  <div class="rooms-grid">
+    @for (camera of tipiCamera(); track camera.id) {
+    <article class="room-card">
+      <div class="room-image-wrapper">
+        <img class="room-image" [src]="getImmagine(camera)" (error)="onImgError($event)" referrerpolicy="no-referrer"
+          [alt]="camera.nome || 'Camera'">
+      </div>
+      <div class="room-content">
+        <h2>{{ camera.nome }}</h2>
+        <p class="room-description">{{ camera.descrizione }}</p>
+        <p class="room-capacity">Capienza: {{ camera.capienza }} ospiti</p>
+        <p class="room-price">{{ camera.prezzo }} € <span>a notte</span></p>
+        <a class="room-cta" routerLink="/prenotazioni">Verifica disponibilità</a>
+      </div>
+    </article>
+    } @empty {
+    <p class="status-msg">Nessuna tipologia di camera disponibile al momento.</p>
+    }
+  </div>
   }
 </section>
