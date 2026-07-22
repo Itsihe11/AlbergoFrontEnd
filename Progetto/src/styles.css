@@ -182,6 +182,8 @@ section {
   }
 }
 
+/*  SERVIZI  */
+
 :root {
   --gold: #c9a227;
   --gold-light: #e8cd7a;
@@ -224,6 +226,22 @@ section {
 .services-hero h1 {
   font-size: 2.4rem;
   letter-spacing: 1px;
+  margin-bottom: 0.6rem;
+}
+
+.services-hero p {
+  font-size: 1.05rem;
+  opacity: 0.9;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ===== STATO (loading / vuoto) ===== */
+.services-list > p {
+  text-align: center;
+  color: var(--text-light);
+  font-style: italic;
+  padding: 2rem 0;
 }
 
 /* ===== LISTA SERVIZI ===== */
@@ -237,7 +255,9 @@ section {
   background-color: var(--white);
   border: 1px solid var(--gold-light);
   border-radius: 10px;
-  padding: 1.8rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   transition: all 0.2s ease;
 }
 
@@ -247,15 +267,39 @@ section {
   transform: translateY(-3px);
 }
 
+/* Immagini tutte della stessa dimensione */
+.service-image {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.service-card:hover .service-image {
+  transform: scale(1.05);
+}
+
 .service-card h2 {
   color: var(--gold-dark);
   font-size: 1.3rem;
-  margin-bottom: 0.8rem;
+  margin: 1.2rem 1.8rem 0.8rem;
 }
 
-.service-card p {
+.service-description {
   color: var(--text-light);
   font-size: 0.98rem;
+  margin: 0 1.8rem 1rem;
+  flex: 1;
+}
+
+.service-price {
+  display: inline-block;
+  color: var(--gold-dark);
+  font-weight: bold;
+  font-size: 1rem;
+  margin: 0 1.8rem 1.8rem;
 }
 
 /* ===== CTA ===== */
@@ -263,7 +307,7 @@ section {
   text-align: center;
 }
 
-.services-cta a {
+.btn-prenota {
   display: inline-block;
   background-color: var(--gold);
   color: var(--white);
@@ -274,7 +318,7 @@ section {
   transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
-.services-cta a:hover {
+.btn-prenota:hover {
   background-color: var(--gold-dark);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
@@ -287,6 +331,9 @@ section {
   }
   .services-list {
     grid-template-columns: 1fr;
+  }
+  .service-image {
+    height: 160px;
   }
 }
 
