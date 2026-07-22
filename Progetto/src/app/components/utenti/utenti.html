@@ -4,62 +4,39 @@
       <div class="login-box">
         <h1 class="login-title">Accedi al Portale</h1>
 
-        <!-- TAB SELEZIONE MODALITÀ ACCESSO -->
         <div class="tab-buttons mb-4">
-          <button 
-            type="button" 
-            class="btn" 
-            [class.btn-primary]="modalitaAccesso === 'codice'" 
-            [class.btn-outline-primary]="modalitaAccesso !== 'codice'"
-            (click)="modalitaAccesso = 'codice'">
+          <button type="button" class="btn" [class.btn-primary]="modalitaAccesso === 'codice'"
+            [class.btn-outline-primary]="modalitaAccesso !== 'codice'" (click)="modalitaAccesso = 'codice'">
             Codice Prenotazione
           </button>
-          <button 
-            type="button" 
-            class="btn ms-2" 
-            [class.btn-primary]="modalitaAccesso === 'account'" 
-            [class.btn-outline-primary]="modalitaAccesso !== 'account'"
-            (click)="modalitaAccesso = 'account'">
-             Email e PIN / Password
+          <button type="button" class="btn ms-2" [class.btn-primary]="modalitaAccesso === 'account'"
+            [class.btn-outline-primary]="modalitaAccesso !== 'account'" (click)="modalitaAccesso = 'account'">
+            Email e PIN / Password
           </button>
         </div>
 
-        <!-- FORM ACCESSO CON CODICE -->
         <div *ngIf="modalitaAccesso === 'codice'" class="form-group">
           <label>Codice Prenotazione</label>
-          <input 
-            class="form-input form-control" 
-            type="text" 
-            placeholder="es. 7603746e-9c29-4ce1-85a3-28937bc67d37" 
+          <input class="form-input form-control" type="text" placeholder="es. 7603746e-9c29-4ce1-85a3-28937bc67d37"
             [(ngModel)]="codicePrenotazione">
         </div>
 
-        <!-- FORM ACCESSO CON EMAIL E PIN -->
         <div *ngIf="modalitaAccesso === 'account'">
           <div class="form-group mb-3">
             <label>Indirizzo Email</label>
-            <input 
-              class="form-input form-control" 
-              type="email" 
-              placeholder="nome@email.com" 
-              [(ngModel)]="email">
+            <input class="form-input form-control" type="email" placeholder="nome@email.com" [(ngModel)]="email">
           </div>
           <div class="form-group mb-3">
             <label>PIN / Password</label>
-            <input 
-              class="form-input form-control" 
-              type="password" 
-              placeholder="••••" 
-              [(ngModel)]="pin">
+            <input class="form-input form-control" type="password" placeholder="••••" [(ngModel)]="pin">
           </div>
         </div>
 
-        <!-- Assicurati che ci sia type="button" -->
-<button class="btn-primary btn w-100 mt-3" type="button" (click)="login()">Accedi</button>
+        <button class="btn-primary btn w-100 mt-3" type="button" (click)="login()">Accedi</button>
 
         <div *ngIf="errore" class="error-msg alert alert-danger mt-3">{{ errore }}</div>
 
-     
+
 
       </div>
     </div>

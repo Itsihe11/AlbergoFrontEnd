@@ -43,6 +43,6 @@ export class CamereService {
     return this.http.delete(`${this.apiStanze}/cancellaStanza/${id}`, { responseType: 'text' });
   }
   eliminaTipoCamera(id: number | string): Observable<any> {
-  return this.http.delete(`${this.apiTipologiaStanze}/cancellaTipologia/${id}`); // verifica il tuo endpoint backend per le tipologie
-}
+    return this.http.delete(`${this.apiTipologiaStanze}/cancellaTipologia/${id}`);
+  }
 }

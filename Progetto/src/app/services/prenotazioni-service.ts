@@ -3,7 +3,6 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Prenotazione, Ospite } from '../interface/prenotazione';
 
-// 🟢 AGGIUNGI 'export' DAVANTI AD interface PensioneInfo
 export interface PensioneInfo {
   id?: number;
   tipo: string;
@@ -11,7 +10,6 @@ export interface PensioneInfo {
   prezzo: number;
 }
 
-// 🟢 Assicurati che sia esportata anche questa
 export interface ServizioInfo {
   idservizio?: number;
   id?: number;
@@ -28,7 +26,6 @@ export class PrenotazioniService {
   private readonly urlPrenotazione = '/api/prenotazione';
 
 
-  // 🟢 Aggiungi questo metodo dentro PrenotazioniService
 loginUtente(email: string, pin: string): Observable<any> {
   return this.http.post<any>(`${this.urlPrenotazione}/login-utente`, { email, pin });
 }
