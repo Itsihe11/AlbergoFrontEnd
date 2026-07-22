@@ -77,7 +77,6 @@
           <thead>
             <tr>
               <th>Codice Prenotazione</th>
-              <th>Ospite Principale</th>
               <th>Tipo</th>
               <th>Canale</th>
               <th>Costo Totale</th>
@@ -91,9 +90,6 @@
             <tr>
               <td>
                 <span class="badge bg-warning fs-6">{{ p.codice_prenotazione || p.codicePrenotazione }}</span>
-              </td>
-              <td>
-                <strong>{{ getOspitePrincipale(p) }}</strong>
               </td>
               <td><strong>{{ p.tipo_prenotazione || p.tipoPrenotazione }}</strong></td>
               <td>
