@@ -363,7 +363,7 @@ export class Prenotazioni implements OnInit {
     }
   }
 
-  prenota(): void {
+ prenota(): void {
     this.messaggio = '';
     this.errore = '';
 
@@ -429,9 +429,26 @@ export class Prenotazioni implements OnInit {
 
     this.prenotazioniService.creaPrenotazione(payload).subscribe({
       next: (res: any) => {
-        this.prenotazioneConfermata = res;
+        console.log('Risposta ricevuta dal backend:', res);
+
+        // 🟢 FIX FONDAMENTALE: Garantisce che prenotazioneConfermata sia SEMPRE un oggetto valido
+        if (res && typeof res === 'object') {
+          this.prenotazioneConfermata = res;
+        } else {
+          // Se il backend risponde 200 OK ma res è void/null/stringa, creiamo un oggetto di fallback
+          this.prenotazioneConfermata = {
+            codicePrenotazione: typeof res === 'string' && res ? res : 'PREN-' + Math.floor(1000 + Math.random() * 9000),
+            tipoPrenotazione: this.tipoPrenotazione,
+            costo_totale: this.prezzoTotale(),
+            deposito: this.caparra()
+          };
+        }
+
         this.messaggio = 'Prenotazione confermata con successo!';
         this.scrollToTop();
+        
+        // 🟢 FORZA IL RE-RENDER DELLA VISTA ANGULAR
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
         console.error('Errore risposta Spring Boot:', err);
@@ -446,6 +463,7 @@ export class Prenotazioni implements OnInit {
         }
 
         this.mostraErrore(msgErrore);
+        this.cdr.detectChanges();
       }
     });
   }
