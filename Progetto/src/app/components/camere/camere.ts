@@ -36,12 +36,12 @@ export class Camere implements OnInit {
     }
 
     if (typeof tipologiaOrNome === 'object') {
-      const imgCustom = (tipologiaOrNome as any).immagine || 
-                        (tipologiaOrNome as any).foto || 
-                        (tipologiaOrNome as any).immagineUrl ||
-                        (tipologiaOrNome as any).urlImmagine ||
-                        (tipologiaOrNome as any).url_immagine;
-      
+      const imgCustom = (tipologiaOrNome as any).immagine ||
+        (tipologiaOrNome as any).foto ||
+        (tipologiaOrNome as any).immagineUrl ||
+        (tipologiaOrNome as any).urlImmagine ||
+        (tipologiaOrNome as any).url_immagine;
+
       if (imgCustom && imgCustom.toString().trim() !== '') {
         return imgCustom.toString().trim();
       }

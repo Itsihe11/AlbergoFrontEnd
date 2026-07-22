@@ -269,7 +269,8 @@
             <button class="btn-primary" type="submit">
               {{ idStanzaInModifica ? 'Aggiorna Stanza' : 'Salva Stanza' }}
             </button>
-            <button *ngIf="idStanzaInModifica" class="btn-secondary" type="button" (click)="annullaModificaStanza()">Annulla</button>
+            <button *ngIf="idStanzaInModifica" class="btn-secondary" type="button"
+              (click)="annullaModificaStanza()">Annulla</button>
           </div>
         </form>
       </div>
@@ -293,7 +294,8 @@
               <td>{{ s.tipologia?.prezzo ? (s.tipologia.prezzo + '€') : 'N/D' }}</td>
               <td>
                 <div class="d-flex gap-1">
-                  <button class="btn-edit btn btn-sm btn-warning me-1" (click)="avviaModificaStanza(s)">✏️ Modifica</button>
+                  <button class="btn-edit btn btn-sm btn-warning me-1" (click)="avviaModificaStanza(s)">✏️
+                    Modifica</button>
                   <button class="btn-delete" (click)="eliminaStanza(s.id)">Elimina</button>
                 </div>
               </td>
@@ -313,7 +315,8 @@
     <section class="admin-section">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="section-title m-0">Elenco Tipologie Camera</h3>
-        <button class="btn-primary" (click)="mostraFormTipologia ? annullaModificaTipoCamera() : mostraFormTipologia = true">
+        <button class="btn-primary"
+          (click)="mostraFormTipologia ? annullaModificaTipoCamera() : mostraFormTipologia = true">
           {{ mostraFormTipologia ? 'Chiudi Form' : 'Crea Tipologia Camera' }}
         </button>
       </div>
@@ -353,7 +356,8 @@
             <button class="btn-primary" type="submit">
               {{ idTipoCameraInModifica ? 'Aggiorna Tipologia' : 'Salva Tipologia' }}
             </button>
-            <button *ngIf="idTipoCameraInModifica" class="btn-secondary" type="button" (click)="annullaModificaTipoCamera()">Annulla</button>
+            <button *ngIf="idTipoCameraInModifica" class="btn-secondary" type="button"
+              (click)="annullaModificaTipoCamera()">Annulla</button>
           </div>
         </form>
       </div>
@@ -379,7 +383,8 @@
               <td>{{ t.prezzo }} €</td>
               <td>
                 <div class="d-flex gap-1">
-                  <button class="btn-edit btn btn-sm btn-warning me-1" (click)="avviaModificaTipoCamera(t)">✏️ Modifica</button>
+                  <button class="btn-edit btn btn-sm btn-warning me-1" (click)="avviaModificaTipoCamera(t)">✏️
+                    Modifica</button>
                   <button class="btn-delete" (click)="eliminaTipoCamera(getTipologiaId(t))">Elimina</button>
                 </div>
               </td>
@@ -399,7 +404,8 @@
     <section class="admin-section">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="section-title m-0">Elenco Servizi Aggiuntivi</h3>
-        <button class="btn-primary" (click)="mostraFormServizio ? annullaModificaServizio() : mostraFormServizio = true">
+        <button class="btn-primary"
+          (click)="mostraFormServizio ? annullaModificaServizio() : mostraFormServizio = true">
           {{ mostraFormServizio ? 'Chiudi Form' : 'Crea Servizio' }}
         </button>
       </div>
@@ -432,7 +438,8 @@
             <button class="btn-primary" type="submit">
               {{ idServizioInModifica ? 'Aggiorna Servizio' : 'Salva Servizio' }}
             </button>
-            <button *ngIf="idServizioInModifica" class="btn-secondary" type="button" (click)="annullaModificaServizio()">Annulla</button>
+            <button *ngIf="idServizioInModifica" class="btn-secondary" type="button"
+              (click)="annullaModificaServizio()">Annulla</button>
           </div>
         </form>
       </div>
@@ -456,7 +463,8 @@
               <td>{{ getServizioPrezzo(s) }} €</td>
               <td>
                 <div class="d-flex gap-1">
-                  <button class="btn-edit btn btn-sm btn-warning me-1" (click)="avviaModificaServizio(s)">✏️ Modifica</button>
+                  <button class="btn-edit btn btn-sm btn-warning me-1" (click)="avviaModificaServizio(s)">✏️
+                    Modifica</button>
                   <button class="btn-delete" (click)="eliminaServizio(getServizioId(s))">Elimina</button>
                 </div>
               </td>

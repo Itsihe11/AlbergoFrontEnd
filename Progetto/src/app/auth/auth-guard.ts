@@ -1,5 +1,5 @@
 import { inject } from '@angular/core';
-import { Router,CanActivateFn } from '@angular/router';
+import { Router, CanActivateFn } from '@angular/router';
 import { AuthService } from '../services/auth-services';
 
 
@@ -13,7 +13,7 @@ export const clienteGuard = (): boolean => {
     return true;
   }
   console.warn('Accesso bloccato dal Guard.');
-  router.navigate(['/utenti']); 
+  router.navigate(['/utenti']);
   return false;
 };
 

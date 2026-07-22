@@ -1,82 +1,77 @@
 <div class="ac-container">
 
-    <!-- HEADER -->
-    <div class="ac-header">
-        <h2 class="ac-title">Area Cliente - Dettagli Prenotazione</h2>
-        <button class="ac-btn ac-btn-outline-danger" (click)="logout()">Esci</button>
-    </div>
+  <div class="ac-header">
+    <h2 class="ac-title">Area Cliente - Dettagli Prenotazione</h2>
+    <button class="ac-btn ac-btn-outline-danger" (click)="logout()">Esci</button>
+  </div>
 
-    <!-- MESSAGGI DI ERRORE O CONFERMA -->
-    @if (messaggio) {
-    <div class="ac-alert ac-alert-success" role="alert">
-        {{ messaggio }}
-    </div>
-    }
-    @if (errore) {
-    <div class="ac-alert ac-alert-danger" role="alert">
-        {{ errore }}
-    </div>
-    }
+  @if (messaggio) {
+  <div class="ac-alert ac-alert-success" role="alert">
+    {{ messaggio }}
+  </div>
+  }
+  @if (errore) {
+  <div class="ac-alert ac-alert-danger" role="alert">
+    {{ errore }}
+  </div>
+  }
 
-    <!-- SCHEDA DETTAGLI PRENOTAZIONE -->
-    @if (prenotazione) {
-    <div class="ac-card">
-        <div class="ac-card-header">
-            <h4 class="ac-card-title">Prenotazione #{{ prenotazione.codice_prenotazione || prenotazione.codicePrenotazione }}</h4>
-            <span class="ac-badge">{{ prenotazione.stato || 'CONFERMATA' }}</span>
+  @if (prenotazione) {
+  <div class="ac-card">
+    <div class="ac-card-header">
+      <h4 class="ac-card-title">Prenotazione #{{ prenotazione.codice_prenotazione || prenotazione.codicePrenotazione }}
+      </h4>
+      <span class="ac-badge">{{ prenotazione.stato || 'CONFERMATA' }}</span>
+    </div>
+    <div class="ac-card-body">
+      <div class="ac-info-grid">
+        <div class="ac-info-col">
+          <p><strong>Tipo Prenotazione:</strong> {{ prenotazione.tipo_prenotazione ||
+            prenotazione.tipoPrenotazione }}</p>
+          <p><strong>Canale:</strong> {{ prenotazione.dove_prenotazione || prenotazione.dovePrenotazione }}
+          </p>
+          <p><strong>Metodo di Pagamento:</strong> {{ prenotazione.tipo_pagamento ||
+            prenotazione.tipoPagamento }}</p>
         </div>
-        <div class="ac-card-body">
-            <div class="ac-info-grid">
-                <div class="ac-info-col">
-                    <p><strong>Tipo Prenotazione:</strong> {{ prenotazione.tipo_prenotazione ||
-                        prenotazione.tipoPrenotazione }}</p>
-                    <p><strong>Canale:</strong> {{ prenotazione.dove_prenotazione || prenotazione.dovePrenotazione }}
-                    </p>
-                    <p><strong>Metodo di Pagamento:</strong> {{ prenotazione.tipo_pagamento ||
-                        prenotazione.tipoPagamento }}</p>
-                </div>
-                <div class="ac-info-col">
-                    <p><strong>Costo Totale:</strong> {{ prenotazione.costo_totale || prenotazione.costoTotale }} €</p>
-                    <p><strong>Acconto/Deposito:</strong> {{ prenotazione.deposito }} €</p>
-                    <p><strong>Stato Pagamento:</strong> {{ prenotazione.pagato ? 'Saldato' : 'In Sospeso' }}</p>
-                </div>
-            </div>
-
-            <hr class="ac-divider" />
-
-            <!-- ELENCO OSPITI -->
-            <h5 class="ac-section-label">👥 Ospiti Registrati:</h5>
-            <ul class="ac-list">
-                @for (ospite of prenotazione.ospiti; track $index) {
-                <li class="ac-list-item">
-                    <span><strong>{{ ospite.nome }} {{ ospite.cognome }}</strong></span>
-                    @if (ospite.datanascita) {
-                    <small class="ac-muted">
-                        Nascita: {{ ospite.datanascita | date:'dd/MM/yyyy' }}
-                    </small>
-                    }
-                </li>
-                } @empty {
-                <li class="ac-list-item ac-muted">Nessun ospite dettagliato presente al momento.</li>
-                }
-            </ul>
-
-            <!-- PULSANTI AZIONE -->
-            <div class="ac-actions">
-                <button class="ac-btn ac-btn-warning" (click)="apriModificaOspiti()">
-                    ✏️ Modifica Ospiti
-                </button>
-                <button class="ac-btn ac-btn-danger" (click)="annullaPrenotazione()">
-                    🗑️ Annulla Prenotazione
-                </button>
-            </div>
-
+        <div class="ac-info-col">
+          <p><strong>Costo Totale:</strong> {{ prenotazione.costo_totale || prenotazione.costoTotale }} €</p>
+          <p><strong>Acconto/Deposito:</strong> {{ prenotazione.deposito }} €</p>
+          <p><strong>Stato Pagamento:</strong> {{ prenotazione.pagato ? 'Saldato' : 'In Sospeso' }}</p>
         </div>
-    </div>
-    }
+      </div>
 
- <!-- MODAL MODIFICA OSPITI & CREAZIONE ACCOUNT -->
-@if (mostraModalModifica) {
+      <hr class="ac-divider" />
+
+      <h5 class="ac-section-label">👥 Ospiti Registrati:</h5>
+      <ul class="ac-list">
+        @for (ospite of prenotazione.ospiti; track $index) {
+        <li class="ac-list-item">
+          <span><strong>{{ ospite.nome }} {{ ospite.cognome }}</strong></span>
+          @if (ospite.datanascita) {
+          <small class="ac-muted">
+            Nascita: {{ ospite.datanascita | date:'dd/MM/yyyy' }}
+          </small>
+          }
+        </li>
+        } @empty {
+        <li class="ac-list-item ac-muted">Nessun ospite dettagliato presente al momento.</li>
+        }
+      </ul>
+
+      <div class="ac-actions">
+        <button class="ac-btn ac-btn-warning" (click)="apriModificaOspiti()">
+          Modifica Ospiti
+        </button>
+        <button class="ac-btn ac-btn-danger" (click)="annullaPrenotazione()">
+          Annulla Prenotazione
+        </button>
+      </div>
+
+    </div>
+  </div>
+  }
+
+  @if (mostraModalModifica) {
   <div class="ac-modal-overlay">
     <div class="ac-modal-dialog">
       <div class="ac-modal-content">
@@ -87,32 +82,30 @@
 
         <div class="ac-modal-body">
 
-          <!-- BOX DI ERRORE (VISIBILE ALL'UTENTE DENTRO IL MODAL) -->
           @if (errore) {
-            <div class="ac-alert ac-alert-danger">
-              ⚠️ {{ errore }}
-            </div>
+          <div class="ac-alert ac-alert-danger">
+            {{ errore }}
+          </div>
           }
 
           <div class="ac-alert ac-alert-info">
-            📌 <strong>Nota:</strong> Per salvare le modifiche agli ospiti è obbligatorio creare un account inserendo Email e PIN.
+            📌 <strong>Nota:</strong> Per salvare le modifiche agli ospiti è obbligatorio creare un account inserendo
+            Email e PIN.
           </div>
 
-          <!-- ELENCO EDITABILE OSPITI -->
           <h6 class="ac-section-label">Inserisci Ospiti:</h6>
           @for (ospite of nuoviOspiti; track $index) {
-            <div class="ac-guest-row">
-              <input type="text" class="ac-input" placeholder="Nome" [(ngModel)]="ospite.nome">
-              <input type="text" class="ac-input" placeholder="Cognome" [(ngModel)]="ospite.cognome">
-              <input type="date" class="ac-input" [(ngModel)]="ospite.datanascita">
-              <button class="ac-btn ac-btn-remove" (click)="rimuoviOspite($index)">X</button>
-            </div>
+          <div class="ac-guest-row">
+            <input type="text" class="ac-input" placeholder="Nome" [(ngModel)]="ospite.nome">
+            <input type="text" class="ac-input" placeholder="Cognome" [(ngModel)]="ospite.cognome">
+            <input type="date" class="ac-input" [(ngModel)]="ospite.datanascita">
+            <button class="ac-btn ac-btn-remove" (click)="rimuoviOspite($index)">X</button>
+          </div>
           }
           <button class="ac-btn ac-btn-secondary ac-btn-sm" (click)="aggiungiOspite()">+ Aggiungi Ospite</button>
 
           <hr class="ac-divider" />
 
-          <!-- CREAZIONE ACCOUNT -->
           <h6 class="ac-section-label ac-highlight">Crea Account Utente (Obbligatorio):</h6>
           <div class="ac-account-grid">
             <div class="ac-field">
@@ -134,6 +127,6 @@
       </div>
     </div>
   </div>
-}
+  }
 
 </div>
